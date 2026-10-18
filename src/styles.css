@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  --color-bg: #eaf4ff;
+  --color-surface: #ffffff;
+  --color-surface-2: #f1f7ff;
+  --color-fg: #0e2a4a;
+  --color-muted: #5a7391;
+  --color-primary: #2b86f5;
+  --color-primary-deep: #1d6fe0;
+  --color-primary-soft: #dcebff;
+  --color-primary-fg: #ffffff;
+  --color-accent: #e59a0b;
+  --color-danger: #e0484d;
+  --color-border: #d2e3f7;
+  --color-whatsapp: #19a35a;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --radius-lg: 1rem;
+  --radius-md: 0.75rem;
+  --shadow-card: 0 1px 2px rgba(20, 70, 140, 0.05), 0 8px 24px -10px rgba(43, 134, 245, 0.18);
+}
+
+@layer base {
+  html,
+  body {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    min-height: 100%;
+  }
+  body {
+    background-image:
+      radial-gradient(ellipse 60% 40% at 90% -5%, rgba(125, 190, 255, 0.55), transparent),
+      radial-gradient(ellipse 50% 35% at 0% 0%, rgba(190, 225, 255, 0.8), transparent),
+      linear-gradient(180deg, #e3f1ff 0%, #f2f8ff 45%, #fafcff 100%);
+    background-attachment: fixed;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  input,
+  select,
+  textarea {
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input:focus,
+  select:focus,
+  textarea:focus {
+    box-shadow: 0 0 0 3px rgba(43, 134, 245, 0.18);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+.fade-up {
+  animation: fade-up 0.28s ease-out both;
+}
+.skeleton {
+  background: linear-gradient(90deg, #e1edfb 25%, #f2f8ff 50%, #e1edfb 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+  border-radius: 0.75rem;
+}
+/* Listas longas rolam mais leves: o navegador pula o que está fora da tela. */
+.lead-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 150px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fade-up,
+  .skeleton {
+    animation: none;
+  }
+}
+
+/* Tema escuro: só troca as cores; os componentes continuam iguais. */
+html[data-theme="dark"] {
+  --color-bg: #0a1628;
+  --color-surface: #112240;
+  --color-surface-2: #0d1b34;
+  --color-fg: #e5eefc;
+  --color-muted: #8fa8c9;
+  --color-primary: #4f9dff;
+  --color-primary-deep: #2f80ee;
+  --color-primary-soft: #17335e;
+  --color-accent: #f2b33d;
+  --color-danger: #ff6b70;
+  --color-border: #22406b;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+html[data-theme="dark"] body {
+  background-image:
+    radial-gradient(ellipse 60% 40% at 90% -5%, rgba(47, 128, 238, 0.28), transparent),
+    radial-gradient(ellipse 50% 35% at 0% 0%, rgba(47, 128, 238, 0.14), transparent),
+    linear-gradient(180deg, #0a1628 0%, #0b1a30 100%);
+}
+html[data-theme="dark"] .skeleton {
+  background: linear-gradient(90deg, #14284a 25%, #1b3560 50%, #14284a 75%);
+  background-size: 200% 100%;
+}
