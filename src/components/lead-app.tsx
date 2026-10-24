@@ -21,14 +21,17 @@ import {
   Moon,
   Phone,
   PhoneCall,
+  Plus,
   Search,
   ShieldCheck,
+  Smartphone,
   Sparkles,
   Star,
   Sun,
   Target,
   Trash2,
   TrendingUp,
+  Upload,
   UserPlus,
   Users,
   Wallet,
@@ -49,6 +52,8 @@ import {
   getDeviceId,
   loadAccessKey,
   loadFollowMsg,
+  loadGoal,
+  loadTourDone,
   loadMsg,
   loadPrefs,
   loadPipeline,
@@ -57,6 +62,8 @@ import {
   loadUserName,
   saveAccessKey,
   saveFollowMsg,
+  saveGoal,
+  saveTourDone,
   saveMsg,
   savePrefs,
   savePipeline,
@@ -104,7 +111,7 @@ const CITIES = [
 
 const QUANTITIES = [5, 10, 15, 20, 30, 40, 50, 60];
 
-type Tab = "buscar" | "pipeline" | "vendas";
+type Tab = "buscar" | "hoje" | "pipeline" | "vendas";
 
 const STATUSES: { id: Status; label: string }[] = [
   { id: "novo", label: "Novo" },
@@ -120,9 +127,102 @@ function formatPhone(phone: string) {
   return phone;
 }
 
+function fillTemplate(template: string, name: string, city = "") {
+  return template.replaceAll("{nome}", name).replaceAll("{cidade}", city.split(",")[0]);
+}
+
 function waLink(phone: string, name: string, template: string, city = "") {
-  const text = template.replaceAll("{nome}", name).replaceAll("{cidade}", city.split(",")[0]);
-  return `https://wa.me/55${phone}?text=${encodeURIComponent(text)}`;
+  return `https://wa.me/55${phone}?text=${encodeURIComponent(fillTemplate(template, name, city))}`;
+}
+
+function daysSince(iso: string) {
+  return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+}
+
+function normalizePhone(raw: string) {
+  let digits = raw.replace(/\D/g, "");
+  if (digits.startsWith("55") && digits.length >= 12) digits = digits.slice(2);
+  return digits.length === 10 || digits.length === 11 ? digits : "";
+}
+
+function parseCsv(text: string) {
+  const clean = text.replace(/^\ufeff/, "");
+  const first = clean.split("\n")[0] ?? "";
+  const sep = (first.match(/;/g)?.length ?? 0) >= (first.match(/,/g)?.length ?? 0) ? ";" : ",";
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = "";
+  let quoted = false;
+  const endRow = () => {
+    row.push(cell);
+    cell = "";
+    if (row.some((value) => value.trim())) rows.push(row);
+    row = [];
+  };
+  for (let i = 0; i < clean.length; i += 1) {
+    const ch = clean[i];
+    if (quoted) {
+      if (ch === '"') {
+        if (clean[i + 1] === '"') {
+          cell += '"';
+          i += 1;
+        } else quoted = false;
+      } else cell += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === sep) {
+      row.push(cell);
+      cell = "";
+    } else if (ch === "\n" || ch === "\r") {
+      if (ch === "\r" && clean[i + 1] === "\n") i += 1;
+      endRow();
+    } else cell += ch;
+  }
+  endRow();
+  return rows;
+}
+
+/** Transforma uma planilha (nome, telefone, cidade, notas) em leads do pipeline. */
+function leadsFromCsv(text: string, fallbackCity: string, ticket: number) {
+  const rows = parseCsv(text);
+  if (!rows.length) return { leads: [] as SavedLead[], skipped: 0 };
+  const head = rows[0].map((cell) => cell.trim().toLowerCase());
+  const find = (pattern: RegExp) => head.findIndex((cell) => pattern.test(cell));
+  let iName = find(/^(nome|name|empresa)/);
+  let iPhone = find(/(telefone|phone|celular|whatsapp|fone)/);
+  const iCity = find(/cidade|city/);
+  const iNotes = find(/nota|obs/);
+  const hasHeader = iName >= 0 || iPhone >= 0;
+  if (iName < 0) iName = 0;
+  if (iPhone < 0) iPhone = 1;
+  const data = hasHeader ? rows.slice(1) : rows;
+  const leads: SavedLead[] = [];
+  let skipped = 0;
+  const seen = new Set<string>();
+  data.forEach((cols, index) => {
+    const name = (cols[iName] ?? "").trim();
+    const phone = normalizePhone(cols[iPhone] ?? "");
+    if (!name || !phone || seen.has(phone)) {
+      skipped += 1;
+      return;
+    }
+    seen.add(phone);
+    leads.push({
+      id: `csv-${Date.now()}-${index}`,
+      name,
+      category: "Importado",
+      phone,
+      rating: 0,
+      reviews: 0,
+      address: "",
+      mapsUrl: null,
+      city: (iCity >= 0 ? (cols[iCity] ?? "").trim() : "") || fallbackCity,
+      status: "novo",
+      notes: iNotes >= 0 ? (cols[iNotes] ?? "").trim() : "",
+      value: ticket,
+      addedAt: new Date().toISOString(),
+    });
+  });
+  return { leads, skipped };
 }
 
 function money(value: number) {
@@ -395,6 +495,7 @@ const PipelineRow = memo(function PipelineRow({
   onNotes,
   onRemove,
   onCopy,
+  onContact,
 }: {
   lead: SavedLead;
   message: string;
@@ -403,10 +504,13 @@ const PipelineRow = memo(function PipelineRow({
   onStatus: (id: string, status: Status) => void;
   onNotes: (id: string) => void;
   onRemove: (id: string) => void;
-  onCopy: (phone: string) => void;
+  onCopy: (text: string, label: string) => void;
+  onContact: (id: string) => void;
 }) {
   const follow = followState(lead.followUp, today);
   const active = lead.status !== "fechado" && lead.status !== "perdido";
+  const idle = active && lead.status !== "novo" && lead.lastContact ? daysSince(lead.lastContact) : 0;
+  const stale = idle >= 3;
   return (
     <article className={`lead-card fade-up p-4 ${card}`}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -415,8 +519,13 @@ const PipelineRow = memo(function PipelineRow({
           <p className="text-sm text-muted">
             {formatPhone(lead.phone)} · {lead.city}
           </p>
-          {(follow && active) || lead.notes ? (
+          {(follow && active) || stale || lead.notes ? (
             <div className="mt-1.5 flex flex-wrap items-center gap-2">
+              {stale && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800 dark:bg-amber-500/20 dark:text-amber-200">
+                  <Clock className="size-3.5" /> Sem contato há {idle} dias
+                </span>
+              )}
               {follow && active && (
                 <span
                   className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${
@@ -451,6 +560,7 @@ const PipelineRow = memo(function PipelineRow({
             href={waLink(lead.phone, lead.name, lead.status === "novo" ? message : followMessage, lead.city)}
             target="_blank"
             rel="noreferrer"
+            onClick={() => onContact(lead.id)}
             className="inline-flex items-center gap-1 rounded-xl bg-whatsapp px-3 py-2 text-sm font-semibold text-primary-fg shadow-sm transition hover:brightness-105"
           >
             <MessageCircle className="size-4" /> {lead.status === "novo" ? "Falar" : "Retorno"}
@@ -458,8 +568,25 @@ const PipelineRow = memo(function PipelineRow({
           <a href={`tel:+55${lead.phone}`} aria-label="Ligar" className={`${btnGhost} px-2.5`}>
             <PhoneCall className="size-4" />
           </a>
-          <button type="button" aria-label="Copiar telefone" onClick={() => onCopy(lead.phone)} className={`${btnGhost} px-2.5`}>
+          <button
+            type="button"
+            aria-label="Copiar telefone"
+            onClick={() => onCopy(lead.phone, "Telefone copiado")}
+            className={`${btnGhost} px-2.5`}
+          >
             <Copy className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              onCopy(
+                fillTemplate(lead.status === "novo" ? message : followMessage, lead.name, lead.city),
+                "Mensagem copiada",
+              )
+            }
+            className={btnGhost}
+          >
+            Copiar msg
           </button>
           <button type="button" onClick={() => onNotes(lead.id)} className={btnGhost}>
             Notas
@@ -485,6 +612,7 @@ const KanbanBoard = memo(function KanbanBoard({
   today,
   onStatus,
   onNotes,
+  onContact,
 }: {
   rows: SavedLead[];
   message: string;
@@ -492,6 +620,7 @@ const KanbanBoard = memo(function KanbanBoard({
   today: string;
   onStatus: (id: string, status: Status) => void;
   onNotes: (id: string) => void;
+  onContact: (id: string) => void;
 }) {
   const [over, setOver] = useState<Status | null>(null);
   return (
@@ -544,6 +673,7 @@ const KanbanBoard = memo(function KanbanBoard({
                         target="_blank"
                         rel="noreferrer"
                         aria-label="WhatsApp"
+                        onClick={() => onContact(lead.id)}
                         className="rounded-lg bg-whatsapp p-1.5 text-primary-fg"
                       >
                         <MessageCircle className="size-3.5" />
@@ -595,6 +725,15 @@ export function LeadApp() {
   const [resQuery, setResQuery] = useState("");
   const [pipeQuery, setPipeQuery] = useState("");
   const [toast, setToast] = useState("");
+  const [toastAction, setToastAction] = useState<{ label: string; run: () => void } | null>(null);
+  const [pipeSort, setPipeSort] = useState<"recentes" | "retorno" | "valor" | "nome">("recentes");
+  const [adding, setAdding] = useState(false);
+  const [addForm, setAddForm] = useState({ name: "", phone: "", city: "", notes: "" });
+  const [addError, setAddError] = useState("");
+  const [goal, setGoal] = useState(0);
+  const [tourOpen, setTourOpen] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+  const [installEvent, setInstallEvent] = useState<{ prompt: () => Promise<void> } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [ticket, setTicket] = useState(1500);
   const [message, setMessage] = useState(DEFAULT_MSG);
@@ -631,6 +770,7 @@ export function LeadApp() {
       setMinRating(prefs.minRating ?? 4);
     }
     setFollowMessage(loadFollowMsg());
+    setGoal(loadGoal());
     const savedTheme = loadTheme();
     setTheme(savedTheme);
     const device = getDeviceId();
@@ -702,6 +842,7 @@ export function LeadApp() {
           if (cloud.ticket) setTicket(cloud.ticket);
           if (cloud.message) setMessage(cloud.message);
           if (cloud.followMessage) setFollowMessage(cloud.followMessage);
+          if (cloud.goal) setGoal(cloud.goal);
         }
         setCloudReady(true);
       })
@@ -732,7 +873,7 @@ export function LeadApp() {
           key: accessKey,
           deviceId,
           baseVersion: versionRef.current,
-          payload: { pipeline, ticket, message, followMessage },
+          payload: { pipeline, ticket, message, followMessage, goal },
         },
       }).catch(() => null);
       if (!res) {
@@ -757,7 +898,7 @@ export function LeadApp() {
     }, 1500);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pipeline, ticket, message, followMessage, cloudReady, step]);
+  }, [pipeline, ticket, message, followMessage, goal, cloudReady, step]);
 
   // Nuvem: ao voltar para a aba, traz o que outro aparelho salvou.
   useEffect(() => {
@@ -777,6 +918,7 @@ export function LeadApp() {
             if (res.data.ticket) setTicket(res.data.ticket);
             if (res.data.message) setMessage(res.data.message);
             if (res.data.followMessage) setFollowMessage(res.data.followMessage);
+            if (res.data.goal) setGoal(res.data.goal);
           }
         })
         .catch(() => undefined);
@@ -784,6 +926,24 @@ export function LeadApp() {
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [cloudReady, step, accessKey, deviceId]);
+
+  useEffect(() => {
+    if (step === "app" && !loadTourDone()) setTourOpen(true);
+  }, [step]);
+
+  useEffect(() => {
+    const onPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallEvent(event as unknown as { prompt: () => Promise<void> });
+    };
+    const onInstalled = () => setInstallEvent(null);
+    window.addEventListener("beforeinstallprompt", onPrompt);
+    window.addEventListener("appinstalled", onInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onPrompt);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
+  }, []);
 
   const today = todayIso();
   const deferredPipeQuery = useDeferredValue(pipeQuery);
@@ -799,14 +959,55 @@ export function LeadApp() {
 
   const visible = useMemo(() => {
     const q = deferredPipeQuery.trim().toLowerCase();
-    return pipeline.filter((row) => {
+    const list = pipeline.filter((row) => {
       if (filter === "retornos") {
         if (!row.followUp || row.followUp > today || row.status === "fechado" || row.status === "perdido") return false;
       } else if (filter !== "todos" && row.status !== filter) return false;
       if (!q) return true;
       return `${row.name} ${row.phone} ${row.city} ${row.notes}`.toLowerCase().includes(q);
     });
-  }, [pipeline, filter, deferredPipeQuery, today]);
+    if (pipeSort === "retorno") list.sort((a, b) => (a.followUp || "9999").localeCompare(b.followUp || "9999"));
+    if (pipeSort === "valor") list.sort((a, b) => (b.value || 0) - (a.value || 0));
+    if (pipeSort === "nome") list.sort((a, b) => a.name.localeCompare(b.name));
+    return list;
+  }, [pipeline, filter, deferredPipeQuery, today, pipeSort]);
+
+  // Tela "Hoje": o que fazer agora.
+  const todayLists = useMemo(() => {
+    const active = pipeline.filter((row) => row.status !== "fechado" && row.status !== "perdido");
+    const due = active
+      .filter((row) => row.followUp && row.followUp <= today)
+      .sort((a, b) => a.followUp!.localeCompare(b.followUp!));
+    const stale = active.filter(
+      (row) =>
+        row.status !== "novo" &&
+        !(row.followUp && row.followUp <= today) &&
+        row.lastContact &&
+        daysSince(row.lastContact) >= 3,
+    );
+    const fresh = active.filter((row) => row.status === "novo").slice(0, 10);
+    return { due, stale, fresh };
+  }, [pipeline, today]);
+
+  const months = useMemo(() => {
+    const now = new Date();
+    const list: { key: string; label: string; total: number }[] = [];
+    for (let i = 5; i >= 0; i -= 1) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      list.push({
+        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+        label: d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", ""),
+        total: 0,
+      });
+    }
+    for (const row of pipeline) {
+      if (row.status !== "fechado") continue;
+      const key = (row.closedAt || row.addedAt).slice(0, 7);
+      const slot = list.find((item) => item.key === key);
+      if (slot) slot.total += row.value || ticket;
+    }
+    return list;
+  }, [pipeline, ticket]);
 
   const shownResults = useMemo(() => {
     const q = deferredResQuery.trim().toLowerCase();
@@ -884,10 +1085,20 @@ export function LeadApp() {
     }
   }
 
-  const notify = useCallback((text: string) => {
+  const pipelineRef = useRef(pipeline);
+  pipelineRef.current = pipeline;
+
+  const notify = useCallback((text: string, action?: { label: string; run: () => void }) => {
     setToast(text);
+    setToastAction(action ?? null);
     if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(""), 2200);
+    toastTimer.current = setTimeout(
+      () => {
+        setToast("");
+        setToastAction(null);
+      },
+      action ? 6000 : 2200,
+    );
   }, []);
 
   const keep = useCallback(
@@ -925,22 +1136,113 @@ export function LeadApp() {
   }
 
   const setStatus = useCallback((id: string, status: Status) => {
-    setPipeline((rows) => rows.map((row) => (row.id === id ? { ...row, status } : row)));
+    setPipeline((rows) =>
+      rows.map((row) => {
+        if (row.id !== id || row.status === status) return row;
+        const stamp = new Date().toISOString();
+        return {
+          ...row,
+          status,
+          lastContact: status === "contatado" || status === "proposta" ? stamp : row.lastContact,
+          closedAt: status === "fechado" ? stamp : undefined,
+        };
+      }),
+    );
   }, []);
 
-  const removeLead = useCallback((id: string) => {
-    setPipeline((rows) => rows.filter((row) => row.id !== id));
+  const markContact = useCallback((id: string) => {
+    const stamp = new Date().toISOString();
+    setPipeline((rows) => rows.map((row) => (row.id === id ? { ...row, lastContact: stamp } : row)));
   }, []);
 
-  const copyPhone = useCallback(
-    (phone: string) => {
+  const removeLead = useCallback(
+    (id: string) => {
+      const list = pipelineRef.current;
+      const index = list.findIndex((row) => row.id === id);
+      if (index < 0) return;
+      const removed = list[index];
+      setPipeline((rows) => rows.filter((row) => row.id !== id));
+      notify(`${removed.name} removido`, {
+        label: "Desfazer",
+        run: () =>
+          setPipeline((rows) =>
+            rows.some((row) => row.id === removed.id)
+              ? rows
+              : [...rows.slice(0, index), removed, ...rows.slice(index)],
+          ),
+      });
+    },
+    [notify],
+  );
+
+  const copyText = useCallback(
+    (text: string, label: string) => {
       navigator.clipboard
-        ?.writeText(phone)
-        .then(() => notify("Telefone copiado"))
+        ?.writeText(text)
+        .then(() => notify(label))
         .catch(() => notify("Não consegui copiar"));
     },
     [notify],
   );
+
+  function addManual() {
+    const name = addForm.name.trim();
+    const phone = normalizePhone(addForm.phone);
+    if (name.length < 2) {
+      setAddError("Digite o nome da empresa.");
+      return;
+    }
+    if (!phone) {
+      setAddError("Digite o telefone com DDD (10 ou 11 números).");
+      return;
+    }
+    if (pipeline.some((row) => row.phone === phone)) {
+      setAddError("Esse telefone já está no pipeline.");
+      return;
+    }
+    setPipeline((rows) => [
+      {
+        id: `manual-${Date.now()}`,
+        name,
+        category: "Manual",
+        phone,
+        rating: 0,
+        reviews: 0,
+        address: "",
+        mapsUrl: null,
+        city: addForm.city.trim() || city,
+        status: "novo",
+        notes: addForm.notes.trim(),
+        value: ticket,
+        addedAt: new Date().toISOString(),
+      },
+      ...rows,
+    ]);
+    setAddForm({ name: "", phone: "", city: "", notes: "" });
+    setAddError("");
+    setAdding(false);
+    notify("Lead adicionado");
+  }
+
+  async function importCsv(file: File) {
+    const text = await file.text().catch(() => "");
+    const { leads, skipped } = leadsFromCsv(text, city, ticket);
+    const known = new Set(pipelineRef.current.map((row) => row.phone));
+    const fresh = leads.filter((lead) => !known.has(lead.phone));
+    const ignored = skipped + (leads.length - fresh.length);
+    if (fresh.length) setPipeline((rows) => [...fresh, ...rows]);
+    notify(
+      fresh.length
+        ? `${fresh.length} importados${ignored ? `, ${ignored} ignorados` : ""}`
+        : "Nenhum lead novo no arquivo (precisa de nome e telefone)",
+    );
+  }
+
+  async function installApp() {
+    if (!installEvent) return;
+    await installEvent.prompt().catch(() => undefined);
+    setInstallEvent(null);
+  }
 
   async function submitKey() {
     const key = keyInput.trim();
@@ -984,6 +1286,7 @@ export function LeadApp() {
     setInfo(null);
     setPipeline([]);
     setResults([]);
+    setGoal(0);
     setCloudReady(false);
     setSync("idle");
     versionRef.current = 0;
@@ -1000,7 +1303,7 @@ export function LeadApp() {
           key: accessKey,
           deviceId,
           baseVersion: versionRef.current,
-          payload: { pipeline, ticket, message, followMessage },
+          payload: { pipeline, ticket, message, followMessage, goal },
         },
       }).catch(() => null);
     }
@@ -1133,6 +1436,7 @@ export function LeadApp() {
             {(
               [
                 ["buscar", "Buscar"],
+                ["hoje", "Hoje"],
                 ["pipeline", "Pipeline"],
                 ["vendas", "Vendas"],
               ] as const
@@ -1146,9 +1450,17 @@ export function LeadApp() {
                 }`}
               >
                 {label}
+                {id === "hoje" && dueCount > 0 && (
+                  <span className="ml-1.5 rounded-full bg-danger px-1.5 py-0.5 text-[10px] font-bold text-white">{dueCount}</span>
+                )}
               </button>
             ))}
           </nav>
+          {installEvent && (
+            <button type="button" onClick={() => void installApp()} className={`${btnGhost} inline-flex items-center gap-2`}>
+              <Smartphone className="size-4" /> Instalar
+            </button>
+          )}
           <span
             title={sync === "error" ? "Sem conexão: seus dados estão só neste aparelho por enquanto" : sync === "saving" ? "Salvando na nuvem…" : "Salvo na nuvem"}
             className="flex size-9 items-center justify-center text-muted"
@@ -1371,6 +1683,47 @@ export function LeadApp() {
         </section>
       )}
 
+      {tab === "hoje" && (
+        <section className="fade-up space-y-5">
+          <div className={`p-4 sm:p-5 ${card}`}>
+            <h2 className="font-display text-xl font-semibold">Seu dia</h2>
+            <p className="mt-1 text-sm text-muted">
+              {todayLists.due.length} retorno(s) para hoje ou atrasados · {todayLists.stale.length} parado(s) · {todayLists.fresh.length} lead(s) novo(s) para chamar
+            </p>
+          </div>
+          {(
+            [
+              ["Retornos de hoje e atrasados", todayLists.due],
+              ["Parados há 3 dias ou mais", todayLists.stale],
+              ["Novos para chamar (até 10)", todayLists.fresh],
+            ] as const
+          ).map(([title, rows]) => (
+            <div key={title} className="space-y-3">
+              <h3 className="text-sm font-bold uppercase tracking-wide text-muted">
+                {title} ({rows.length})
+              </h3>
+              {rows.length === 0 && <p className={`px-4 py-6 text-center text-sm text-muted ${card}`}>Nada aqui. Bom trabalho!</p>}
+              <div className="grid gap-3">
+                {rows.map((lead) => (
+                  <PipelineRow
+                    key={lead.id}
+                    lead={lead}
+                    message={message}
+                    followMessage={followMessage}
+                    today={today}
+                    onStatus={setStatus}
+                    onNotes={setOpenId}
+                    onRemove={removeLead}
+                    onCopy={copyText}
+                    onContact={markContact}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
+
       {tab === "pipeline" && (
         <section className="fade-up space-y-4">
           <div className={`flex flex-wrap items-center gap-2 p-3 ${card}`}>
@@ -1391,6 +1744,33 @@ export function LeadApp() {
             >
               <Download className="size-4" /> Exportar CSV
             </button>
+            <button type="button" onClick={() => setAdding(true)} className={`${btnGhost} inline-flex items-center gap-2`}>
+              <Plus className="size-4" /> Adicionar lead
+            </button>
+            <label className={`${btnGhost} inline-flex cursor-pointer items-center gap-2`}>
+              <Upload className="size-4" /> Importar CSV
+              <input
+                type="file"
+                accept=".csv,text/csv,text/plain"
+                className="hidden"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = "";
+                  if (file) void importCsv(file);
+                }}
+              />
+            </label>
+            <select
+              value={pipeSort}
+              onChange={(event) => setPipeSort(event.target.value as typeof pipeSort)}
+              aria-label="Ordenar pipeline"
+              className="rounded-xl border border-border bg-surface px-2.5 py-2 text-sm outline-none focus:border-primary"
+            >
+              <option value="recentes">Mais recentes</option>
+              <option value="retorno">Retorno mais próximo</option>
+              <option value="valor">Maior valor</option>
+              <option value="nome">Nome (A–Z)</option>
+            </select>
             <div className="flex rounded-xl bg-primary-soft p-1">
               <button
                 type="button"
@@ -1441,6 +1821,7 @@ export function LeadApp() {
               today={today}
               onStatus={setStatus}
               onNotes={setOpenId}
+              onContact={markContact}
             />
           )}
           <div className={view === "lista" ? "grid gap-3" : "hidden"}>
@@ -1454,7 +1835,8 @@ export function LeadApp() {
                 onStatus={setStatus}
                 onNotes={setOpenId}
                 onRemove={removeLead}
-                onCopy={copyPhone}
+                onCopy={copyText}
+                onContact={markContact}
               />
             ))}
           </div>
@@ -1481,6 +1863,65 @@ export function LeadApp() {
                 <p className="mt-0.5 font-display text-2xl font-semibold">{value}</p>
               </div>
             ))}
+          </div>
+          <div className={`p-4 sm:p-5 ${card}`}>
+            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+              <h2 className="flex items-center gap-2 font-semibold">
+                <TrendingUp className="size-4 text-primary" /> Meta do mês
+              </h2>
+              <label className="text-sm">
+                <span className="mr-2 text-muted">Meta (R$)</span>
+                <input
+                  type="number"
+                  min={0}
+                  value={goal || ""}
+                  placeholder="0"
+                  onChange={(event) => {
+                    const value = Math.max(0, Number(event.target.value) || 0);
+                    setGoal(value);
+                    saveGoal(value);
+                  }}
+                  className="w-32 rounded-xl border border-border bg-surface-2 px-3 py-2 text-right outline-none focus:border-primary"
+                />
+              </label>
+            </div>
+            {(() => {
+              const current = months[months.length - 1]?.total ?? 0;
+              const pct = goal ? Math.min(100, Math.round((current / goal) * 100)) : 0;
+              const peak = Math.max(1, ...months.map((item) => item.total));
+              return (
+                <>
+                  {goal > 0 ? (
+                    <>
+                      <div className="mb-1 flex justify-between text-sm">
+                        <span className="font-medium">{money(current)} de {money(goal)}</span>
+                        <span className="text-muted">{pct}%</span>
+                      </div>
+                      <div className="h-3 overflow-hidden rounded-full bg-primary-soft">
+                        <div className="h-full rounded-full bg-gradient-to-r from-sky-400 to-primary" style={{ width: `${pct}%` }} />
+                      </div>
+                      <p className="mt-2 text-sm text-muted">
+                        {current >= goal ? "Meta batida! 🎉" : `Faltam ${money(goal - current)} para bater a meta.`}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted">Defina uma meta para acompanhar o quanto falta.</p>
+                  )}
+                  <div className="mt-5 flex h-32 items-end gap-2">
+                    {months.map((item) => (
+                      <div key={item.key} className="flex flex-1 flex-col items-center justify-end gap-1">
+                        <span className="text-[10px] text-muted">{item.total ? money(item.total) : ""}</span>
+                        <div
+                          className="w-full rounded-t-lg bg-gradient-to-t from-primary to-sky-300"
+                          style={{ height: `${Math.max(4, Math.round((item.total / peak) * 80))}px`, opacity: item.total ? 1 : 0.25 }}
+                        />
+                        <span className="text-xs capitalize text-muted">{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              );
+            })()}
           </div>
           <div className={`p-4 sm:p-5 ${card}`}>
             <h2 className="mb-4 flex items-center gap-2 font-semibold">
@@ -1652,12 +2093,97 @@ export function LeadApp() {
           </div>
         </div>
       )}
+      {adding && (
+        <div className="fixed inset-0 z-40 flex items-end justify-center bg-fg/30 p-4 backdrop-blur-sm sm:items-center">
+          <form
+            className={`w-full max-w-md space-y-3 p-5 ${card}`}
+            onSubmit={(event) => {
+              event.preventDefault();
+              addManual();
+            }}
+          >
+            <h2 className="font-display text-xl font-semibold">Adicionar lead</h2>
+            <input value={addForm.name} onChange={(e) => setAddForm({ ...addForm, name: e.target.value })} placeholder="Nome da empresa" className={field} />
+            <input value={addForm.phone} onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })} placeholder="Telefone com DDD" inputMode="tel" className={field} />
+            <input value={addForm.city} onChange={(e) => setAddForm({ ...addForm, city: e.target.value })} placeholder={`Cidade (padrão: ${city.split(",")[0]})`} className={field} />
+            <textarea value={addForm.notes} onChange={(e) => setAddForm({ ...addForm, notes: e.target.value })} rows={3} placeholder="Notas (opcional)" className={field} />
+            {addError && <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm font-medium text-danger">{addError}</p>}
+            <div className="flex gap-2">
+              <button type="button" onClick={() => { setAdding(false); setAddError(""); }} className={`${btnGhost} flex-1 py-3`}>
+                Cancelar
+              </button>
+              <button type="submit" className={`flex-1 py-3 ${btnPrimary}`}>
+                Adicionar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+      {tourOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-fg/40 p-4 backdrop-blur-sm">
+          <div className={`w-full max-w-md p-6 text-center ${card}`}>
+            {(
+              [
+                ["Busque empresas sem site", "Na aba Buscar, escolha a cidade e o tipo de negócio. O painel mostra só quem não tem site, com telefone e se está aberta agora."],
+                ["Guarde e chame no WhatsApp", "Guarde os melhores leads no pipeline. O botão do WhatsApp já abre a conversa com a mensagem pronta, e você pode editar o texto na aba Vendas."],
+                ["Acompanhe o seu dia", "A aba Hoje mostra os retornos e quem está parado. Na aba Vendas você vê a meta do mês e quanto já faturou."],
+              ] as const
+            ).map(([title, text], index) =>
+              index === tourStep ? (
+                <div key={title}>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Passo {index + 1} de 3</p>
+                  <h2 className="mt-2 font-display text-xl font-semibold">{title}</h2>
+                  <p className="mt-2 text-sm text-muted">{text}</p>
+                </div>
+              ) : null,
+            )}
+            <div className="mt-5 flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  saveTourDone();
+                  setTourOpen(false);
+                }}
+                className={`${btnGhost} flex-1 py-3`}
+              >
+                Pular
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (tourStep < 2) setTourStep(tourStep + 1);
+                  else {
+                    saveTourDone();
+                    setTourOpen(false);
+                  }
+                }}
+                className={`flex-1 py-3 ${btnPrimary}`}
+              >
+                {tourStep < 2 ? "Próximo" : "Começar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {toast && (
         <div
           role="status"
-          className="fade-up fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-full bg-fg px-5 py-2.5 text-sm font-semibold text-bg shadow-lg"
+          className="fade-up fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full bg-fg px-5 py-2.5 text-sm font-semibold text-bg shadow-lg"
         >
           {toast}
+          {toastAction && (
+            <button
+              type="button"
+              onClick={() => {
+                toastAction.run();
+                setToast("");
+                setToastAction(null);
+              }}
+              className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-fg"
+            >
+              {toastAction.label}
+            </button>
+          )}
         </div>
       )}
     </div>
