@@ -5,6 +5,7 @@ export type CloudData = {
   ticket?: number;
   message?: string;
   followMessage?: string;
+  goal?: number;
 };
 
 export type CloudLoad = { ok: true; data: CloudData; version: number } | { ok: false; code: string };
@@ -48,6 +49,7 @@ export const saveCloud = createServerFn({ method: "POST" })
       ticket: Number(data.payload.ticket) || 0,
       message: String(data.payload.message ?? "").slice(0, 2000),
       followMessage: String(data.payload.followMessage ?? "").slice(0, 2000),
+      goal: Math.max(0, Number(data.payload.goal) || 0),
     };
     const json = JSON.stringify(payload);
     if (json.length > 2_000_000) return { ok: false, code: "MUITO_GRANDE" };

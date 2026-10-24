@@ -20,6 +20,10 @@ export type SavedLead = {
   addedAt: string;
   /** data do próximo retorno (AAAA-MM-DD) */
   followUp?: string;
+  /** último contato feito (ISO) */
+  lastContact?: string;
+  /** quando virou venda fechada (ISO) */
+  closedAt?: string;
 };
 
 const ACCESS = "lh_access_key";
@@ -141,5 +145,29 @@ export function saveTheme(value: Theme) {
 
 /** Apaga os dados guardados no navegador (ao sair), para o próximo usuário não ver leads de outro. */
 export function clearLocalData() {
-  for (const name of [PIPE, MSG, FOLLOW, TICKET, PREFS]) localStorage.removeItem(name);
+  for (const name of [PIPE, MSG, FOLLOW, TICKET, PREFS, GOAL]) localStorage.removeItem(name);
+}
+
+const GOAL = "lh_goal";
+const TOUR = "lh_tour_done";
+
+export function loadGoal() {
+  try {
+    return Number(localStorage.getItem(GOAL)) || 0;
+  } catch {
+    return 0;
+  }
+}
+export function saveGoal(value: number) {
+  localStorage.setItem(GOAL, String(value));
+}
+export function loadTourDone() {
+  try {
+    return localStorage.getItem(TOUR) === "1";
+  } catch {
+    return true;
+  }
+}
+export function saveTourDone() {
+  localStorage.setItem(TOUR, "1");
 }
