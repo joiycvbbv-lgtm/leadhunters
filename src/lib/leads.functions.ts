@@ -35,6 +35,11 @@ export type SearchResult =
 type Input = {
   city: string;
   niche: string;
+  neighborhood?: string;
+  minReviews?: number;
+  mobileOnly?: boolean;
+  openOnly?: boolean;
+  broad?: boolean;
   minRating: number;
   quantity: number;
   accessKey: string;
@@ -167,13 +172,18 @@ async function fetchPage(query: string, apiKey: string, pageToken?: string) {
 export const searchPlaces = createServerFn({ method: "POST" })
   .validator((data: Input) => {
     const city = (data.city || "").trim();
-    const niche = (data.niche || "").trim();
+    const niche = (data.niche || "").trim().slice(0, 60);
+    const neighborhood = String(data.neighborhood || "").trim().slice(0, 60);
+    const minReviews = Math.max(0, Math.min(1000, Math.round(Number(data.minReviews) || 0)));
+    const mobileOnly = Boolean(data.mobileOnly);
+    const openOnly = Boolean(data.openOnly);
+    const broad = Boolean(data.broad);
     const minRating = Number(data.minRating) || 0;
     const quantity = Math.min(60, Math.max(1, Math.round(Number(data.quantity) || 10)));
     const accessKey = String(data.accessKey || "");
     const deviceId = String(data.deviceId || "");
     if (!city) throw new Error("Escolha uma cidade.");
-    return { city, niche, minRating, quantity, accessKey, deviceId };
+    return { city, niche, neighborhood, minReviews, mobileOnly, openOnly, broad, minRating, quantity, accessKey, deviceId };
   })
   .handler(async ({ data }): Promise<SearchResult> => {
     const { checkAccess, consumeSearch, refundSearch } = await import("./keys.server");
@@ -182,12 +192,32 @@ export const searchPlaces = createServerFn({ method: "POST" })
     const limit = access.info.dailyLimit;
     const used = await consumeSearch(access.keyId, limit);
     if (used === null) return { ok: false, error: "LIMITE_DIARIO" };
-    const query = data.niche ? `${data.niche} em ${data.city}` : `empresas em ${data.city}`;
+    const area = data.neighborhood ? `${data.neighborhood}, ${data.city}` : data.city;
+    const query = data.niche ? `${data.niche} em ${area}` : `empresas em ${area}`;
     const leads: Lead[] = [];
     const seen = new Set<string>();
     let scanned = 0;
     let withSite = 0;
     let pageToken: string | undefined;
+
+    const take = (places: Place[], base: number) => {
+      places.forEach((place, index) => {
+        if (leads.length >= data.quantity) return;
+        if (place.websiteUri) {
+          withSite += 1;
+          return;
+        }
+        // Empresa que o Google marca como fechada de vez não serve como lead.
+        if (place.businessStatus === "CLOSED_PERMANENTLY") return;
+        const lead = toLead(place, base + index, data.city);
+        if (!lead || seen.has(lead.id)) return;
+        if (lead.rating < data.minRating || lead.reviews < data.minReviews) return;
+        if (data.mobileOnly && !(lead.phone.length === 11 && lead.phone[2] === "9")) return;
+        if (data.openOnly && lead.openNow !== true) return;
+        seen.add(lead.id);
+        leads.push(lead);
+      });
+    };
 
     try {
       for (let page = 0; page < 3 && leads.length < data.quantity; page += 1) {
@@ -198,19 +228,21 @@ export const searchPlaces = createServerFn({ method: "POST" })
           return pageResult;
         }
         scanned += pageResult.places.length;
-        pageResult.places.forEach((place, index) => {
-          if (leads.length >= data.quantity) return;
-          if (place.websiteUri) {
-            withSite += 1;
-            return;
-          }
-          // Empresa que o Google marca como fechada de vez não serve como lead.
-          if (place.businessStatus === "CLOSED_PERMANENTLY") return;
-          const lead = toLead(place, page * 20 + index, data.city);
-          if (!lead || lead.rating < data.minRating || seen.has(lead.id)) return;
-          seen.add(lead.id);
-          leads.push(lead);
-        });
+        take(pageResult.places, page * 20);
+
+        // Busca ampla: pergunta de outros jeitos ao Google para achar empresas que a primeira busca não trouxe.
+        if (page === 0 && data.broad && leads.length < data.quantity) {
+          const variants = data.niche
+            ? [`${data.niche} ${area}`, `${data.niche} perto de ${area}`, `melhores ${data.niche} ${area}`]
+            : [`comércio ${area}`, `serviços ${area}`];
+          const extra = await Promise.all(variants.map((variant) => fetchPage(variant, getPlacesKey())));
+          extra.forEach((result, position) => {
+            if (!result.ok) return;
+            scanned += result.places.length;
+            take(result.places, 100 * (position + 1));
+          });
+        }
+
         pageToken = pageResult.nextPageToken;
         if (!pageToken) break;
       }

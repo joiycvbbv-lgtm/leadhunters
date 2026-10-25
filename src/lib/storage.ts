@@ -105,7 +105,17 @@ export function savePipeline(rows: SavedLead[]) {
 
 const PREFS = "lh_search_prefs";
 
-export type SearchPrefs = { city: string; niche: string; quantity: number; minRating: number };
+export type SearchPrefs = {
+  city: string;
+  niche: string;
+  quantity: number;
+  minRating: number;
+  neighborhood?: string;
+  minReviews?: number;
+  mobileOnly?: boolean;
+  onlyOpen?: boolean;
+  broad?: boolean;
+};
 
 export function loadPrefs(): SearchPrefs | null {
   try {
@@ -138,10 +148,8 @@ export function getDeviceId() {
 export type Theme = "light" | "dark";
 export function loadTheme(): Theme {
   try {
-    const saved = localStorage.getItem(THEME);
-    if (saved === "dark" || saved === "light") return saved;
-    // Sem escolha salva: acompanha o tema do aparelho.
-    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    // Padrão é o tema claro; só fica escuro se a pessoa escolher no botão do painel.
+    return localStorage.getItem(THEME) === "dark" ? "dark" : "light";
   } catch {
     return "light";
   }
