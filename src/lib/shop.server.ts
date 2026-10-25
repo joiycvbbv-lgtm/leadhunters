@@ -8,6 +8,88 @@ export function mpToken() {
   return process.env.MERCADOPAGO_ACCESS_TOKEN || "";
 }
 
+const ABACATE = "https://api.abacatepay.com/v2";
+
+export function abacateKey() {
+  return (process.env.ABACATEPAY_API_KEY || "").trim();
+}
+
+/** Qual serviço de Pix está configurado (AbacatePay tem prioridade se as duas chaves existirem). */
+export function activeProvider(): "abacatepay" | "mercadopago" | null {
+  if (abacateKey()) return "abacatepay";
+  if (mpToken()) return "mercadopago";
+  return null;
+}
+
+// Os ids do Mercado Pago são só números; os do AbacatePay começam com letras (pix_char_...).
+const isAbacateId = (id: string) => !/^\d+$/.test(id);
+
+type Charge = { ok: true; paymentId: string; qrCode: string; qrBase64: string } | { ok: false; error: string };
+
+async function abacateCreatePix(input: { orderId: string; amountCents: number; description: string }): Promise<Charge> {
+  const response = await fetch(`${ABACATE}/transparents/create`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${abacateKey()}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      method: "PIX",
+      data: {
+        amount: input.amountCents,
+        expiresIn: 3600,
+        description: input.description.slice(0, 37),
+        externalId: input.orderId,
+        metadata: { orderId: input.orderId },
+      },
+    }),
+  });
+  const json = (await response.json().catch(() => null)) as {
+    data?: { id?: string; brCode?: string; brCodeBase64?: string };
+    error?: string | null;
+    success?: boolean;
+  } | null;
+  if (!response.ok || !json?.data?.id) {
+    return { ok: false, error: json?.error || `AbacatePay recusou (${response.status}). Confira a chave e as permissões.` };
+  }
+  return {
+    ok: true,
+    paymentId: json.data.id,
+    qrCode: json.data.brCode || "",
+    // A API devolve "data:image/png;base64,...": guardamos só a parte em base64.
+    qrBase64: (json.data.brCodeBase64 || "").replace(/^data:image\/[a-z]+;base64,/i, ""),
+  };
+}
+
+async function abacateStatus(paymentId: string) {
+  const response = await fetch(`${ABACATE}/transparents/check?id=${encodeURIComponent(paymentId)}`, {
+    headers: { Authorization: `Bearer ${abacateKey()}` },
+  });
+  if (!response.ok) return null;
+  const json = (await response.json().catch(() => null)) as { data?: { status?: string } } | null;
+  return json?.data?.status ?? null;
+}
+
+/** Só funciona com chave de teste (modo desenvolvedor) do AbacatePay. */
+export async function abacateSimulate(paymentId: string) {
+  const response = await fetch(`${ABACATE}/transparents/simulate-payment?id=${encodeURIComponent(paymentId)}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${abacateKey()}` },
+  });
+  return response.ok;
+}
+
+/** Gera o Pix no serviço configurado. */
+export async function createPixCharge(input: {
+  orderId: string;
+  amountCents: number;
+  description: string;
+  email: string;
+  name: string;
+  notificationUrl?: string;
+}): Promise<Charge> {
+  if (activeProvider() === "abacatepay") return abacateCreatePix(input);
+  const pix = await mpCreatePix(input);
+  return pix.ok ? pix : { ok: false, error: pix.error };
+}
+
 type MpPayment = {
   id?: number;
   status?: string;
@@ -105,7 +187,18 @@ export async function fulfillOrder(orderId: string) {
   const [order] = await sql.query<OrderRow>("select * from orders where id = $1", [orderId]);
   if (!order) return null;
 
-  if (order.status === "pendente" && order.mp_payment_id) {
+  if (order.status === "pendente" && order.mp_payment_id && isAbacateId(order.mp_payment_id)) {
+    if (abacateKey()) {
+      const status = await abacateStatus(order.mp_payment_id);
+      if (status === "PAID") {
+        await sql.query("update orders set status = 'pago', paid_at = now() where id = $1 and status <> 'pago'", [
+          order.id,
+        ]);
+      } else if (status === "EXPIRED" || status === "CANCELLED") {
+        await sql.query("update orders set status = 'cancelado' where id = $1 and status = 'pendente'", [order.id]);
+      }
+    }
+  } else if (order.status === "pendente" && order.mp_payment_id) {
     const payment = await mpGetPayment(order.mp_payment_id);
     if (payment) {
       const paidOk =

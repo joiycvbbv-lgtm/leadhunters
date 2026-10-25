@@ -29,8 +29,8 @@ export const createPix = createServerFn({ method: "POST" })
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email)) return { ok: false, error: "Digite um e-mail válido." };
     if (data.whatsapp.length < 10) return { ok: false, error: "Digite seu WhatsApp com DDD." };
 
-    const { mpToken, mpCreatePix } = await import("./shop.server");
-    if (!mpToken()) {
+    const { activeProvider, createPixCharge } = await import("./shop.server");
+    if (!activeProvider()) {
       return { ok: false, error: "Pagamento ainda não configurado. Fale com o vendedor para receber sua key." };
     }
     const { getDb: getSql } = await import("./db-app.server");
@@ -55,7 +55,7 @@ export const createPix = createServerFn({ method: "POST" })
     );
 
     const notificationUrl = /^https:\/\/[^\s/]+$/.test(data.origin) ? `${data.origin}/api/mp-webhook` : undefined;
-    const pix = await mpCreatePix({
+    const pix = await createPixCharge({
       orderId,
       amountCents: plan.priceCents,
       description: `LeadHunter — plano ${plan.name}`,

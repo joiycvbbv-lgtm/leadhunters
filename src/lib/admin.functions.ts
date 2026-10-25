@@ -30,10 +30,26 @@ export type AdminOrder = {
   paidAt: string | null;
 };
 
+export type AdminTrial = { id: number; name: string; whatsapp: string; createdAt: string };
+
+export type AdminDay = { day: string; searches: number; sales: number; revenueCents: number };
+
+export type AdminExpiring = {
+  id: number;
+  hint: string;
+  buyer: string;
+  expiresAt: string;
+  whatsapp: string | null;
+};
+
 export type AdminOverview = {
   ok: true;
   keys: AdminKey[];
   orders: AdminOrder[];
+  daily: AdminDay[];
+  expiring: AdminExpiring[];
+  trials: AdminTrial[];
+  announcement: string;
   stats: {
     totalKeys: number;
     activeKeys: number;
@@ -121,8 +137,63 @@ export const adminOverview = createServerFn({ method: "POST" })
       "select coalesce(sum(count), 0) as n from search_usage where day = (now() at time zone 'America/Sao_Paulo')::date",
     );
 
+    const days = await sql.query<{ day: string; searches: number; sales: number; cents: number }>(
+      `select to_char(d::date, 'YYYY-MM-DD') as day,
+              coalesce((select sum(u.count) from search_usage u where u.day = d::date), 0) as searches,
+              coalesce((select count(*) from orders o where o.status = 'pago'
+                         and (o.paid_at at time zone 'America/Sao_Paulo')::date = d::date), 0) as sales,
+              coalesce((select sum(o.amount_cents) from orders o where o.status = 'pago'
+                         and (o.paid_at at time zone 'America/Sao_Paulo')::date = d::date), 0) as cents
+         from generate_series(
+                ((now() at time zone 'America/Sao_Paulo')::date - 13)::timestamp,
+                (now() at time zone 'America/Sao_Paulo')::timestamp,
+                interval '1 day') as d
+        order by d`,
+    );
+
+    const expiring = await sql.query<{
+      id: number;
+      key_plain: string | null;
+      key_hash: string;
+      buyer: string;
+      expires_at: string;
+      buyer_whatsapp: string | null;
+    }>(
+      `select k.id, k.key_plain, k.key_hash, k.buyer,
+              to_char(k.expires_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as expires_at,
+              (select o.buyer_whatsapp from orders o where o.key_id = k.id limit 1) as buyer_whatsapp
+         from access_keys k
+        where k.status = 'ativa' and k.expires_at is not null
+          and k.expires_at > now() and k.expires_at < now() + interval '7 days'
+        order by k.expires_at limit 100`,
+    );
+
+    const trials = await sql.query<{ id: number; name: string; whatsapp: string; created_at: string }>(
+      `select id, name, whatsapp,
+              to_char(created_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as created_at
+         from trials order by id desc limit 50`,
+    );
+    const announcement = await sql.query<{ value: string }>(
+      "select value from app_settings where key = 'announcement'",
+    );
+
     return {
       ok: true,
+      trials: trials.map((t) => ({ id: t.id, name: t.name, whatsapp: t.whatsapp, createdAt: t.created_at })),
+      announcement: announcement[0]?.value ?? "",
+      daily: days.map((d) => ({
+        day: d.day,
+        searches: Number(d.searches),
+        sales: Number(d.sales),
+        revenueCents: Number(d.cents),
+      })),
+      expiring: expiring.map((k) => ({
+        id: k.id,
+        hint: k.key_plain ? k.key_plain : `LH-…${k.key_hash.slice(0, 6).toUpperCase()}`,
+        buyer: k.buyer,
+        expiresAt: k.expires_at,
+        whatsapp: k.buyer_whatsapp,
+      })),
       keys: keys.map((k) => ({
         id: k.id,
         key: k.key_plain,
@@ -277,4 +348,43 @@ export const adminReconcile = createServerFn({ method: "POST" })
     );
     for (const row of rows) await fulfillOrder(row.id).catch(() => null);
     return { ok: true, checked: rows.length };
+  });
+
+/** Só para testes: simula o pagamento de um pedido pendente (chave de teste do AbacatePay). */
+export const adminSimulatePayment = createServerFn({ method: "POST" })
+  .validator((data: { token: string; orderId: string }) => ({
+    token: T(data),
+    orderId: String(data?.orderId || "").slice(0, 64),
+  }))
+  .handler(async ({ data }): Promise<{ ok: true } | AdminFail> => {
+    if (!(await guard(data.token))) return { ok: false, code: "SESSAO" };
+    const { getDb: getSql } = await import("./db-app.server");
+    const { abacateSimulate, fulfillOrder } = await import("./shop.server");
+    const sql = await getSql();
+    const rows = await sql.query<{ mp_payment_id: string | null }>("select mp_payment_id from orders where id = $1", [
+      data.orderId,
+    ]);
+    const paymentId = rows[0]?.mp_payment_id;
+    if (!paymentId || /^\d+$/.test(paymentId)) return { ok: false, code: "SEM_SIMULACAO" };
+    const done = await abacateSimulate(paymentId);
+    if (!done) return { ok: false, code: "SIMULACAO_RECUSADA" };
+    await fulfillOrder(data.orderId).catch(() => null);
+    return { ok: true };
+  });
+
+export const adminSetAnnouncement = createServerFn({ method: "POST" })
+  .validator((data: { token: string; text: string }) => ({
+    token: T(data),
+    text: String(data?.text ?? "").trim().slice(0, 300),
+  }))
+  .handler(async ({ data }): Promise<{ ok: true } | AdminFail> => {
+    if (!(await guard(data.token))) return { ok: false, code: "SESSAO" };
+    const { getDb: getSql } = await import("./db-app.server");
+    const sql = await getSql();
+    await sql.query(
+      `insert into app_settings (key, value) values ('announcement', $1)
+       on conflict (key) do update set value = $1, updated_at = now()`,
+      [data.text],
+    );
+    return { ok: true };
   });

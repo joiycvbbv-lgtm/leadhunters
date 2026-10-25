@@ -24,6 +24,10 @@ export type SavedLead = {
   lastContact?: string;
   /** quando virou venda fechada (ISO) */
   closedAt?: string;
+  /** linha do tempo do lead */
+  history?: { at: string; text: string }[];
+  /** temperatura do lead */
+  temp?: "quente" | "morno" | "frio";
 };
 
 const ACCESS = "lh_access_key";
@@ -134,7 +138,10 @@ export function getDeviceId() {
 export type Theme = "light" | "dark";
 export function loadTheme(): Theme {
   try {
-    return localStorage.getItem(THEME) === "dark" ? "dark" : "light";
+    const saved = localStorage.getItem(THEME);
+    if (saved === "dark" || saved === "light") return saved;
+    // Sem escolha salva: acompanha o tema do aparelho.
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   } catch {
     return "light";
   }
@@ -145,7 +152,34 @@ export function saveTheme(value: Theme) {
 
 /** Apaga os dados guardados no navegador (ao sair), para o próximo usuário não ver leads de outro. */
 export function clearLocalData() {
-  for (const name of [PIPE, MSG, FOLLOW, TICKET, PREFS, GOAL]) localStorage.removeItem(name);
+  for (const name of [PIPE, MSG, FOLLOW, TICKET, PREFS, GOAL, RECENT]) localStorage.removeItem(name);
+}
+
+const ANN = "lh_ann_dismissed";
+export function loadAnnDismissed() {
+  try {
+    return localStorage.getItem(ANN) || "";
+  } catch {
+    return "";
+  }
+}
+export function saveAnnDismissed(text: string) {
+  localStorage.setItem(ANN, text);
+}
+
+const RECENT = "lh_recent_searches";
+export type RecentSearch = { city: string; niche: string };
+
+export function loadRecent(): RecentSearch[] {
+  try {
+    const list = JSON.parse(localStorage.getItem(RECENT) || "[]") as RecentSearch[];
+    return Array.isArray(list) ? list.slice(0, 6) : [];
+  } catch {
+    return [];
+  }
+}
+export function saveRecent(list: RecentSearch[]) {
+  localStorage.setItem(RECENT, JSON.stringify(list.slice(0, 6)));
 }
 
 const GOAL = "lh_goal";
