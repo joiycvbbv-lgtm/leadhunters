@@ -43,6 +43,7 @@ import { checkAccessKey, searchPlaces, type KeyCheck, type Lead } from "@/lib/le
 import { loadCloud, saveCloud, type CloudData } from "@/lib/cloud.functions";
 import { getAnnouncement, requestTrial } from "@/lib/extras.functions";
 import { SUPPORT_WHATSAPP } from "@/lib/plans";
+import { ALL_NICHES, NICHE_GROUPS } from "@/lib/niches";
 import {
   FIRST_TEMPLATES,
   FOLLOW_TEMPLATES,
@@ -117,6 +118,57 @@ const CITIES = [
   "Londrina, PR",
   "Uberlândia, MG",
   "Niterói, RJ",
+  "Contagem, MG",
+  "Betim, MG",
+  "Ribeirão das Neves, MG",
+  "Santa Luzia, MG",
+  "Sete Lagoas, MG",
+  "Divinópolis, MG",
+  "Juiz de Fora, MG",
+  "Montes Claros, MG",
+  "Ipatinga, MG",
+  "Governador Valadares, MG",
+  "Uberaba, MG",
+  "Poços de Caldas, MG",
+  "Pouso Alegre, MG",
+  "Varginha, MG",
+  "Guarulhos, SP",
+  "Osasco, SP",
+  "Santo André, SP",
+  "São Bernardo do Campo, SP",
+  "São José do Rio Preto, SP",
+  "Bauru, SP",
+  "Jundiaí, SP",
+  "Piracicaba, SP",
+  "Duque de Caxias, RJ",
+  "Nova Iguaçu, RJ",
+  "São Gonçalo, RJ",
+  "Campos dos Goytacazes, RJ",
+  "Petrópolis, RJ",
+  "Caxias do Sul, RS",
+  "Pelotas, RS",
+  "Canoas, RS",
+  "Blumenau, SC",
+  "Maringá, PR",
+  "Ponta Grossa, PR",
+  "Cascavel, PR",
+  "Feira de Santana, BA",
+  "Vitória da Conquista, BA",
+  "Caruaru, PE",
+  "Olinda, PE",
+  "Juazeiro do Norte, CE",
+  "Anápolis, GO",
+  "Aparecida de Goiânia, GO",
+  "Palmas, TO",
+  "Porto Velho, RO",
+  "Rio Branco, AC",
+  "Macapá, AP",
+  "Boa Vista, RR",
+  "Imperatriz, MA",
+  "Mossoró, RN",
+  "Campina Grande, PB",
+  "Vila Velha, ES",
+  "Serra, ES",
 ];
 
 const QUANTITIES = [5, 10, 15, 20, 30, 40, 50, 60];
@@ -813,6 +865,13 @@ export function LeadApp() {
   const [niche, setNiche] = useState("restaurante");
   const [quantity, setQuantity] = useState(10);
   const [minRating, setMinRating] = useState(4);
+  const [neighborhood, setNeighborhood] = useState("");
+  const [minReviews, setMinReviews] = useState(0);
+  const [mobileOnly, setMobileOnly] = useState(false);
+  const [onlyOpen, setOnlyOpen] = useState(false);
+  const [broad, setBroad] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [nicheCustom, setNicheCustom] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [meta, setMeta] = useState("");
@@ -880,6 +939,11 @@ export function LeadApp() {
       setNiche(prefs.niche ?? "restaurante");
       setQuantity(prefs.quantity || 10);
       setMinRating(prefs.minRating ?? 4);
+      setNeighborhood(prefs.neighborhood ?? "");
+      setMinReviews(prefs.minReviews ?? 0);
+      setMobileOnly(Boolean(prefs.mobileOnly));
+      setOnlyOpen(Boolean(prefs.onlyOpen));
+      setBroad(Boolean(prefs.broad));
     }
     setFollowMessage(loadFollowMsg());
     setGoal(loadGoal());
@@ -914,15 +978,16 @@ export function LeadApp() {
   }, [pipeline, ready]);
 
   useEffect(() => {
-    if (ready) savePrefs({ city, niche, quantity, minRating });
-  }, [city, niche, quantity, minRating, ready]);
+    if (ready) savePrefs({ city, niche, quantity, minRating, neighborhood, minReviews, mobileOnly, onlyOpen, broad });
+  }, [city, niche, quantity, minRating, neighborhood, minReviews, mobileOnly, onlyOpen, broad, ready]);
 
   const expiresMs = info?.expiresAt ? new Date(info.expiresAt).getTime() : null;
   const isTest = info?.kind === "test";
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-  }, [theme]);
+    // A tela de login é sempre clara; o tema escolhido vale só dentro do painel.
+    document.documentElement.setAttribute("data-theme", step === "app" ? theme : "light");
+  }, [theme, step]);
 
   useEffect(() => {
     if (!expiresMs) return;
@@ -1213,13 +1278,17 @@ export function LeadApp() {
 
   async function onSearch() {
     if (loading) return;
+    if (!city.trim()) {
+      setError("Digite o nome da cidade.");
+      return;
+    }
     setError("");
     setMeta("");
     setResQuery("");
     setLoading(true);
     try {
       const result = await searchPlaces({
-        data: { city, niche, minRating, quantity, accessKey, deviceId },
+        data: { city, niche, neighborhood, minReviews, mobileOnly, openOnly: onlyOpen, broad, minRating, quantity, accessKey, deviceId },
       });
       if (!result.ok) {
         setResults([]);
@@ -1244,11 +1313,11 @@ export function LeadApp() {
       setInfo((prev) => (prev ? { ...prev, usedToday: result.usage.used, dailyLimit: result.usage.limit } : prev));
       setMeta(
         result.leads.length < result.asked
-          ? `Pediu ${result.asked} e o Google só tinha ${result.leads.length} sem site com telefone nesta busca (${result.scanned} lidos, ${result.withSite} já tinham site). Tente outro nicho ou baixe a nota.`
+          ? `Pediu ${result.asked} e o Google só tinha ${result.leads.length} sem site com telefone nesta busca (${result.scanned} lidos, ${result.withSite} já tinham site). Tente outro nicho, tire algum filtro de "Mais opções" ou ative a busca ampla.`
           : `${result.leads.length} leads sem site. ${result.withSite} com site foram ignorados.`,
       );
       if (!result.leads.length) {
-        setError("Nenhuma empresa sem site com telefone nessa busca. Tente outro nicho ou baixe a nota mínima.");
+        setError("Nenhuma empresa sem site com telefone nessa busca. Tente outro nicho, baixe a nota mínima, tire filtros de \"Mais opções\" ou use a busca ampla.");
       }
     } catch (err) {
       setResults([]);
@@ -1850,8 +1919,8 @@ export function LeadApp() {
             <label className="block text-sm">
               <span className="mb-1.5 block font-semibold">Cidade</span>
               <select
-                value={city}
-                onChange={(event) => setCity(event.target.value)}
+                value={CITIES.includes(city) ? city : "__outra__"}
+                onChange={(event) => setCity(event.target.value === "__outra__" ? "" : event.target.value)}
                 className={field}
               >
                 {CITIES.map((item) => (
@@ -1859,7 +1928,17 @@ export function LeadApp() {
                     {item}
                   </option>
                 ))}
+                <option value="__outra__">Outra cidade…</option>
               </select>
+              {!CITIES.includes(city) && (
+                <input
+                  value={city}
+                  onChange={(event) => setCity(event.target.value)}
+                  placeholder="Ex.: Divinópolis, MG"
+                  className={`${field} mt-2`}
+                  autoFocus
+                />
+              )}
             </label>
             <label className="block text-sm">
               <span className="mb-1.5 block font-semibold">Quantos leads</span>
@@ -1875,18 +1954,58 @@ export function LeadApp() {
                 ))}
               </select>
             </label>
-            <label className="block text-sm">
-              <span className="mb-1.5 block font-semibold">Nicho</span>
-              <input
-                value={niche}
-                onChange={(event) => setNiche(event.target.value)}
-                placeholder="restaurante, barbearia, clínica..."
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") void onSearch();
+            <div className="block text-sm sm:col-span-2">
+              <span className="mb-1.5 block font-semibold">Nicho (tipo de negócio)</span>
+              <select
+                value={
+                  nicheCustom || (niche !== "" && !ALL_NICHES.includes(niche))
+                    ? "__outro__"
+                    : niche === ""
+                      ? "__qualquer__"
+                      : niche
+                }
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (value === "__outro__") {
+                    setNicheCustom(true);
+                    setNiche("");
+                  } else if (value === "__qualquer__") {
+                    setNicheCustom(false);
+                    setNiche("");
+                  } else {
+                    setNicheCustom(false);
+                    setNiche(value);
+                  }
                 }}
                 className={field}
-              />
-            </label>
+              >
+                <option value="__qualquer__">Qualquer tipo de empresa</option>
+                {NICHE_GROUPS.map((group) => (
+                  <optgroup key={group.id} label={group.label}>
+                    {[...group.niches]
+                      .sort((a, b) => a.localeCompare(b, "pt-BR"))
+                      .map((item) => (
+                        <option key={item} value={item}>
+                          {item}
+                        </option>
+                      ))}
+                  </optgroup>
+                ))}
+                <option value="__outro__">Outro tipo (digitar)…</option>
+              </select>
+              {(nicheCustom || (niche !== "" && !ALL_NICHES.includes(niche))) && (
+                <input
+                  value={niche}
+                  onChange={(event) => setNiche(event.target.value)}
+                  placeholder="Ex.: loja de tintas, clínica de olhos..."
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") void onSearch();
+                  }}
+                  className={`${field} mt-2`}
+                  autoFocus
+                />
+              )}
+            </div>
             <label className="block text-sm">
               <span className="mb-1.5 block font-semibold">Nota mínima</span>
               <select
@@ -1895,12 +2014,79 @@ export function LeadApp() {
                 className={field}
               >
                 <option value={0}>Qualquer</option>
+                <option value={3}>3.0+</option>
                 <option value={3.5}>3.5+</option>
                 <option value={4}>4.0+</option>
                 <option value={4.5}>4.5+</option>
               </select>
             </label>
             <div className="sm:col-span-2">
+              <button
+                type="button"
+                onClick={() => setMoreOpen((value) => !value)}
+                className="mb-3 text-sm font-semibold text-primary hover:underline"
+              >
+                {moreOpen ? "Menos opções" : "Mais opções de busca"}
+                {[neighborhood.trim(), minReviews > 0, mobileOnly, onlyOpen, broad].filter(Boolean).length > 0 &&
+                  ` (${[neighborhood.trim(), minReviews > 0, mobileOnly, onlyOpen, broad].filter(Boolean).length} ativas)`}
+              </button>
+              {moreOpen && (
+                <div className="mb-4 grid gap-3 rounded-xl bg-surface-2 p-3 sm:grid-cols-2">
+                  <label className="block text-sm">
+                    <span className="mb-1.5 block font-semibold">Bairro ou região (opcional)</span>
+                    <input
+                      value={neighborhood}
+                      onChange={(event) => setNeighborhood(event.target.value)}
+                      placeholder="Ex.: Centro, Savassi, Zona Sul"
+                      className={field}
+                    />
+                  </label>
+                  <label className="block text-sm">
+                    <span className="mb-1.5 block font-semibold">Mínimo de avaliações</span>
+                    <select
+                      value={minReviews}
+                      onChange={(event) => setMinReviews(Number(event.target.value))}
+                      className={field}
+                    >
+                      {[0, 5, 10, 25, 50, 100].map((item) => (
+                        <option key={item} value={item}>
+                          {item === 0 ? "Qualquer quantidade" : `${item}+ avaliações`}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={mobileOnly}
+                      onChange={(event) => setMobileOnly(event.target.checked)}
+                      className="size-4 accent-[var(--color-primary)]"
+                    />
+                    Só telefone celular (tem WhatsApp)
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={onlyOpen}
+                      onChange={(event) => setOnlyOpen(event.target.checked)}
+                      className="size-4 accent-[var(--color-primary)]"
+                    />
+                    Só empresas abertas agora
+                  </label>
+                  <label className="flex items-start gap-2 text-sm sm:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={broad}
+                      onChange={(event) => setBroad(event.target.checked)}
+                      className="mt-0.5 size-4 accent-[var(--color-primary)]"
+                    />
+                    <span>
+                      <strong>Busca ampla:</strong> pergunta ao Google de mais de um jeito para achar mais empresas. Demora
+                      um pouco mais e vale a pena quando a busca normal traz poucos leads.
+                    </span>
+                  </label>
+                </div>
+              )}
               <button
                 type="button"
                 onClick={onSearch}
