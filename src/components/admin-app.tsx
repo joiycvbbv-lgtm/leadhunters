@@ -1,10 +1,27 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Ban, Check, Copy, KeyRound, Loader2, LogOut, PlusCircle, RefreshCw, RotateCcw, ShieldCheck } from "lucide-react";
+import {
+  Ban,
+  Check,
+  Copy,
+  Download,
+  Eye,
+  EyeOff,
+  KeyRound,
+  Loader2,
+  LogOut,
+  MessageCircle,
+  PlusCircle,
+  RefreshCw,
+  RotateCcw,
+  ShieldCheck,
+} from "lucide-react";
 import {
   adminCreateKeys,
   adminLogin,
   adminOverview,
   adminReconcile,
+  adminSetAnnouncement,
+  adminSimulatePayment,
   adminUpdateKey,
   type AdminKey,
   type AdminOverview,
@@ -26,6 +43,49 @@ function when(iso: string | null) {
   return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 }
 
+function downloadCsv(name: string, head: string[], rows: (string | number)[][]) {
+  const esc = (value: string | number) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+  const body = [head, ...rows].map((row) => row.map(esc).join(";")).join("\r\n");
+  const blob = new Blob(["\ufeff" + body], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function maskKey(key: string) {
+  return `LH-••••-••••-••••-${key.slice(-4)}`;
+}
+
+function waLink(phone: string, text: string) {
+  const digits = phone.replace(/\D/g, "");
+  const full = digits.length >= 12 && digits.startsWith("55") ? digits : `55${digits}`;
+  return `https://wa.me/${full}?text=${encodeURIComponent(text)}`;
+}
+
+function MiniBars({ title, values, labels, format }: { title: string; values: number[]; labels: string[]; format?: (n: number) => string }) {
+  const peak = Math.max(1, ...values);
+  return (
+    <div className={`p-4 ${card}`}>
+      <h3 className="mb-3 text-sm font-semibold">{title}</h3>
+      <div className="flex h-28 items-end gap-1">
+        {values.map((value, index) => (
+          <div key={labels[index]} className="flex flex-1 flex-col items-center justify-end gap-1" title={`${labels[index]}: ${format ? format(value) : value}`}>
+            <div
+              className="w-full rounded-t bg-gradient-to-t from-primary to-sky-300"
+              style={{ height: `${Math.max(3, Math.round((value / peak) * 80))}px`, opacity: value ? 1 : 0.25 }}
+            />
+            <span className="text-[9px] text-muted">{labels[index]}</span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-2 text-xs text-muted">Total: {format ? format(values.reduce((a, b) => a + b, 0)) : values.reduce((a, b) => a + b, 0)}</p>
+    </div>
+  );
+}
+
 function state(key: AdminKey) {
   if (key.status !== "ativa") return { label: "Revogada", cls: "bg-danger/10 text-danger" };
   if (key.expiresAt && new Date(key.expiresAt).getTime() <= Date.now())
@@ -44,6 +104,8 @@ export function AdminApp() {
   const [only, setOnly] = useState<"todas" | "livres" | "uso" | "revogadas" | "teste">("todas");
   const [fresh, setFresh] = useState<string[]>([]);
   const [copied, setCopied] = useState("");
+  const [revealed, setRevealed] = useState<Set<number>>(new Set());
+  const [annText, setAnnText] = useState("");
   const [form, setForm] = useState({
     count: 10,
     kind: "full" as "full" | "test",
@@ -123,6 +185,26 @@ export function AdminApp() {
   async function patch(id: number, change: AdminPatch) {
     await adminUpdateKey({ data: { token, id, patch: change } });
     await load(token);
+  }
+
+  useEffect(() => {
+    if (data) setAnnText(data.announcement);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.announcement]);
+
+  async function saveAnnouncement(text: string) {
+    setBusy(true);
+    await adminSetAnnouncement({ data: { token, text } }).catch(() => null);
+    await load(token);
+    setBusy(false);
+  }
+
+  async function simulate(orderId: string) {
+    setBusy(true);
+    const result = await adminSimulatePayment({ data: { token, orderId } }).catch(() => null);
+    if (!result?.ok) window.alert("Não deu para simular. Isso só funciona com a chave de TESTE do AbacatePay.");
+    await load(token);
+    setBusy(false);
   }
 
   async function reconcile() {
@@ -232,6 +314,116 @@ export function AdminApp() {
         ))}
       </div>
 
+      <section className="grid gap-3 sm:grid-cols-3">
+        <MiniBars
+          title="Buscas por dia (14 dias)"
+          values={data.daily.map((d) => d.searches)}
+          labels={data.daily.map((d) => d.day.slice(8))}
+        />
+        <MiniBars
+          title="Vendas por dia (14 dias)"
+          values={data.daily.map((d) => d.sales)}
+          labels={data.daily.map((d) => d.day.slice(8))}
+        />
+        <MiniBars
+          title="Receita por dia (14 dias)"
+          values={data.daily.map((d) => d.revenueCents)}
+          labels={data.daily.map((d) => d.day.slice(8))}
+          format={brl}
+        />
+      </section>
+
+      <section className={`p-4 ${card}`}>
+        <h2 className="mb-1 font-semibold">Aviso para todos os clientes</h2>
+        <p className="mb-3 text-xs text-muted">Aparece como uma faixa no painel de quem estiver logado. Deixe vazio para tirar.</p>
+        <textarea
+          value={annText}
+          onChange={(event) => setAnnText(event.target.value)}
+          rows={2}
+          maxLength={300}
+          placeholder="Ex.: Novidade! Agora dá para gerar proposta em PDF."
+          className={field}
+        />
+        <div className="mt-2 flex gap-2">
+          <button type="button" onClick={() => void saveAnnouncement(annText)} disabled={busy} className={btnPrimary}>
+            Publicar aviso
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setAnnText("");
+              void saveAnnouncement("");
+            }}
+            disabled={busy}
+            className={btnGhost}
+          >
+            Tirar aviso
+          </button>
+        </div>
+      </section>
+
+      {data.trials.length > 0 && (
+        <section className={`p-4 ${card}`}>
+          <h2 className="mb-3 font-semibold">Testes grátis ({data.trials.length})</h2>
+          <div className="divide-y divide-border text-sm">
+            {data.trials.map((t) => (
+              <div key={t.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                <div>
+                  <p className="font-medium">{t.name || "Sem nome"}</p>
+                  <p className="text-xs text-muted">
+                    {t.whatsapp} · {when(t.createdAt)}
+                  </p>
+                </div>
+                <a
+                  className={btnGhost}
+                  target="_blank"
+                  rel="noreferrer"
+                  href={waLink(
+                    t.whatsapp,
+                    `Oi${t.name ? ` ${t.name.split(" ")[0]}` : ""}! Vi que você testou o LeadHunter. Ficou com alguma dúvida? Para liberar o acesso completo é só escolher um plano: ${window.location.origin}/comprar`,
+                  )}
+                >
+                  <MessageCircle className="size-3.5" /> Chamar no WhatsApp
+                </a>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {data.expiring.length > 0 && (
+        <section className={`p-4 ${card}`}>
+          <h2 className="mb-3 font-semibold">Vencendo em 7 dias ({data.expiring.length})</h2>
+          <div className="divide-y divide-border text-sm">
+            {data.expiring.map((k) => (
+              <div key={k.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                <div>
+                  <p className="font-medium">{k.buyer || "Sem nome"}</p>
+                  <p className="font-mono text-xs text-muted">
+                    {maskKey(k.hint)} · vence {when(k.expiresAt)}
+                  </p>
+                </div>
+                {k.whatsapp ? (
+                  <a
+                    className={btnGhost}
+                    target="_blank"
+                    rel="noreferrer"
+                    href={waLink(
+                      k.whatsapp,
+                      `Oi${k.buyer ? ` ${k.buyer.split(" ")[0]}` : ""}! Sua key do LeadHunter vence em ${new Date(k.expiresAt).toLocaleDateString("pt-BR")}. Para renovar é só pagar pelo link: ${window.location.origin}/comprar`,
+                    )}
+                  >
+                    <MessageCircle className="size-3.5" /> Avisar no WhatsApp
+                  </a>
+                ) : (
+                  <span className="text-xs text-muted">Sem WhatsApp salvo (key criada no admin)</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className={`p-4 ${card}`}>
         <h2 className="mb-3 flex items-center gap-2 font-semibold">
           <PlusCircle className="size-4 text-primary" /> Gerar keys
@@ -293,6 +485,19 @@ export function AdminApp() {
       <section className={`p-4 ${card}`}>
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <h2 className="mr-2 font-semibold">Keys ({rows.length})</h2>
+          <button
+            type="button"
+            className={btnGhost}
+            onClick={() =>
+              downloadCsv(
+                "keys.csv",
+                ["Key", "Comprador", "Estado", "Aparelhos", "Buscas hoje", "Vence"],
+                rows.map((k) => [k.key ?? k.hint, k.buyer, state(k).label, `${k.devices}/${k.maxDevices}`, `${k.usedToday}/${k.dailyLimit}`, k.expiresAt ?? ""]),
+              )
+            }
+          >
+            <Download className="size-3.5" /> Exportar
+          </button>
           {(["todas", "livres", "uso", "revogadas", "teste"] as const).map((f) => (
             <button
               key={f}
@@ -324,7 +529,24 @@ export function AdminApp() {
                 return (
                   <tr key={k.id}>
                     <td className="py-2 pr-3 font-mono text-xs">
-                      {k.hint}
+                      {k.key && (
+                        <button
+                          type="button"
+                          aria-label={revealed.has(k.id) ? "Esconder key" : "Ver key"}
+                          onClick={() =>
+                            setRevealed((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(k.id)) next.delete(k.id);
+                              else next.add(k.id);
+                              return next;
+                            })
+                          }
+                          className="mr-1.5 align-middle text-muted hover:text-primary"
+                        >
+                          {revealed.has(k.id) ? <EyeOff className="inline size-3.5" /> : <Eye className="inline size-3.5" />}
+                        </button>
+                      )}
+                      {k.key && !revealed.has(k.id) ? maskKey(k.key) : k.hint}
                       {k.kind === "test" && <span className="ml-1 rounded bg-primary-soft px-1 text-[10px] font-bold text-primary">TESTE</span>}
                     </td>
                     <td className="pr-3">
@@ -383,7 +605,22 @@ export function AdminApp() {
       </section>
 
       <section className={`p-4 ${card}`}>
-        <h2 className="mb-3 font-semibold">Pedidos Pix</h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-semibold">Pedidos Pix</h2>
+          <button
+            type="button"
+            className={btnGhost}
+            onClick={() =>
+              downloadCsv(
+                "pedidos.csv",
+                ["Data", "Nome", "E-mail", "WhatsApp", "Plano", "Valor", "Status"],
+                data.orders.map((o) => [when(o.createdAt), o.buyerName, o.buyerEmail, o.buyerWhatsapp, o.plan, brl(o.amountCents), o.status]),
+              )
+            }
+          >
+            <Download className="size-3.5" /> Exportar
+          </button>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="text-xs text-muted">
@@ -394,6 +631,7 @@ export function AdminApp() {
                 <th className="pr-3">Valor</th>
                 <th className="pr-3">Status</th>
                 <th>Key</th>
+                <th />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -408,6 +646,13 @@ export function AdminApp() {
                   <td className="pr-3">{brl(o.amountCents)}</td>
                   <td className="pr-3">{o.status}</td>
                   <td className="font-mono text-xs">{o.keyHint ?? "—"}</td>
+                  <td>
+                    {o.status === "pendente" && (
+                      <button type="button" onClick={() => void simulate(o.id)} disabled={busy} className={btnGhost}>
+                        Simular pagamento (teste)
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

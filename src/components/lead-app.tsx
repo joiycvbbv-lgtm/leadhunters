@@ -11,12 +11,14 @@ import {
   Copy,
   Download,
   Flame,
+  HelpCircle,
   KeyRound,
   List,
   Loader2,
   LogIn,
   LogOut,
   MapPin,
+  Megaphone,
   MessageCircle,
   Moon,
   Phone,
@@ -35,9 +37,12 @@ import {
   UserPlus,
   Users,
   Wallet,
+  X,
 } from "lucide-react";
 import { checkAccessKey, searchPlaces, type KeyCheck, type Lead } from "@/lib/leads.functions";
 import { loadCloud, saveCloud, type CloudData } from "@/lib/cloud.functions";
+import { getAnnouncement, requestTrial } from "@/lib/extras.functions";
+import { SUPPORT_WHATSAPP } from "@/lib/plans";
 import {
   FIRST_TEMPLATES,
   FOLLOW_TEMPLATES,
@@ -51,25 +56,30 @@ import {
   clearLocalData,
   getDeviceId,
   loadAccessKey,
+  loadAnnDismissed,
   loadFollowMsg,
   loadGoal,
   loadTourDone,
   loadMsg,
   loadPrefs,
   loadPipeline,
+  loadRecent,
   loadTheme,
   loadTicket,
   loadUserName,
   saveAccessKey,
+  saveAnnDismissed,
   saveFollowMsg,
   saveGoal,
   saveTourDone,
   saveMsg,
+  saveRecent,
   savePrefs,
   savePipeline,
   saveTheme,
   saveTicket,
   saveUserName,
+  type RecentSearch,
   type SavedLead,
   type Theme,
   type Status,
@@ -134,6 +144,73 @@ function fillTemplate(template: string, name: string, city = "") {
 function waLink(phone: string, name: string, template: string, city = "") {
   return `https://wa.me/55${phone}?text=${encodeURIComponent(fillTemplate(template, name, city))}`;
 }
+
+function escapeHtml(value: string) {
+  const map: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+  return value.replace(/[&<>"']/g, (ch) => map[ch] ?? ch);
+}
+
+function addHistory(row: SavedLead, text: string, stamp = new Date().toISOString()): SavedLead {
+  const list = row.history ?? [];
+  const last = list[list.length - 1];
+  if (last && last.text === text && new Date(stamp).getTime() - new Date(last.at).getTime() < 60000) return row;
+  return { ...row, history: [...list, { at: stamp, text }].slice(-50) };
+}
+
+/** Abre uma proposta editável em outra aba, pronta para imprimir ou salvar em PDF. */
+function openProposal(lead: SavedLead, author: string) {
+  const win = window.open("", "_blank");
+  if (!win) return false;
+  const price = lead.value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const today = new Date().toLocaleDateString("pt-BR");
+  win.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Proposta - ${escapeHtml(lead.name)}</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;color:#0e2a4a;max-width:760px;margin:0 auto;padding:32px 24px;line-height:1.55}
+h1{font-size:26px;margin:0 0 4px}.muted{color:#5a7391;font-size:14px}.box{border:1px solid #d2e3f7;border-radius:12px;padding:16px 20px;margin:18px 0}
+.price{font-size:30px;font-weight:700;color:#1d6fe0}li{margin:6px 0}.bar{position:sticky;top:0;background:#eaf4ff;padding:10px 16px;margin:-32px -24px 24px;display:flex;gap:12px;align-items:center;font-size:14px}
+button{background:#2b86f5;color:#fff;border:0;border-radius:8px;padding:8px 16px;font-weight:700;cursor:pointer}
+@media print{.bar{display:none}body{padding:0}}
+</style></head><body>
+<div class="bar"><button onclick="window.print()">Imprimir / salvar PDF</button><span>Clique no texto para editar antes de imprimir.</span></div>
+<div contenteditable="true">
+<h1>Proposta de criação de site</h1>
+<p class="muted">Preparada em ${today} para <strong>${escapeHtml(lead.name)}</strong>${lead.city ? ` · ${escapeHtml(lead.city.split(",")[0])}` : ""}</p>
+<div class="box"><p><strong>O que você recebe</strong></p><ul>
+<li>Site profissional que funciona bem no celular e no computador</li>
+<li>Botão de WhatsApp para o cliente chamar direto</li>
+<li>Localização no mapa, horários e fotos do seu negócio</li>
+<li>Textos escritos para vender os seus serviços</li>
+<li>Publicação no ar e ajuda para aparecer no Google</li></ul></div>
+<div class="box"><p><strong>Investimento</strong></p><p class="price">${price}</p><p class="muted">Forma de pagamento e prazo de entrega: a combinar.</p></div>
+<p class="muted">Proposta válida por 7 dias. Para aprovar, é só responder esta mensagem.</p>
+<p><strong>${escapeHtml(author || "Seu nome")}</strong></p>
+</div></body></html>`);
+  win.document.close();
+  win.focus();
+  return true;
+}
+
+function applyStatus(row: SavedLead, status: Status): SavedLead {
+  if (row.status === status) return row;
+  const stamp = new Date().toISOString();
+  const label = (id: Status) => STATUSES.find((item) => item.id === id)?.label ?? id;
+  return addHistory(
+    {
+      ...row,
+      status,
+      lastContact: status === "contatado" || status === "proposta" ? stamp : row.lastContact,
+      closedAt: status === "fechado" ? stamp : undefined,
+    },
+    `Status: ${label(row.status)} → ${label(status)}`,
+    stamp,
+  );
+}
+
+const TEMPS = [
+  ["quente", "🔥 Quente"],
+  ["morno", "🌤 Morno"],
+  ["frio", "❄️ Frio"],
+] as const;
 
 function daysSince(iso: string) {
   return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
@@ -451,6 +528,9 @@ const LeadCard = memo(function LeadCard({
           >
             <MessageCircle className="size-4" /> WhatsApp
           </a>
+          <a href={`tel:+55${lead.phone}`} aria-label="Ligar" className={`${btnGhost} px-2.5`}>
+            <PhoneCall className="size-4" />
+          </a>
           <button
             type="button"
             disabled={saved}
@@ -496,6 +576,8 @@ const PipelineRow = memo(function PipelineRow({
   onRemove,
   onCopy,
   onContact,
+  selected,
+  onSelect,
 }: {
   lead: SavedLead;
   message: string;
@@ -506,6 +588,8 @@ const PipelineRow = memo(function PipelineRow({
   onRemove: (id: string) => void;
   onCopy: (text: string, label: string) => void;
   onContact: (id: string) => void;
+  selected?: boolean;
+  onSelect?: (id: string) => void;
 }) {
   const follow = followState(lead.followUp, today);
   const active = lead.status !== "fechado" && lead.status !== "perdido";
@@ -515,12 +599,28 @@ const PipelineRow = memo(function PipelineRow({
     <article className={`lead-card fade-up p-4 ${card}`}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h3 className="truncate font-semibold">{lead.name}</h3>
+          <h3 className="flex items-center gap-2 font-semibold">
+            {onSelect && (
+              <input
+                type="checkbox"
+                checked={!!selected}
+                onChange={() => onSelect(lead.id)}
+                aria-label="Selecionar lead"
+                className="size-4 shrink-0 accent-[var(--color-primary)]"
+              />
+            )}
+            <span className="truncate">{lead.name}</span>
+          </h3>
           <p className="text-sm text-muted">
             {formatPhone(lead.phone)} · {lead.city}
           </p>
-          {(follow && active) || stale || lead.notes ? (
+          {(follow && active) || stale || lead.notes || lead.temp ? (
             <div className="mt-1.5 flex flex-wrap items-center gap-2">
+              {lead.temp && (
+                <span className="inline-flex items-center rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-bold text-primary-deep dark:text-primary">
+                  {TEMPS.find((item) => item[0] === lead.temp)?.[1]}
+                </span>
+              )}
               {stale && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800 dark:bg-amber-500/20 dark:text-amber-200">
                   <Clock className="size-3.5" /> Sem contato há {idle} dias
@@ -731,6 +831,18 @@ export function LeadApp() {
   const [addForm, setAddForm] = useState({ name: "", phone: "", city: "", notes: "" });
   const [addError, setAddError] = useState("");
   const [goal, setGoal] = useState(0);
+  const [recent, setRecent] = useState<RecentSearch[]>([]);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [tempFilter, setTempFilter] = useState<"todas" | "quente" | "morno" | "frio">("todas");
+  const [hideSaved, setHideSaved] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
+  const [annDismissed, setAnnDismissed] = useState("");
+  const [trialOpen, setTrialOpen] = useState(false);
+  const [trialForm, setTrialForm] = useState({ name: "", whatsapp: "" });
+  const [trialBusy, setTrialBusy] = useState(false);
+  const [trialError, setTrialError] = useState("");
+  const dueNoticed = useRef(false);
   const [tourOpen, setTourOpen] = useState(false);
   const [tourStep, setTourStep] = useState(0);
   const [installEvent, setInstallEvent] = useState<{ prompt: () => Promise<void> } | null>(null);
@@ -771,6 +883,8 @@ export function LeadApp() {
     }
     setFollowMessage(loadFollowMsg());
     setGoal(loadGoal());
+    setRecent(loadRecent());
+    setAnnDismissed(loadAnnDismissed());
     const savedTheme = loadTheme();
     setTheme(savedTheme);
     const device = getDeviceId();
@@ -945,6 +1059,30 @@ export function LeadApp() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!cloudReady || step !== "app") return;
+    const load = () =>
+      getAnnouncement({ data: { key: accessKey, deviceId } })
+        .then((res) => setAnnouncement(res.text))
+        .catch(() => undefined);
+    void load();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [cloudReady, step, accessKey, deviceId]);
+
+  useEffect(() => {
+    if (!cloudReady || dueNoticed.current) return;
+    dueNoticed.current = true;
+    const due = pipelineRef.current.filter(
+      (row) => row.followUp && row.followUp <= todayIso() && row.status !== "fechado" && row.status !== "perdido",
+    ).length;
+    if (due > 0) notify(`Você tem ${due} retorno(s) para hoje`, { label: "Ver", run: () => setTab("hoje") });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cloudReady]);
+
   const today = todayIso();
   const deferredPipeQuery = useDeferredValue(pipeQuery);
   const deferredResQuery = useDeferredValue(resQuery);
@@ -963,6 +1101,7 @@ export function LeadApp() {
       if (filter === "retornos") {
         if (!row.followUp || row.followUp > today || row.status === "fechado" || row.status === "perdido") return false;
       } else if (filter !== "todos" && row.status !== filter) return false;
+      if (tempFilter !== "todas" && row.temp !== tempFilter) return false;
       if (!q) return true;
       return `${row.name} ${row.phone} ${row.city} ${row.notes}`.toLowerCase().includes(q);
     });
@@ -970,7 +1109,7 @@ export function LeadApp() {
     if (pipeSort === "valor") list.sort((a, b) => (b.value || 0) - (a.value || 0));
     if (pipeSort === "nome") list.sort((a, b) => a.name.localeCompare(b.name));
     return list;
-  }, [pipeline, filter, deferredPipeQuery, today, pipeSort]);
+  }, [pipeline, filter, deferredPipeQuery, today, pipeSort, tempFilter]);
 
   // Tela "Hoje": o que fazer agora.
   const todayLists = useMemo(() => {
@@ -988,6 +1127,33 @@ export function LeadApp() {
     const fresh = active.filter((row) => row.status === "novo").slice(0, 10);
     return { due, stale, fresh };
   }, [pipeline, today]);
+
+  const week = useMemo(() => {
+    const since = Date.now() - 7 * 86400000;
+    const at = (iso?: string) => (iso ? new Date(iso).getTime() : 0);
+    const closedWeek = pipeline.filter((row) => row.status === "fechado" && at(row.closedAt) >= since);
+    return {
+      added: pipeline.filter((row) => at(row.addedAt) >= since).length,
+      contacted: pipeline.filter((row) => at(row.lastContact) >= since).length,
+      closed: closedWeek.length,
+      revenue: closedWeek.reduce((sum, row) => sum + (row.value || ticket), 0),
+    };
+  }, [pipeline, ticket]);
+
+  const cityStats = useMemo(() => {
+    const map = new Map<string, { city: string; leads: number; closed: number; revenue: number }>();
+    for (const row of pipeline) {
+      const name = (row.city || "—").split(",")[0].trim() || "—";
+      const item = map.get(name) ?? { city: name, leads: 0, closed: 0, revenue: 0 };
+      item.leads += 1;
+      if (row.status === "fechado") {
+        item.closed += 1;
+        item.revenue += row.value || ticket;
+      }
+      map.set(name, item);
+    }
+    return [...map.values()].sort((a, b) => b.revenue - a.revenue || b.closed - a.closed || b.leads - a.leads).slice(0, 5);
+  }, [pipeline, ticket]);
 
   const months = useMemo(() => {
     const now = new Date();
@@ -1011,8 +1177,10 @@ export function LeadApp() {
 
   const shownResults = useMemo(() => {
     const q = deferredResQuery.trim().toLowerCase();
+    const known = hideSaved ? new Set(pipeline.flatMap((row) => [row.id, row.phone])) : null;
     let rows = results.filter((lead) => {
       if (openOnly && lead.openNow !== true) return false;
+      if (known && (known.has(lead.id) || known.has(lead.phone))) return false;
       return !q || `${lead.name} ${lead.category} ${lead.address}`.toLowerCase().includes(q);
     });
     if (sort === "prioridade") rows = [...rows].sort((x, y) => leadScore(y) - leadScore(x));
@@ -1023,7 +1191,7 @@ export function LeadApp() {
       rows = [...rows].sort((x, y) => rank(x) - rank(y));
     }
     return rows;
-  }, [results, openOnly, deferredResQuery, sort]);
+  }, [results, openOnly, deferredResQuery, sort, hideSaved, pipeline]);
 
   const suggested = useMemo(() => suggestTemplate(niche), [niche]);
   const openCount = useMemo(() => results.filter((lead) => lead.openNow === true).length, [results]);
@@ -1068,6 +1236,11 @@ export function LeadApp() {
         return;
       }
       setResults(result.leads);
+      setRecent((prev) => {
+        const next = [{ city, niche }, ...prev.filter((item) => !(item.city === city && item.niche === niche))].slice(0, 6);
+        saveRecent(next);
+        return next;
+      });
       setInfo((prev) => (prev ? { ...prev, usedToday: result.usage.used, dailyLimit: result.usage.limit } : prev));
       setMeta(
         result.leads.length < result.asked
@@ -1106,7 +1279,15 @@ export function LeadApp() {
       setPipeline((rows) => {
         if (rows.some((row) => row.id === lead.id || (row.phone && row.phone === lead.phone))) return rows;
         return [
-          { ...lead, city, status: "novo", notes: "", value: ticket, addedAt: new Date().toISOString() },
+          {
+            ...lead,
+            city,
+            status: "novo",
+            notes: "",
+            value: ticket,
+            addedAt: new Date().toISOString(),
+            history: [{ at: new Date().toISOString(), text: "Adicionado ao pipeline" }],
+          },
           ...rows,
         ];
       });
@@ -1129,6 +1310,7 @@ export function LeadApp() {
         notes: "",
         value: ticket,
         addedAt: new Date().toISOString(),
+        history: [{ at: new Date().toISOString(), text: "Adicionado ao pipeline" }],
       })),
       ...rows,
     ]);
@@ -1136,23 +1318,114 @@ export function LeadApp() {
   }
 
   const setStatus = useCallback((id: string, status: Status) => {
-    setPipeline((rows) =>
-      rows.map((row) => {
-        if (row.id !== id || row.status === status) return row;
-        const stamp = new Date().toISOString();
-        return {
-          ...row,
-          status,
-          lastContact: status === "contatado" || status === "proposta" ? stamp : row.lastContact,
-          closedAt: status === "fechado" ? stamp : undefined,
-        };
-      }),
-    );
+    setPipeline((rows) => rows.map((row) => (row.id === id ? applyStatus(row, status) : row)));
   }, []);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  function toggleSelectAll() {
+    const everyone = visible.length > 0 && visible.every((row) => selected.has(row.id));
+    setSelected(everyone ? new Set() : new Set(visible.map((row) => row.id)));
+  }
+
+  function bulkStatus(status: Status) {
+    const ids = selected;
+    setPipeline((rows) => rows.map((row) => (ids.has(row.id) ? applyStatus(row, status) : row)));
+    notify(`${ids.size} lead(s) movidos`);
+    setSelected(new Set());
+  }
+
+  function bulkRemove() {
+    const ids = selected;
+    const removed = pipelineRef.current.filter((row) => ids.has(row.id));
+    if (!removed.length) return;
+    setPipeline((rows) => rows.filter((row) => !ids.has(row.id)));
+    setSelected(new Set());
+    notify(`${removed.length} lead(s) removidos`, {
+      label: "Desfazer",
+      run: () =>
+        setPipeline((rows) => [...removed.filter((row) => !rows.some((item) => item.id === row.id)), ...rows]),
+    });
+  }
+
+  function setTemp(id: string, temp: "quente" | "morno" | "frio" | undefined) {
+    setPipeline((rows) =>
+      rows.map((row) =>
+        row.id === id
+          ? addHistory({ ...row, temp }, temp ? `Temperatura: ${temp}` : "Temperatura removida")
+          : row,
+      ),
+    );
+  }
+
+  function downloadBackup() {
+    const payload = {
+      app: "leadhunter",
+      version: 1,
+      savedAt: new Date().toISOString(),
+      pipeline,
+      ticket,
+      message,
+      followMessage,
+      goal,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `leadhunter-backup-${todayIso()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    notify("Backup baixado");
+  }
+
+  async function restoreBackup(file: File) {
+    try {
+      const data = JSON.parse(await file.text()) as { pipeline?: SavedLead[] };
+      if (!Array.isArray(data?.pipeline)) throw new Error("formato");
+      const valid = data.pipeline.filter(
+        (row) => row && typeof row.id === "string" && typeof row.name === "string" && typeof row.phone === "string",
+      );
+      setPipeline((current) => mergeLeads(current, valid));
+      notify(`Backup restaurado: ${valid.length} leads lidos`);
+    } catch {
+      notify("Arquivo de backup inválido");
+    }
+  }
+
+  async function submitTrial() {
+    setTrialBusy(true);
+    setTrialError("");
+    try {
+      const res = await requestTrial({
+        data: { name: trialForm.name, whatsapp: trialForm.whatsapp, deviceId },
+      });
+      if (!res.ok) {
+        setTrialError(res.error);
+        return;
+      }
+      saveUserName(trialForm.name);
+      setUserName(trialForm.name.trim());
+      await submitKey(res.key);
+    } catch {
+      setTrialError("Não consegui falar com o servidor. Tente de novo.");
+    } finally {
+      setTrialBusy(false);
+    }
+  }
 
   const markContact = useCallback((id: string) => {
     const stamp = new Date().toISOString();
-    setPipeline((rows) => rows.map((row) => (row.id === id ? { ...row, lastContact: stamp } : row)));
+    setPipeline((rows) =>
+      rows.map((row) => (row.id === id ? addHistory({ ...row, lastContact: stamp }, "Contato pelo WhatsApp", stamp) : row)),
+    );
   }, []);
 
   const removeLead = useCallback(
@@ -1244,9 +1517,10 @@ export function LeadApp() {
     setInstallEvent(null);
   }
 
-  async function submitKey() {
-    const key = keyInput.trim();
-    if (mode === "register" && nameInput.trim().length < 2) {
+  async function submitKey(override?: string) {
+    const key = (override ?? keyInput).trim();
+    const registering = !override && mode === "register";
+    if (registering && nameInput.trim().length < 2) {
       setAuthError("Digite seu nome para registrar.");
       return;
     }
@@ -1266,7 +1540,7 @@ export function LeadApp() {
       setAccessKey(key);
       setInfo(res.info);
       setNow(Date.now());
-      if (mode === "register") {
+      if (registering) {
         saveUserName(nameInput);
         setUserName(nameInput.trim());
       }
@@ -1285,6 +1559,9 @@ export function LeadApp() {
     setAccessKey("");
     setInfo(null);
     setPipeline([]);
+    setSelected(new Set());
+    setAnnouncement("");
+    dueNoticed.current = false;
     setResults([]);
     setGoal(0);
     setCloudReady(false);
@@ -1406,6 +1683,51 @@ export function LeadApp() {
               {mode === "login" ? "Entrar" : "Registrar e entrar"}
             </button>
           </form>
+          <div className="mt-5 border-t border-border pt-5">
+            {!trialOpen ? (
+              <button
+                type="button"
+                onClick={() => setTrialOpen(true)}
+                className="w-full text-sm font-semibold text-primary hover:underline"
+              >
+                Quero testar grátis por 5 minutos
+              </button>
+            ) : (
+              <form
+                className="space-y-3"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void submitTrial();
+                }}
+              >
+                <p className="text-sm text-muted">
+                  Informe seu nome e WhatsApp para liberar um teste de 5 minutos, com 3 buscas.
+                </p>
+                <input
+                  value={trialForm.name}
+                  onChange={(event) => setTrialForm({ ...trialForm, name: event.target.value })}
+                  placeholder="Seu nome"
+                  className={field}
+                  autoComplete="name"
+                />
+                <input
+                  value={trialForm.whatsapp}
+                  onChange={(event) => setTrialForm({ ...trialForm, whatsapp: event.target.value })}
+                  placeholder="WhatsApp com DDD"
+                  inputMode="tel"
+                  className={field}
+                  autoComplete="tel"
+                />
+                {trialError && (
+                  <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm font-medium text-danger">{trialError}</p>
+                )}
+                <button type="submit" disabled={trialBusy} className={`h-11 w-full ${btnPrimary}`}>
+                  {trialBusy ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+                  Começar o teste
+                </button>
+              </form>
+            )}
+          </div>
           <p className="mt-5 text-center text-xs text-muted">
             Sem key não há acesso.{" "}
             <a href="/comprar" className="font-semibold text-primary hover:underline">
@@ -1418,7 +1740,7 @@ export function LeadApp() {
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-5xl px-4 pb-16 pt-5 sm:px-6">
+    <div className="mx-auto min-h-screen max-w-5xl px-4 pb-28 pt-5 sm:px-6 sm:pb-16">
       <header className={`mb-6 flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 ${card}`}>
         <div className="flex items-center gap-3">
           <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-b from-primary to-primary-deep text-primary-fg shadow-[0_8px_20px_-8px_rgba(29,111,224,0.7)]">
@@ -1432,7 +1754,7 @@ export function LeadApp() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <nav className="flex rounded-xl bg-primary-soft p-1">
+          <nav className="hidden rounded-xl bg-primary-soft p-1 sm:flex">
             {(
               [
                 ["buscar", "Buscar"],
@@ -1456,6 +1778,9 @@ export function LeadApp() {
               </button>
             ))}
           </nav>
+          <button type="button" onClick={() => setHelpOpen(true)} aria-label="Ajuda" className={`${btnGhost} px-2.5`}>
+            <HelpCircle className="size-4" />
+          </button>
           {installEvent && (
             <button type="button" onClick={() => void installApp()} className={`${btnGhost} inline-flex items-center gap-2`}>
               <Smartphone className="size-4" /> Instalar
@@ -1482,6 +1807,23 @@ export function LeadApp() {
         </div>
       </header>
 
+      {announcement && announcement !== annDismissed && (
+        <div className="mb-4 flex items-start gap-3 rounded-xl border border-primary/30 bg-primary-soft px-4 py-3 text-sm">
+          <Megaphone className="mt-0.5 size-4 shrink-0 text-primary" />
+          <p className="flex-1">{announcement}</p>
+          <button
+            type="button"
+            aria-label="Fechar aviso"
+            onClick={() => {
+              saveAnnDismissed(announcement);
+              setAnnDismissed(announcement);
+            }}
+            className="text-muted hover:text-fg"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+      )}
       {expiresMs && isTest && (
         <div className="mb-4 flex items-center justify-between rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-2.5 text-sm text-amber-900 dark:border-amber-400/30 dark:bg-amber-500/15 dark:text-amber-100">
           <span className="font-semibold">Modo teste</span>
@@ -1584,6 +1926,24 @@ export function LeadApp() {
                   </div>
                 </div>
               )}
+              {recent.length > 0 && (
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-semibold text-muted">Recentes:</span>
+                  {recent.map((item) => (
+                    <button
+                      key={`${item.city}|${item.niche}`}
+                      type="button"
+                      onClick={() => {
+                        setCity(item.city);
+                        setNiche(item.niche);
+                      }}
+                      className="rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-muted transition hover:border-primary hover:text-primary"
+                    >
+                      {item.niche || "todos"} · {item.city.split(",")[0]}
+                    </button>
+                  ))}
+                </div>
+              )}
               <p className="mt-2 text-sm text-muted">
                 O Google entrega no máximo 60 lugares por busca. Só entram os que não têm site, e empresas fechadas de vez ficam de fora.
               </p>
@@ -1639,6 +1999,9 @@ export function LeadApp() {
                   </button>
                   <button type="button" onClick={() => setOpenOnly(true)} className={chip(openOnly)}>
                     Abertas agora
+                  </button>
+                  <button type="button" onClick={() => setHideSaved((value) => !value)} className={chip(hideSaved)}>
+                    Esconder guardados
                   </button>
                   <select
                     value={sort}
@@ -1771,6 +2134,19 @@ export function LeadApp() {
               <option value="valor">Maior valor</option>
               <option value="nome">Nome (A–Z)</option>
             </select>
+            <select
+              value={tempFilter}
+              onChange={(event) => setTempFilter(event.target.value as typeof tempFilter)}
+              aria-label="Filtrar por temperatura"
+              className="rounded-xl border border-border bg-surface px-2.5 py-2 text-sm outline-none focus:border-primary"
+            >
+              <option value="todas">Todas as temperaturas</option>
+              {TEMPS.map(([id, label]) => (
+                <option key={id} value={id}>
+                  {label}
+                </option>
+              ))}
+            </select>
             <div className="flex rounded-xl bg-primary-soft p-1">
               <button
                 type="button"
@@ -1808,6 +2184,49 @@ export function LeadApp() {
               </button>
             ))}
           </div>
+          {view === "lista" && visible.length > 0 && (
+            <div className={`flex flex-wrap items-center gap-2 p-3 text-sm ${card}`}>
+              <label className="flex items-center gap-2 font-medium">
+                <input
+                  type="checkbox"
+                  checked={visible.length > 0 && visible.every((row) => selected.has(row.id))}
+                  onChange={toggleSelectAll}
+                  className="size-4 accent-[var(--color-primary)]"
+                />
+                {selected.size > 0 ? `${selected.size} selecionado(s)` : "Selecionar todos"}
+              </label>
+              {selected.size > 0 && (
+                <>
+                  <select
+                    value=""
+                    onChange={(event) => event.target.value && bulkStatus(event.target.value as Status)}
+                    aria-label="Mudar status dos selecionados"
+                    className="rounded-xl border border-border bg-surface-2 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+                  >
+                    <option value="">Mudar status…</option>
+                    {STATUSES.map((status) => (
+                      <option key={status.id} value={status.id}>
+                        {status.label}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => exportCsv(pipeline.filter((row) => selected.has(row.id)))}
+                    className={btnGhost}
+                  >
+                    Exportar selecionados
+                  </button>
+                  <button type="button" onClick={bulkRemove} className={`${btnGhost} text-danger`}>
+                    Excluir
+                  </button>
+                  <button type="button" onClick={() => setSelected(new Set())} className={btnGhost}>
+                    Limpar
+                  </button>
+                </>
+              )}
+            </div>
+          )}
           {visible.length === 0 && (
             <p className={`px-4 py-10 text-center text-muted ${card}`}>
               {pipeline.length ? "Nenhum lead com esse filtro." : "Nada aqui ainda. Busque leads e guarde no pipeline."}
@@ -1837,6 +2256,8 @@ export function LeadApp() {
                 onRemove={removeLead}
                 onCopy={copyText}
                 onContact={markContact}
+                selected={selected.has(lead.id)}
+                onSelect={toggleSelect}
               />
             ))}
           </div>
@@ -2031,6 +2452,70 @@ export function LeadApp() {
               <p className="mt-2 text-muted">Enviada no botão “Retorno”, quando o lead já foi contatado.</p>
             </div>
           </div>
+          <div className={`p-4 sm:p-5 ${card}`}>
+            <h2 className="mb-3 font-semibold">Últimos 7 dias</h2>
+            <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
+              {(
+                [
+                  ["Leads guardados", String(week.added)],
+                  ["Contatos feitos", String(week.contacted)],
+                  ["Vendas fechadas", String(week.closed)],
+                  ["Receita", money(week.revenue)],
+                ] as const
+              ).map(([label, value]) => (
+                <div key={label} className="rounded-xl bg-surface-2 p-3">
+                  <p className="font-display text-xl font-semibold">{value}</p>
+                  <p className="text-xs text-muted">{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className={`p-4 sm:p-5 ${card}`}>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-semibold">Melhores cidades</h2>
+              <span className="text-sm text-muted">
+                Ticket médio: {money(closed.length ? Math.round(revenue / closed.length) : ticket)}
+              </span>
+            </div>
+            {cityStats.length === 0 ? (
+              <p className="text-sm text-muted">Guarde leads no pipeline para ver o ranking por cidade.</p>
+            ) : (
+              <div className="divide-y divide-border text-sm">
+                {cityStats.map((item) => (
+                  <div key={item.city} className="flex items-center justify-between py-2">
+                    <span className="font-medium">{item.city}</span>
+                    <span className="text-muted">
+                      {item.leads} leads · {item.closed} fechados · {money(item.revenue)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className={`p-4 sm:p-5 ${card}`}>
+            <h2 className="mb-1 font-semibold">Backup dos seus dados</h2>
+            <p className="mb-3 text-sm text-muted">
+              Baixe uma cópia dos seus leads e mensagens. Ao restaurar, os leads do arquivo são somados aos que você já tem.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={downloadBackup} className={`${btnGhost} inline-flex items-center gap-2`}>
+                <Download className="size-4" /> Baixar backup
+              </button>
+              <label className={`${btnGhost} inline-flex cursor-pointer items-center gap-2`}>
+                <Upload className="size-4" /> Restaurar backup
+                <input
+                  type="file"
+                  accept=".json,application/json"
+                  className="hidden"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (file) void restoreBackup(file);
+                  }}
+                />
+              </label>
+            </div>
+          </div>
           <div className={`p-4 ${card}`}>
             <h2 className="mb-3 font-semibold">Fechados</h2>
             {closed.length === 0 && <p className="text-sm text-muted">Marque um lead como Fechado no pipeline.</p>}
@@ -2070,11 +2555,50 @@ export function LeadApp() {
                 value={open.followUp || ""}
                 onChange={(event) => {
                   const followUp = event.target.value;
-                  setPipeline((rows) => rows.map((row) => (row.id === open.id ? { ...row, followUp } : row)));
+                  setPipeline((rows) =>
+                    rows.map((row) =>
+                      row.id === open.id
+                        ? followUp
+                          ? addHistory({ ...row, followUp }, `Retorno marcado para ${brDate(followUp)}`)
+                          : { ...row, followUp }
+                        : row,
+                    ),
+                  );
                 }}
                 className={field}
               />
             </label>
+            {open.followUp && (
+              <a
+                className="mt-2 inline-block text-sm font-semibold text-primary hover:underline"
+                target="_blank"
+                rel="noreferrer"
+                href={(() => {
+                  const start = open.followUp.replaceAll("-", "");
+                  const nextDay = new Date(`${open.followUp}T12:00:00`);
+                  nextDay.setDate(nextDay.getDate() + 1);
+                  const end = nextDay.toLocaleDateString("sv-SE").replaceAll("-", "");
+                  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Retorno: ${open.name}`)}&dates=${start}/${end}&details=${encodeURIComponent(`Telefone: ${formatPhone(open.phone)}`)}`;
+                })()}
+              >
+                Adicionar ao Google Agenda
+              </a>
+            )}
+            <div className="mt-3 text-sm">
+              <span className="mb-1.5 block font-semibold">Temperatura</span>
+              <div className="flex flex-wrap gap-2">
+                {TEMPS.map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setTemp(open.id, open.temp === id ? undefined : id)}
+                    className={chip(open.temp === id)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <label className="mt-3 block text-sm">
               <span className="mb-1.5 block font-semibold">Notas</span>
               <textarea
@@ -2087,9 +2611,113 @@ export function LeadApp() {
                 className={field}
               />
             </label>
+            <button
+              type="button"
+              onClick={() => {
+                if (!openProposal(open, userName)) notify("Libere pop-ups para abrir a proposta");
+              }}
+              className={`${btnGhost} mt-3 w-full py-2.5`}
+            >
+              Gerar proposta (PDF)
+            </button>
+            {open.history && open.history.length > 0 && (
+              <div className="mt-4">
+                <p className="mb-1.5 text-sm font-semibold">Histórico</p>
+                <ul className="max-h-36 space-y-1.5 overflow-y-auto pr-1 text-xs text-muted">
+                  {[...open.history].reverse().map((item, index) => (
+                    <li key={`${item.at}-${index}`} className="flex gap-2">
+                      <span className="shrink-0 font-mono">
+                        {new Date(item.at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}{" "}
+                        {new Date(item.at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                      <span>{item.text}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <button type="button" onClick={() => setOpenId(null)} className={`mt-4 w-full py-3 ${btnPrimary}`}>
               Fechar
             </button>
+          </div>
+        </div>
+      )}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-surface/95 backdrop-blur sm:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      >
+        {(
+          [
+            ["buscar", "Buscar", Search],
+            ["hoje", "Hoje", CalendarClock],
+            ["pipeline", "Pipeline", Users],
+            ["vendas", "Vendas", Wallet],
+          ] as const
+        ).map(([id, label, Icon]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setTab(id)}
+            className={`relative flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold ${
+              tab === id ? "text-primary" : "text-muted"
+            }`}
+          >
+            <Icon className="size-5" />
+            {label}
+            {id === "hoje" && dueCount > 0 && (
+              <span className="absolute right-1/4 top-1.5 rounded-full bg-danger px-1.5 text-[9px] font-bold text-white">{dueCount}</span>
+            )}
+          </button>
+        ))}
+      </nav>
+      {helpOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-fg/40 p-4 backdrop-blur-sm sm:items-center">
+          <div className={`max-h-[85vh] w-full max-w-lg overflow-y-auto p-5 ${card}`}>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="font-display text-xl font-semibold">Ajuda</h2>
+              <button type="button" aria-label="Fechar" onClick={() => setHelpOpen(false)} className="text-muted hover:text-fg">
+                <X className="size-5" />
+              </button>
+            </div>
+            <div className="space-y-4 text-sm">
+              {(
+                [
+                  ["Como busco empresas?", "Na aba Buscar, escolha a cidade e o tipo de negócio e clique em buscar. Só aparecem empresas sem site cadastrado no Google."],
+                  ["O que é a prioridade?", "É uma nota de 0 a 100 que soma nota do Google, número de avaliações, se está aberta agora e se o telefone é celular. Serve para decidir quem chamar primeiro."],
+                  ["Por que a busca acabou?", "Cada key tem um limite de buscas por dia. A barra \"Buscas de hoje\" mostra quanto falta, e o limite volta no dia seguinte."],
+                  ["Meus dados ficam salvos?", "Sim, na nuvem, ligados à sua key. Você também pode baixar um backup na aba Vendas."],
+                  ["Posso usar em mais de um aparelho?", "Sim, até o limite da sua key, em geral 2 aparelhos."],
+                ] as const
+              ).map(([question, answer]) => (
+                <div key={question}>
+                  <p className="font-semibold">{question}</p>
+                  <p className="mt-0.5 text-muted">{answer}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setHelpOpen(false);
+                  setTourStep(0);
+                  setTourOpen(true);
+                }}
+                className={btnGhost}
+              >
+                Rever o tutorial
+              </button>
+              {SUPPORT_WHATSAPP && (
+                <a
+                  className={`${btnGhost} inline-flex items-center gap-2`}
+                  target="_blank"
+                  rel="noreferrer"
+                  href={`https://wa.me/${SUPPORT_WHATSAPP}`}
+                >
+                  <MessageCircle className="size-4" /> Falar com o suporte
+                </a>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -2168,7 +2796,7 @@ export function LeadApp() {
       {toast && (
         <div
           role="status"
-          className="fade-up fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full bg-fg px-5 py-2.5 text-sm font-semibold text-bg shadow-lg"
+          className="fade-up fixed bottom-20 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full bg-fg px-5 py-2.5 text-sm font-semibold text-bg shadow-lg"
         >
           {toast}
           {toastAction && (
