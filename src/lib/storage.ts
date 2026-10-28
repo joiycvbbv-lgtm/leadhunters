@@ -28,6 +28,8 @@ export type SavedLead = {
   history?: { at: string; text: string }[];
   /** temperatura do lead */
   temp?: "quente" | "morno" | "frio";
+  /** quantas mensagens da cadência já foram enviadas */
+  step?: number;
 };
 
 const ACCESS = "lh_access_key";
@@ -161,6 +163,18 @@ export function saveTheme(value: Theme) {
 /** Apaga os dados guardados no navegador (ao sair), para o próximo usuário não ver leads de outro. */
 export function clearLocalData() {
   for (const name of [PIPE, MSG, FOLLOW, TICKET, PREFS, GOAL, RECENT]) localStorage.removeItem(name);
+}
+
+const DAILY = "lh_daily_goal";
+export function loadDailyGoal() {
+  try {
+    return Number(localStorage.getItem(DAILY)) || 0;
+  } catch {
+    return 0;
+  }
+}
+export function saveDailyGoal(value: number) {
+  localStorage.setItem(DAILY, String(value));
 }
 
 const ANN = "lh_ann_dismissed";
