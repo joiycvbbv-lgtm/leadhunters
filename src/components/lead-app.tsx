@@ -10,6 +10,8 @@ import {
   Columns3,
   Copy,
   Download,
+  BookOpen,
+  CheckCircle2,
   Flame,
   HelpCircle,
   KeyRound,
@@ -27,6 +29,7 @@ import {
   Search,
   ShieldCheck,
   Smartphone,
+  SkipForward,
   Sparkles,
   Star,
   Sun,
@@ -38,12 +41,14 @@ import {
   Users,
   Wallet,
   X,
+  Zap,
 } from "lucide-react";
 import { checkAccessKey, searchPlaces, type KeyCheck, type Lead } from "@/lib/leads.functions";
 import { loadCloud, saveCloud, type CloudData } from "@/lib/cloud.functions";
 import { getAnnouncement, requestTrial } from "@/lib/extras.functions";
 import { SUPPORT_WHATSAPP } from "@/lib/plans";
 import { ALL_NICHES, NICHE_GROUPS } from "@/lib/niches";
+import { OBJECOES } from "@/lib/objecoes";
 import {
   FIRST_TEMPLATES,
   FOLLOW_TEMPLATES,
@@ -58,6 +63,7 @@ import {
   getDeviceId,
   loadAccessKey,
   loadAnnDismissed,
+  loadDailyGoal,
   loadFollowMsg,
   loadGoal,
   loadTourDone,
@@ -70,6 +76,7 @@ import {
   loadUserName,
   saveAccessKey,
   saveAnnDismissed,
+  saveDailyGoal,
   saveFollowMsg,
   saveGoal,
   saveTourDone,
@@ -256,6 +263,35 @@ function applyStatus(row: SavedLead, status: Status): SavedLead {
     `Status: ${label(row.status)} → ${label(status)}`,
     stamp,
   );
+}
+
+/** Cadência: dias até o próximo retorno depois das mensagens 1, 2 e 3. */
+const GAPS = [2, 3, 5];
+
+function addDaysIso(days: number) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toLocaleDateString("sv-SE");
+}
+
+function stepOf(row: SavedLead) {
+  return row.step ?? (row.status === "novo" ? 0 : 1);
+}
+
+function messageForStep(step: number, first: string, follow: string) {
+  if (step <= 0) return first;
+  if (step === 1) return follow;
+  if (step === 2) return FOLLOW_TEMPLATES[1].text;
+  return FOLLOW_TEMPLATES[2].text;
+}
+
+/** Registra que a mensagem da vez foi enviada e já marca o próximo retorno. */
+function sendRow(row: SavedLead): SavedLead {
+  const step = stepOf(row) + 1;
+  const stamp = new Date().toISOString();
+  const moved = applyStatus(row, row.status === "novo" ? "contatado" : row.status);
+  const followUp = step <= GAPS.length ? addDaysIso(GAPS[step - 1]) : undefined;
+  return addHistory({ ...moved, step, lastContact: stamp, followUp }, `Mensagem ${step} enviada`, stamp);
 }
 
 const TEMPS = [
@@ -902,6 +938,11 @@ export function LeadApp() {
   const [trialBusy, setTrialBusy] = useState(false);
   const [trialError, setTrialError] = useState("");
   const dueNoticed = useRef(false);
+  const [focusOpen, setFocusOpen] = useState(false);
+  const [focusQueue, setFocusQueue] = useState<string[]>([]);
+  const [focusIndex, setFocusIndex] = useState(0);
+  const [objOpen, setObjOpen] = useState(false);
+  const [dailyGoal, setDailyGoal] = useState(20);
   const [tourOpen, setTourOpen] = useState(false);
   const [tourStep, setTourStep] = useState(0);
   const [installEvent, setInstallEvent] = useState<{ prompt: () => Promise<void> } | null>(null);
@@ -947,6 +988,7 @@ export function LeadApp() {
     }
     setFollowMessage(loadFollowMsg());
     setGoal(loadGoal());
+    setDailyGoal(loadDailyGoal() || 20);
     setRecent(loadRecent());
     setAnnDismissed(loadAnnDismissed());
     const savedTheme = loadTheme();
@@ -1193,6 +1235,28 @@ export function LeadApp() {
     return { due, stale, fresh };
   }, [pipeline, today]);
 
+  const sendStats = useMemo(() => {
+    const days = new Set<string>();
+    const todayStr = todayIso();
+    let todayCount = 0;
+    for (const row of pipeline) {
+      for (const item of row.history ?? []) {
+        if (!item.text.startsWith("Mensagem ")) continue;
+        const day = new Date(item.at).toLocaleDateString("sv-SE");
+        days.add(day);
+        if (day === todayStr) todayCount += 1;
+      }
+    }
+    let streak = 0;
+    const cursor = new Date();
+    if (!days.has(todayStr)) cursor.setDate(cursor.getDate() - 1);
+    while (days.has(cursor.toLocaleDateString("sv-SE"))) {
+      streak += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return { todayCount, streak };
+  }, [pipeline]);
+
   const week = useMemo(() => {
     const since = Date.now() - 7 * 86400000;
     const at = (iso?: string) => (iso ? new Date(iso).getTime() : 0);
@@ -1398,6 +1462,46 @@ export function LeadApp() {
       return next;
     });
   }, []);
+
+  function startFocus() {
+    const todayStr = todayIso();
+    const active = pipelineRef.current.filter((row) => row.status !== "fechado" && row.status !== "perdido");
+    const due = active.filter((row) => row.followUp && row.followUp <= todayStr);
+    const dueIds = new Set(due.map((row) => row.id));
+    const stale = active.filter(
+      (row) => !dueIds.has(row.id) && row.status !== "novo" && row.lastContact && daysSince(row.lastContact) >= 3,
+    );
+    const fresh = active.filter((row) => row.status === "novo" && !dueIds.has(row.id));
+    const ids = [...due, ...stale, ...fresh].map((row) => row.id).slice(0, 50);
+    if (!ids.length) {
+      notify("Nenhum lead na fila. Guarde leads no pipeline primeiro.");
+      return;
+    }
+    setFocusQueue(ids);
+    setFocusIndex(0);
+    setFocusOpen(true);
+  }
+
+  function focusNext() {
+    setFocusIndex((index) => index + 1);
+  }
+
+  function focusSent(id: string) {
+    setPipeline((rows) => rows.map((row) => (row.id === id ? sendRow(row) : row)));
+    focusNext();
+  }
+
+  function focusReplied(id: string) {
+    setPipeline((rows) =>
+      rows.map((row) => (row.id === id ? { ...applyStatus(row, "proposta"), followUp: addDaysIso(2) } : row)),
+    );
+    focusNext();
+  }
+
+  function focusLost(id: string) {
+    setStatus(id, "perdido");
+    focusNext();
+  }
 
   function toggleSelectAll() {
     const everyone = visible.length > 0 && visible.every((row) => selected.has(row.id));
@@ -2235,6 +2339,53 @@ export function LeadApp() {
       {tab === "hoje" && (
         <section className="fade-up space-y-5">
           <div className={`p-4 sm:p-5 ${card}`}>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="flex items-center gap-2 font-display text-xl font-semibold">
+                  <Zap className="size-5 text-primary" /> Prospecção do dia
+                </h2>
+                <p className="mt-1 flex flex-wrap items-center gap-x-3 text-sm text-muted">
+                  <span>
+                    Contatos de hoje: {sendStats.todayCount} de {dailyGoal}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Flame className="size-4 text-orange-500" /> {sendStats.streak} dia(s) seguidos
+                  </span>
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="flex items-center gap-2 text-sm text-muted">
+                  Meta
+                  <input
+                    type="number"
+                    min={1}
+                    max={200}
+                    value={dailyGoal}
+                    onChange={(event) => {
+                      const value = Math.min(200, Math.max(1, Number(event.target.value) || 1));
+                      setDailyGoal(value);
+                      saveDailyGoal(value);
+                    }}
+                    className="w-20 rounded-xl border border-border bg-surface-2 px-2 py-2 text-center text-fg outline-none focus:border-primary"
+                  />
+                </label>
+                <button type="button" onClick={startFocus} className={`px-4 py-2.5 ${btnPrimary}`}>
+                  <Zap className="size-4" /> Começar a prospectar
+                </button>
+                <button type="button" onClick={() => setObjOpen(true)} className={`${btnGhost} inline-flex items-center gap-2`}>
+                  <BookOpen className="size-4" /> Respostas rápidas
+                </button>
+              </div>
+            </div>
+            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-primary-soft">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-sky-400 to-primary transition-all"
+                style={{ width: `${Math.min(100, Math.round((sendStats.todayCount / Math.max(1, dailyGoal)) * 100))}%` }}
+              />
+            </div>
+            {sendStats.todayCount >= dailyGoal && <p className="mt-2 text-sm font-semibold text-primary">Meta de hoje batida! 🎉</p>}
+          </div>
+          <div className={`p-4 sm:p-5 ${card}`}>
             <h2 className="font-display text-xl font-semibold">Seu dia</h2>
             <p className="mt-1 text-sm text-muted">
               {todayLists.due.length} retorno(s) para hoje ou atrasados · {todayLists.stale.length} parado(s) · {todayLists.fresh.length} lead(s) novo(s) para chamar
@@ -2856,6 +3007,169 @@ export function LeadApp() {
           </button>
         ))}
       </nav>
+      {focusOpen &&
+        (() => {
+          const total = focusQueue.length;
+          const done = focusIndex >= total;
+          const lead = done ? undefined : pipeline.find((row) => row.id === focusQueue[focusIndex]);
+          const step = lead ? stepOf(lead) : 0;
+          const text = lead ? fillTemplate(messageForStep(step, message, followMessage), lead.name, lead.city) : "";
+          const why = lead
+            ? lead.followUp && lead.followUp < today
+              ? "Retorno atrasado"
+              : lead.followUp && lead.followUp === today
+                ? "Retorno de hoje"
+                : lead.status !== "novo" && lead.lastContact && daysSince(lead.lastContact) >= 3
+                  ? `Parado há ${daysSince(lead.lastContact)} dias`
+                  : "Lead novo"
+            : "";
+          return (
+            <div className="fixed inset-0 z-50 overflow-y-auto bg-bg p-4">
+              <div className="mx-auto flex min-h-full w-full max-w-lg flex-col gap-4">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="flex items-center gap-2 font-display text-lg font-semibold">
+                    <Zap className="size-5 text-primary" /> Modo foco
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button type="button" onClick={() => setObjOpen(true)} className={`${btnGhost} inline-flex items-center gap-2`}>
+                      <BookOpen className="size-4" /> Respostas
+                    </button>
+                    <button type="button" aria-label="Sair do modo foco" onClick={() => setFocusOpen(false)} className="p-2 text-muted hover:text-fg">
+                      <X className="size-5" />
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <div className="mb-1 flex justify-between text-xs font-semibold text-muted">
+                    <span>
+                      Lead {Math.min(focusIndex + 1, total)} de {total}
+                    </span>
+                    <span>
+                      Hoje: {sendStats.todayCount}/{dailyGoal} · 🔥 {sendStats.streak}
+                    </span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-primary-soft">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-sky-400 to-primary transition-all"
+                      style={{ width: `${Math.round((Math.min(focusIndex, total) / Math.max(1, total)) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+
+                {done ? (
+                  <div className={`p-6 text-center ${card}`}>
+                    <CheckCircle2 className="mx-auto size-12 text-primary" />
+                    <h2 className="mt-3 font-display text-xl font-semibold">Fila concluída!</h2>
+                    <p className="mt-1 text-sm text-muted">
+                      Você enviou {sendStats.todayCount} mensagem(ns) hoje. Os retornos já ficaram marcados na aba Hoje.
+                    </p>
+                    <button type="button" onClick={() => setFocusOpen(false)} className={`mt-5 w-full py-3 ${btnPrimary}`}>
+                      Fechar
+                    </button>
+                  </div>
+                ) : !lead ? (
+                  <div className={`p-6 text-center ${card}`}>
+                    <p className="text-sm text-muted">Esse lead não está mais no pipeline.</p>
+                    <button type="button" onClick={focusNext} className={`mt-4 w-full py-3 ${btnPrimary}`}>
+                      Próximo
+                    </button>
+                  </div>
+                ) : (
+                  <div className={`space-y-4 p-4 sm:p-5 ${card}`}>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-bold text-primary-deep dark:text-primary">
+                        {why}
+                      </span>
+                      <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-bold text-muted">
+                        Mensagem {Math.min(step + 1, 4)} da cadência
+                      </span>
+                      {lead.temp && (
+                        <span className="text-xs font-bold">{TEMPS.find((item) => item[0] === lead.temp)?.[1]}</span>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-display text-2xl font-semibold">{lead.name}</h3>
+                      <p className="mt-1 text-sm text-muted">
+                        {formatPhone(lead.phone)} · {lead.city.split(",")[0]}
+                        {lead.rating > 0 ? ` · ★ ${lead.rating}` : ""}
+                      </p>
+                      {lead.notes && <p className="mt-2 rounded-lg bg-surface-2 px-3 py-2 text-sm">{lead.notes}</p>}
+                    </div>
+                    <div>
+                      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">Mensagem</p>
+                      <p className="whitespace-pre-wrap rounded-xl bg-surface-2 p-3 text-sm">{text}</p>
+                      <button
+                        type="button"
+                        onClick={() => copyText(text, "Mensagem copiada")}
+                        className="mt-2 text-sm font-semibold text-primary hover:underline"
+                      >
+                        Copiar mensagem
+                      </button>
+                    </div>
+                    <a
+                      href={waLink(lead.phone, lead.name, messageForStep(step, message, followMessage), lead.city)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex h-14 items-center justify-center gap-2 rounded-xl bg-whatsapp text-lg font-bold text-primary-fg shadow-sm transition hover:brightness-105"
+                    >
+                      <MessageCircle className="size-5" /> Abrir WhatsApp
+                    </a>
+                    {step >= 3 && (
+                      <p className="rounded-lg bg-amber-100 px-3 py-2 text-xs font-medium text-amber-900 dark:bg-amber-500/20 dark:text-amber-100">
+                        Essa já é a última mensagem da cadência. Se não houver resposta, considere marcar como sem interesse.
+                      </p>
+                    )}
+                    <div className="grid grid-cols-2 gap-2">
+                      <button type="button" onClick={() => focusSent(lead.id)} className={`col-span-2 py-3 ${btnPrimary}`}>
+                        <CheckCircle2 className="size-4" /> Enviei, próximo
+                      </button>
+                      <button type="button" onClick={() => focusReplied(lead.id)} className={`${btnGhost} justify-center py-2.5`}>
+                        Respondeu
+                      </button>
+                      <button type="button" onClick={() => focusLost(lead.id)} className={`${btnGhost} justify-center py-2.5 text-danger`}>
+                        Sem interesse
+                      </button>
+                      <button type="button" onClick={focusNext} className={`${btnGhost} col-span-2 justify-center py-2.5`}>
+                        <SkipForward className="size-4" /> Pular
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted">
+                      “Enviei” marca o contato, passa o lead para Contatado e agenda o próximo retorno (em {GAPS.join(", ")} dias, nas 3 primeiras mensagens).
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+      {objOpen && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-fg/40 p-4 backdrop-blur-sm sm:items-center">
+          <div className={`max-h-[85vh] w-full max-w-lg overflow-y-auto p-5 ${card}`}>
+            <div className="mb-1 flex items-center justify-between">
+              <h2 className="font-display text-xl font-semibold">Respostas rápidas</h2>
+              <button type="button" aria-label="Fechar" onClick={() => setObjOpen(false)} className="text-muted hover:text-fg">
+                <X className="size-5" />
+              </button>
+            </div>
+            <p className="mb-4 text-xs text-muted">Toque em copiar e cole no WhatsApp. Adapte ao seu jeito e só prometa o que você consegue cumprir.</p>
+            <div className="space-y-3">
+              {OBJECOES.map((item) => (
+                <div key={item.titulo} className="rounded-xl bg-surface-2 p-3">
+                  <p className="text-sm font-semibold">{item.titulo}</p>
+                  <p className="mt-1 text-sm text-muted">{item.resposta}</p>
+                  <button
+                    type="button"
+                    onClick={() => copyText(item.resposta, "Resposta copiada")}
+                    className="mt-2 text-sm font-semibold text-primary hover:underline"
+                  >
+                    Copiar resposta
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       {helpOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-fg/40 p-4 backdrop-blur-sm sm:items-center">
           <div className={`max-h-[85vh] w-full max-w-lg overflow-y-auto p-5 ${card}`}>
