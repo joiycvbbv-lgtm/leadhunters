@@ -21,6 +21,7 @@ import {
   adminOverview,
   adminReconcile,
   adminSetAnnouncement,
+  adminSiteAction,
   adminSimulatePayment,
   adminUpdateKey,
   type AdminKey,
@@ -207,6 +208,14 @@ export function AdminApp() {
     setBusy(false);
   }
 
+  async function siteAction(slug: string, action: "suspender" | "reativar" | "excluir") {
+    if (action === "excluir" && !window.confirm("Excluir esse site de vez?")) return;
+    setBusy(true);
+    await adminSiteAction({ data: { token, slug, action } }).catch(() => null);
+    await load(token);
+    setBusy(false);
+  }
+
   async function reconcile() {
     setBusy(true);
     await adminReconcile({ data: { token } }).catch(() => null);
@@ -361,6 +370,44 @@ export function AdminApp() {
           </button>
         </div>
       </section>
+
+      {data.sites.length > 0 && (
+        <section className={`p-4 ${card}`}>
+          <h2 className="mb-3 font-semibold">Sites publicados ({data.sites.length})</h2>
+          <div className="divide-y divide-border text-sm">
+            {data.sites.map((site) => (
+              <div key={site.slug} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">
+                    {site.name} <span className="text-xs text-muted">· {site.kind === "final" ? "final" : "prévia"}</span>
+                    {site.status !== "ativo" && <span className="ml-2 rounded-full bg-danger/10 px-2 py-0.5 text-xs font-bold text-danger">suspenso</span>}
+                  </p>
+                  <p className="text-xs text-muted">
+                    de {site.owner} · {site.views} visitas · {when(site.createdAt)}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  <a className={btnGhost} href={`/s/${site.slug}`} target="_blank" rel="noreferrer">
+                    Abrir
+                  </a>
+                  {site.status === "ativo" ? (
+                    <button type="button" className={`${btnGhost} text-danger`} onClick={() => void siteAction(site.slug, "suspender")}>
+                      Suspender
+                    </button>
+                  ) : (
+                    <button type="button" className={btnGhost} onClick={() => void siteAction(site.slug, "reativar")}>
+                      Reativar
+                    </button>
+                  )}
+                  <button type="button" className={`${btnGhost} text-danger`} onClick={() => void siteAction(site.slug, "excluir")}>
+                    Excluir
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {data.trials.length > 0 && (
         <section className={`p-4 ${card}`}>

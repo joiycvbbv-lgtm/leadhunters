@@ -13,6 +13,7 @@ import {
   BookOpen,
   CheckCircle2,
   Flame,
+  Globe,
   HelpCircle,
   KeyRound,
   List,
@@ -49,6 +50,7 @@ import { getAnnouncement, requestTrial } from "@/lib/extras.functions";
 import { SUPPORT_WHATSAPP } from "@/lib/plans";
 import { ALL_NICHES, NICHE_GROUPS } from "@/lib/niches";
 import { OBJECOES } from "@/lib/objecoes";
+import { MySitesModal, SiteStudio } from "@/components/site-studio";
 import {
   FIRST_TEMPLATES,
   FOLLOW_TEMPLATES,
@@ -666,6 +668,7 @@ const PipelineRow = memo(function PipelineRow({
   onContact,
   selected,
   onSelect,
+  onSite,
 }: {
   lead: SavedLead;
   message: string;
@@ -678,6 +681,7 @@ const PipelineRow = memo(function PipelineRow({
   onContact: (id: string) => void;
   selected?: boolean;
   onSelect?: (id: string) => void;
+  onSite?: (id: string) => void;
 }) {
   const follow = followState(lead.followUp, today);
   const active = lead.status !== "fechado" && lead.status !== "perdido";
@@ -776,6 +780,11 @@ const PipelineRow = memo(function PipelineRow({
           >
             Copiar msg
           </button>
+          {onSite && (
+            <button type="button" onClick={() => onSite(lead.id)} className={`${btnGhost} inline-flex items-center gap-1.5`}>
+              <Globe className="size-4" /> Criar site
+            </button>
+          )}
           <button type="button" onClick={() => onNotes(lead.id)} className={btnGhost}>
             Notas
           </button>
@@ -942,6 +951,8 @@ export function LeadApp() {
   const [focusQueue, setFocusQueue] = useState<string[]>([]);
   const [focusIndex, setFocusIndex] = useState(0);
   const [objOpen, setObjOpen] = useState(false);
+  const [siteLeadId, setSiteLeadId] = useState<string | null>(null);
+  const [mySitesOpen, setMySitesOpen] = useState(false);
   const [dailyGoal, setDailyGoal] = useState(20);
   const [tourOpen, setTourOpen] = useState(false);
   const [tourStep, setTourStep] = useState(0);
@@ -1951,6 +1962,15 @@ export function LeadApp() {
               </button>
             ))}
           </nav>
+          <button
+            type="button"
+            onClick={() => setMySitesOpen(true)}
+            aria-label="Meus sites"
+            title="Meus sites"
+            className={`${btnGhost} px-2.5`}
+          >
+            <Globe className="size-4" />
+          </button>
           <button type="button" onClick={() => setHelpOpen(true)} aria-label="Ajuda" className={`${btnGhost} px-2.5`}>
             <HelpCircle className="size-4" />
           </button>
@@ -2416,6 +2436,7 @@ export function LeadApp() {
                     onRemove={removeLead}
                     onCopy={copyText}
                     onContact={markContact}
+                    onSite={setSiteLeadId}
                   />
                 ))}
               </div>
@@ -2595,6 +2616,7 @@ export function LeadApp() {
                 onContact={markContact}
                 selected={selected.has(lead.id)}
                 onSelect={toggleSelect}
+                onSite={setSiteLeadId}
               />
             ))}
           </div>
@@ -3007,6 +3029,44 @@ export function LeadApp() {
           </button>
         ))}
       </nav>
+      {siteLeadId &&
+        (() => {
+          const siteLead = pipeline.find((row) => row.id === siteLeadId);
+          if (!siteLead) return null;
+          return (
+            <SiteStudio
+              key={siteLead.id}
+              lead={siteLead}
+              accessKey={accessKey}
+              deviceId={deviceId}
+              sellerName={userName}
+              isTest={isTest}
+              onClose={() => setSiteLeadId(null)}
+              onUsage={(used, limit) => setInfo((prev) => (prev ? { ...prev, usedToday: used, dailyLimit: limit } : prev))}
+              onAccessError={(code) => logout(accessMessage(code))}
+              notify={notify}
+              onSent={(id, text) =>
+                setPipeline((rows) => rows.map((row) => (row.id === id ? addHistory(sendRow(row), text) : row)))
+              }
+              onProposal={(target) => {
+                if (!openProposal(target, userName)) notify("Libere pop-ups para abrir a proposta");
+              }}
+              onWon={(id) => {
+                setStatus(id, "fechado");
+                notify("Venda fechada!");
+              }}
+            />
+          );
+        })()}
+      {mySitesOpen && (
+        <MySitesModal
+          accessKey={accessKey}
+          deviceId={deviceId}
+          onClose={() => setMySitesOpen(false)}
+          onAccessError={(code) => logout(accessMessage(code))}
+          notify={notify}
+        />
+      )}
       {focusOpen &&
         (() => {
           const total = focusQueue.length;
