@@ -30,6 +30,16 @@ export type AdminOrder = {
   paidAt: string | null;
 };
 
+export type AdminSite = {
+  slug: string;
+  name: string;
+  owner: string;
+  kind: string;
+  status: string;
+  views: number;
+  createdAt: string;
+};
+
 export type AdminTrial = { id: number; name: string; whatsapp: string; createdAt: string };
 
 export type AdminDay = { day: string; searches: number; sales: number; revenueCents: number };
@@ -49,6 +59,7 @@ export type AdminOverview = {
   daily: AdminDay[];
   expiring: AdminExpiring[];
   trials: AdminTrial[];
+  sites: AdminSite[];
   announcement: string;
   stats: {
     totalKeys: number;
@@ -173,12 +184,34 @@ export const adminOverview = createServerFn({ method: "POST" })
               to_char(created_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as created_at
          from trials order by id desc limit 50`,
     );
+    const sitesRows = await sql.query<{
+      slug: string;
+      name: string;
+      kind: string;
+      status: string;
+      views: number;
+      created_at: string;
+      buyer: string | null;
+    }>(
+      `select s.slug, s.name, s.kind, s.status, s.views,
+              to_char(s.created_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as created_at, k.buyer
+         from sites s left join access_keys k on k.id = s.key_id order by s.id desc limit 100`,
+    );
     const announcement = await sql.query<{ value: string }>(
       "select value from app_settings where key = 'announcement'",
     );
 
     return {
       ok: true,
+      sites: sitesRows.map((s) => ({
+        slug: s.slug,
+        name: s.name,
+        owner: s.buyer || "—",
+        kind: s.kind,
+        status: s.status,
+        views: Number(s.views),
+        createdAt: s.created_at,
+      })),
       trials: trials.map((t) => ({ id: t.id, name: t.name, whatsapp: t.whatsapp, createdAt: t.created_at })),
       announcement: announcement[0]?.value ?? "",
       daily: days.map((d) => ({
@@ -386,5 +419,27 @@ export const adminSetAnnouncement = createServerFn({ method: "POST" })
        on conflict (key) do update set value = $1, updated_at = now()`,
       [data.text],
     );
+    return { ok: true };
+  });
+
+export const adminSiteAction = createServerFn({ method: "POST" })
+  .validator((data: { token: string; slug: string; action: "suspender" | "reativar" | "excluir" }) => ({
+    token: T(data),
+    slug: String(data?.slug || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 60),
+    action: (["suspender", "reativar", "excluir"].includes(data?.action) ? data.action : "suspender") as
+      | "suspender"
+      | "reativar"
+      | "excluir",
+  }))
+  .handler(async ({ data }): Promise<{ ok: true } | AdminFail> => {
+    if (!(await guard(data.token))) return { ok: false, code: "SESSAO" };
+    const { getDb: getSql } = await import("./db-app.server");
+    const sql = await getSql();
+    if (data.action === "excluir") await sql.query("delete from sites where slug = $1", [data.slug]);
+    else
+      await sql.query("update sites set status = $2 where slug = $1", [
+        data.slug,
+        data.action === "suspender" ? "suspenso" : "ativo",
+      ]);
     return { ok: true };
   });

@@ -36,6 +36,22 @@ const EXTRAS = [
      key_id bigint references access_keys(id) on delete set null,
      created_at timestamptz not null default now()
    )`,
+  `create table if not exists sites (
+     id bigserial primary key,
+     slug text not null unique,
+     key_id bigint references access_keys(id) on delete cascade,
+     lead_ref text not null default '',
+     name text not null default '',
+     data text not null,
+     kind text not null default 'previa',
+     indexable boolean not null default false,
+     status text not null default 'ativo',
+     views int not null default 0,
+     created_at timestamptz not null default now(),
+     updated_at timestamptz not null default now(),
+     expires_at timestamptz
+   )`,
+  "create index if not exists sites_key_idx on sites (key_id)",
   "create unique index if not exists trials_whatsapp_idx on trials (whatsapp)",
   "create index if not exists trials_device_idx on trials (device_id)",
 ];
