@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BadgeCheck, Check, Copy, KeyRound, Loader2, MapPin, MessageCircle, QrCode, Radar, Target, Zap } from "lucide-react";
-import { createPix, getOrder, type OrderView } from "@/lib/shop.functions";
+import { checkCoupon, createPix, getOrder, type OrderView } from "@/lib/shop.functions";
 import { PLANS, SUPPORT_WHATSAPP, brl } from "@/lib/plans";
 
 const card = "rounded-2xl border border-border bg-surface shadow-card";
@@ -26,6 +26,9 @@ export function ShopApp() {
   const [error, setError] = useState("");
   const [order, setOrder] = useState<OrderView | null>(null);
   const [copied, setCopied] = useState("");
+  const [couponText, setCouponText] = useState("");
+  const [coupon, setCoupon] = useState<{ code: string; finalCents: number; label: string } | null>(null);
+  const [couponMsg, setCouponMsg] = useState("");
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const plan = PLANS.find((p) => p.id === planId) ?? PLANS[0];
@@ -62,7 +65,7 @@ export function ShopApp() {
     setBusy(true);
     try {
       const result = await createPix({
-        data: { plan: planId, name, email, whatsapp, origin: window.location.origin },
+        data: { plan: planId, name, email, whatsapp, origin: window.location.origin, coupon: coupon?.code ?? "" },
       });
       if (!result.ok) {
         setError(result.error);
@@ -74,6 +77,18 @@ export function ShopApp() {
       setError("Não consegui gerar o Pix agora. Tente de novo.");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function applyCoupon() {
+    setCouponMsg("");
+    const res = await checkCoupon({ data: { plan: planId, code: couponText } }).catch(() => null);
+    if (res?.ok) {
+      setCoupon({ code: res.code, finalCents: res.finalCents, label: res.label });
+      setCouponMsg(`Cupom aplicado: ${res.label}.`);
+    } else {
+      setCoupon(null);
+      setCouponMsg(res?.error ?? "Não consegui conferir o cupom.");
     }
   }
 
@@ -208,7 +223,11 @@ export function ShopApp() {
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setPlanId(item.id)}
+                onClick={() => {
+                  setPlanId(item.id);
+                  setCoupon(null);
+                  setCouponMsg("");
+                }}
                 className={`relative rounded-2xl border p-4 text-left transition ${
                   planId === item.id
                     ? "border-primary bg-primary-soft shadow-card ring-2 ring-primary/40"
@@ -239,10 +258,26 @@ export function ShopApp() {
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome completo" className={field} autoComplete="name" />
             <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-mail" type="email" className={field} autoComplete="email" />
             <input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="WhatsApp com DDD" inputMode="tel" className={field} autoComplete="tel" />
+            <div className="flex gap-2">
+              <input
+                value={couponText}
+                onChange={(e) => {
+                  setCouponText(e.target.value.toUpperCase());
+                  setCoupon(null);
+                  setCouponMsg("");
+                }}
+                placeholder="Tem cupom de desconto?"
+                className={field}
+              />
+              <button type="button" onClick={() => void applyCoupon()} disabled={!couponText.trim()} className="shrink-0 rounded-xl border border-border bg-surface px-4 text-sm font-semibold hover:border-primary hover:text-primary disabled:opacity-50">
+                Aplicar
+              </button>
+            </div>
+            {couponMsg && <p className={`text-sm font-medium ${coupon ? "text-primary" : "text-danger"}`}>{couponMsg}</p>}
             {error && <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm font-medium text-danger">{error}</p>}
             <button type="submit" disabled={busy} className={`h-12 w-full ${btnPrimary}`}>
               {busy ? <Loader2 className="size-4 animate-spin" /> : <QrCode className="size-4" />}
-              Pagar {brl(plan.priceCents)} com Pix
+              Pagar {brl(coupon ? coupon.finalCents : plan.priceCents)} com Pix
             </button>
             <p className="text-center text-xs text-muted">A key chega na tela assim que o Pix for confirmado.</p>
           </form>

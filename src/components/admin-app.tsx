@@ -20,8 +20,10 @@ import {
   adminLogin,
   adminOverview,
   adminReconcile,
+  adminSaveCoupon,
   adminSetAnnouncement,
   adminSiteAction,
+  adminToggleCoupon,
   adminSimulatePayment,
   adminUpdateKey,
   type AdminKey,
@@ -107,6 +109,8 @@ export function AdminApp() {
   const [copied, setCopied] = useState("");
   const [revealed, setRevealed] = useState<Set<number>>(new Set());
   const [annText, setAnnText] = useState("");
+  const [cp, setCp] = useState({ code: "", kind: "percent" as "percent" | "amount", value: 10, maxUses: "", days: "", note: "" });
+  const [cpError, setCpError] = useState("");
   const [form, setForm] = useState({
     count: 10,
     kind: "full" as "full" | "test",
@@ -206,6 +210,31 @@ export function AdminApp() {
     if (!result?.ok) window.alert("Não deu para simular. Isso só funciona com a chave de TESTE do AbacatePay.");
     await load(token);
     setBusy(false);
+  }
+
+  async function saveCoupon() {
+    setBusy(true);
+    setCpError("");
+    const res = await adminSaveCoupon({
+      data: {
+        token,
+        code: cp.code,
+        kind: cp.kind,
+        value: cp.value,
+        maxUses: cp.maxUses ? Number(cp.maxUses) : undefined,
+        days: cp.days ? Number(cp.days) : undefined,
+        note: cp.note,
+      },
+    }).catch(() => null);
+    if (res && !res.ok && "error" in res && res.error) setCpError(res.error);
+    else setCp({ ...cp, code: "", note: "" });
+    await load(token);
+    setBusy(false);
+  }
+
+  async function toggleCoupon(code: string, active: boolean) {
+    await adminToggleCoupon({ data: { token, code, active } }).catch(() => null);
+    await load(token);
   }
 
   async function siteAction(slug: string, action: "suspender" | "reativar" | "excluir") {
@@ -369,6 +398,64 @@ export function AdminApp() {
             Tirar aviso
           </button>
         </div>
+      </section>
+
+      <section className={`p-4 ${card}`}>
+        <h2 className="mb-3 font-semibold">Cupons de desconto</h2>
+        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <label className="text-xs font-semibold">
+            Código
+            <input value={cp.code} onChange={(e) => setCp({ ...cp, code: e.target.value.toUpperCase() })} placeholder="BEMVINDO10" className={`mt-1 ${field}`} />
+          </label>
+          <label className="text-xs font-semibold">
+            Tipo
+            <select value={cp.kind} onChange={(e) => setCp({ ...cp, kind: e.target.value as "percent" | "amount" })} className={`mt-1 ${field}`}>
+              <option value="percent">Porcentagem (%)</option>
+              <option value="amount">Valor fixo (centavos)</option>
+            </select>
+          </label>
+          <label className="text-xs font-semibold">
+            {cp.kind === "percent" ? "Desconto (%)" : "Desconto (centavos)"}
+            <input type="number" min={1} value={cp.value} onChange={(e) => setCp({ ...cp, value: Number(e.target.value) })} className={`mt-1 ${field}`} />
+          </label>
+          <label className="text-xs font-semibold">
+            Limite de usos
+            <input type="number" min={1} value={cp.maxUses} onChange={(e) => setCp({ ...cp, maxUses: e.target.value })} placeholder="sem limite" className={`mt-1 ${field}`} />
+          </label>
+          <label className="text-xs font-semibold">
+            Validade (dias)
+            <input type="number" min={1} value={cp.days} onChange={(e) => setCp({ ...cp, days: e.target.value })} placeholder="sem prazo" className={`mt-1 ${field}`} />
+          </label>
+          <label className="text-xs font-semibold">
+            Nota
+            <input value={cp.note} onChange={(e) => setCp({ ...cp, note: e.target.value })} className={`mt-1 ${field}`} />
+          </label>
+        </div>
+        {cpError && <p className="mt-2 text-sm font-medium text-danger">{cpError}</p>}
+        <button type="button" onClick={() => void saveCoupon()} disabled={busy || cp.code.length < 3} className={`mt-3 ${btnPrimary}`}>
+          Criar cupom
+        </button>
+        {data.coupons.length > 0 && (
+          <div className="mt-4 divide-y divide-border text-sm">
+            {data.coupons.map((c) => (
+              <div key={c.code} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                <div>
+                  <p className="font-mono font-semibold">
+                    {c.code}{" "}
+                    <span className="font-sans text-xs font-normal text-muted">
+                      {c.percent ? `${c.percent}% off` : c.amountCents ? brl(c.amountCents) + " off" : ""} · {c.uses}
+                      {c.maxUses ? `/${c.maxUses}` : ""} usos{c.expiresAt ? ` · até ${when(c.expiresAt)}` : ""}
+                      {c.note ? ` · ${c.note}` : ""}
+                    </span>
+                  </p>
+                </div>
+                <button type="button" onClick={() => void toggleCoupon(c.code, !c.active)} className={`${btnGhost} ${c.active ? "" : "text-danger"}`}>
+                  {c.active ? "Ativo (desligar)" : "Desligado (ligar)"}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {data.sites.length > 0 && (

@@ -148,7 +148,7 @@ function initialSite(lead: SavedLead): SiteData {
     reviews: lead.reviews,
     showRating: true,
     mapsUrl: lead.mapsUrl ?? "",
-    instagram: "",
+    instagram: lead.siteKind === "social" && lead.website && /instagram\.com/i.test(lead.website) ? lead.website : "",
     hours: [],
     about: "",
     highlights: [],

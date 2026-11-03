@@ -51,6 +51,7 @@ import { SUPPORT_WHATSAPP } from "@/lib/plans";
 import { ALL_NICHES, NICHE_GROUPS } from "@/lib/niches";
 import { OBJECOES } from "@/lib/objecoes";
 import { MySitesModal, SiteStudio } from "@/components/site-studio";
+import { SiteAuditModal } from "@/components/site-audit";
 import {
   FIRST_TEMPLATES,
   FOLLOW_TEMPLATES,
@@ -567,12 +568,14 @@ const LeadCard = memo(function LeadCard({
   message,
   saved,
   onKeep,
+  onAudit,
 }: {
   lead: Lead;
   city: string;
   message: string;
   saved: boolean;
   onKeep: (lead: Lead) => void;
+  onAudit?: (lead: Lead) => void;
 }) {
   return (
     <article className={`lead-card fade-up p-4 ${card}`}>
@@ -596,9 +599,22 @@ const LeadCard = memo(function LeadCard({
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <OpenBadge lead={lead} />
             <PriorityBadge lead={lead} />
-            <span className="inline-block rounded-full bg-danger/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-danger">
-              Sem site
-            </span>
+            {lead.siteKind === "site" ? (
+              <span className="inline-block rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-slate-700 dark:bg-slate-500/20 dark:text-slate-300">
+                Tem site
+              </span>
+            ) : lead.siteKind === "social" ? (
+              <span
+                title={lead.website ?? ""}
+                className="inline-block rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-800 dark:bg-amber-500/20 dark:text-amber-200"
+              >
+                Só rede social
+              </span>
+            ) : (
+              <span className="inline-block rounded-full bg-danger/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-danger">
+                Sem site
+              </span>
+            )}
             {lead.hoursToday && (
               <span className="inline-flex items-center gap-1 text-xs text-muted">
                 <Clock className="size-3.5" /> Hoje: {lead.hoursToday}
@@ -637,7 +653,17 @@ const LeadCard = memo(function LeadCard({
           </button>
         </div>
       </div>
-      <div className="mt-3 flex gap-4 text-sm">
+      <div className="mt-3 flex flex-wrap gap-4 text-sm">
+        {lead.siteKind === "site" && onAudit && (
+          <button type="button" onClick={() => onAudit(lead)} className="font-semibold text-primary hover:underline">
+            Analisar o site
+          </button>
+        )}
+        {lead.website && lead.siteKind !== "none" && (
+          <a className="font-semibold text-muted" target="_blank" rel="noreferrer" href={lead.website}>
+            Abrir {lead.siteKind === "social" ? "o perfil" : "o site"}
+          </a>
+        )}
         <a
           className="font-semibold text-primary"
           target="_blank"
@@ -915,6 +941,8 @@ export function LeadApp() {
   const [mobileOnly, setMobileOnly] = useState(false);
   const [onlyOpen, setOnlyOpen] = useState(false);
   const [broad, setBroad] = useState(false);
+  const [siteMode, setSiteMode] = useState<"sem" | "social" | "todas">("social");
+  const [auditLead, setAuditLead] = useState<Lead | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const [nicheCustom, setNicheCustom] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -996,6 +1024,7 @@ export function LeadApp() {
       setMobileOnly(Boolean(prefs.mobileOnly));
       setOnlyOpen(Boolean(prefs.onlyOpen));
       setBroad(Boolean(prefs.broad));
+      setSiteMode(prefs.siteMode ?? "social");
     }
     setFollowMessage(loadFollowMsg());
     setGoal(loadGoal());
@@ -1031,8 +1060,8 @@ export function LeadApp() {
   }, [pipeline, ready]);
 
   useEffect(() => {
-    if (ready) savePrefs({ city, niche, quantity, minRating, neighborhood, minReviews, mobileOnly, onlyOpen, broad });
-  }, [city, niche, quantity, minRating, neighborhood, minReviews, mobileOnly, onlyOpen, broad, ready]);
+    if (ready) savePrefs({ city, niche, quantity, minRating, neighborhood, minReviews, mobileOnly, onlyOpen, broad, siteMode });
+  }, [city, niche, quantity, minRating, neighborhood, minReviews, mobileOnly, onlyOpen, broad, siteMode, ready]);
 
   const expiresMs = info?.expiresAt ? new Date(info.expiresAt).getTime() : null;
   const isTest = info?.kind === "test";
@@ -1363,7 +1392,7 @@ export function LeadApp() {
     setLoading(true);
     try {
       const result = await searchPlaces({
-        data: { city, niche, neighborhood, minReviews, mobileOnly, openOnly: onlyOpen, broad, minRating, quantity, accessKey, deviceId },
+        data: { city, niche, neighborhood, minReviews, mobileOnly, openOnly: onlyOpen, broad, siteMode, minRating, quantity, accessKey, deviceId },
       });
       if (!result.ok) {
         setResults([]);
@@ -2179,6 +2208,18 @@ export function LeadApp() {
                       ))}
                     </select>
                   </label>
+                  <label className="block text-sm sm:col-span-2">
+                    <span className="mb-1.5 block font-semibold">Quais empresas buscar</span>
+                    <select
+                      value={siteMode}
+                      onChange={(event) => setSiteMode(event.target.value as typeof siteMode)}
+                      className={field}
+                    >
+                      <option value="sem">Só quem não tem site nenhum</option>
+                      <option value="social">Sem site ou só com Instagram/Facebook (recomendado)</option>
+                      <option value="todas">Todas, inclusive com site (para achar sites fracos)</option>
+                    </select>
+                  </label>
                   <label className="flex items-center gap-2 text-sm">
                     <input
                       type="checkbox"
@@ -2348,6 +2389,7 @@ export function LeadApp() {
                     message={message}
                     saved={savedKeys.has(lead.id) || savedKeys.has(lead.phone)}
                     onKeep={keep}
+                    onAudit={setAuditLead}
                   />
                 ))}
               </div>
@@ -3058,6 +3100,19 @@ export function LeadApp() {
             />
           );
         })()}
+      {auditLead && auditLead.website && (
+        <SiteAuditModal
+          name={auditLead.name}
+          phone={auditLead.phone}
+          url={auditLead.website}
+          accessKey={accessKey}
+          deviceId={deviceId}
+          sellerName={userName}
+          onClose={() => setAuditLead(null)}
+          onAccessError={(code) => logout(accessMessage(code))}
+          notify={notify}
+        />
+      )}
       {mySitesOpen && (
         <MySitesModal
           accessKey={accessKey}
