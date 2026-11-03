@@ -19,7 +19,23 @@ export type Lead = {
   openNow: boolean | null;
   hoursToday: string | null;
   businessStatus: string;
+  /** site que o Google mostra para a empresa (null = não tem) */
+  website: string | null;
+  /** none = sem site, social = só Instagram/Facebook/Linktree etc., site = tem site próprio */
+  siteKind: "none" | "social" | "site";
 };
+
+const SOCIAL_HOSTS =
+  /(^|\.)(instagram\.com|facebook\.com|fb\.com|fb\.me|m\.me|linktr\.ee|wa\.me|whatsapp\.com|t\.me|tiktok\.com|youtube\.com|youtu\.be|twitter\.com|x\.com|ifood\.com\.br|taplink\.cc|linkr\.bio|lnk\.bio|bio\.link|beacons\.ai|allmylinks\.com|g\.page|business\.site|google\.com)$/i;
+
+function siteKindOf(url: string | undefined): "none" | "social" | "site" {
+  if (!url) return "none";
+  try {
+    return SOCIAL_HOSTS.test(new URL(url).hostname) ? "social" : "site";
+  } catch {
+    return "site";
+  }
+}
 
 export type SearchResult =
   | {
@@ -40,6 +56,7 @@ type Input = {
   mobileOnly?: boolean;
   openOnly?: boolean;
   broad?: boolean;
+  siteMode?: "sem" | "social" | "todas";
   minRating: number;
   quantity: number;
   accessKey: string;
@@ -130,6 +147,8 @@ function toLead(place: Place, index: number, city: string): Lead | null {
       typeof place.currentOpeningHours?.openNow === "boolean" ? place.currentOpeningHours.openNow : null,
     hoursToday: todayHours(place.currentOpeningHours?.weekdayDescriptions),
     businessStatus: place.businessStatus || "OPERATIONAL",
+    website: place.websiteUri || null,
+    siteKind: siteKindOf(place.websiteUri),
   };
 }
 
@@ -178,12 +197,13 @@ export const searchPlaces = createServerFn({ method: "POST" })
     const mobileOnly = Boolean(data.mobileOnly);
     const openOnly = Boolean(data.openOnly);
     const broad = Boolean(data.broad);
+    const siteMode = data.siteMode === "todas" ? "todas" : data.siteMode === "sem" ? "sem" : "social";
     const minRating = Number(data.minRating) || 0;
     const quantity = Math.min(60, Math.max(1, Math.round(Number(data.quantity) || 10)));
     const accessKey = String(data.accessKey || "");
     const deviceId = String(data.deviceId || "");
     if (!city) throw new Error("Escolha uma cidade.");
-    return { city, niche, neighborhood, minReviews, mobileOnly, openOnly, broad, minRating, quantity, accessKey, deviceId };
+    return { city, niche, neighborhood, minReviews, mobileOnly, openOnly, broad, siteMode, minRating, quantity, accessKey, deviceId };
   })
   .handler(async ({ data }): Promise<SearchResult> => {
     const { checkAccess, consumeSearch, refundSearch } = await import("./keys.server");
@@ -203,7 +223,8 @@ export const searchPlaces = createServerFn({ method: "POST" })
     const take = (places: Place[], base: number) => {
       places.forEach((place, index) => {
         if (leads.length >= data.quantity) return;
-        if (place.websiteUri) {
+        const kind = siteKindOf(place.websiteUri);
+        if (kind === "site" ? data.siteMode !== "todas" : kind === "social" && data.siteMode === "sem") {
           withSite += 1;
           return;
         }

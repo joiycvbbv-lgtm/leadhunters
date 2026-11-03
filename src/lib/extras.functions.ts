@@ -75,6 +75,8 @@ export const requestTrial = createServerFn({ method: "POST" })
         await sql.query("delete from access_keys where id = $1", [made.id]);
         return { ok: false, error: "Esse WhatsApp ou aparelho já usou o teste grátis. Veja os planos." };
       }
+      const { notifyOwner } = await import("./notify.server");
+      await notifyOwner(`Novo teste grátis no LeadHunter: ${data.name} · WhatsApp ${phone}`);
       return { ok: true, key: made.key };
     } catch (error) {
       console.error("[requestTrial]", error);

@@ -1,5 +1,6 @@
 import { getDb as getSql } from "./db-app.server";
 import { createKeys } from "./keys.server";
+import { notifyOwner } from "./notify.server";
 import { PLANS } from "./plans";
 
 const MP = "https://api.mercadopago.com";
@@ -181,6 +182,26 @@ export async function ensureKey(orderId: string) {
   if (!claimed.length) await sql.query("delete from access_keys where id = $1", [made.id]);
 }
 
+/** Marca o pedido como pago (uma só vez), conta o uso do cupom e avisa o dono. */
+async function markPaid(order: OrderRow) {
+  const sql = await getSql();
+  const rows = await sql.query<{ coupon: string }>(
+    "update orders set status = 'pago', paid_at = now() where id = $1 and status <> 'pago' returning coupon",
+    [order.id],
+  );
+  if (!rows.length) return;
+  const coupon = rows[0].coupon;
+  if (coupon) await sql.query("update coupons set uses = uses + 1 where code = $1", [coupon]);
+  const [info] = await sql.query<{ buyer_name: string; buyer_whatsapp: string }>(
+    "select buyer_name, buyer_whatsapp from orders where id = $1",
+    [order.id],
+  );
+  const value = (order.amount_cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  await notifyOwner(
+    `Venda no LeadHunter: plano ${order.plan}, ${value}${coupon ? ` (cupom ${coupon})` : ""}\n${info?.buyer_name ?? ""} · WhatsApp ${info?.buyer_whatsapp ?? ""}`,
+  );
+}
+
 /** Pergunta ao Mercado Pago se o pedido foi pago e, se sim, libera a key. */
 export async function fulfillOrder(orderId: string) {
   const sql = await getSql();
@@ -191,9 +212,7 @@ export async function fulfillOrder(orderId: string) {
     if (abacateKey()) {
       const status = await abacateStatus(order.mp_payment_id);
       if (status === "PAID") {
-        await sql.query("update orders set status = 'pago', paid_at = now() where id = $1 and status <> 'pago'", [
-          order.id,
-        ]);
+        await markPaid(order);
       } else if (status === "EXPIRED" || status === "CANCELLED") {
         await sql.query("update orders set status = 'cancelado' where id = $1 and status = 'pendente'", [order.id]);
       }
@@ -206,9 +225,7 @@ export async function fulfillOrder(orderId: string) {
         payment.external_reference === order.id &&
         Math.round((payment.transaction_amount ?? 0) * 100) >= order.amount_cents;
       if (paidOk) {
-        await sql.query("update orders set status = 'pago', paid_at = now() where id = $1 and status <> 'pago'", [
-          order.id,
-        ]);
+        await markPaid(order);
       } else if (["cancelled", "rejected", "refunded", "charged_back"].includes(payment.status || "")) {
         await sql.query("update orders set status = 'cancelado' where id = $1 and status = 'pendente'", [order.id]);
       }
@@ -217,4 +234,33 @@ export async function fulfillOrder(orderId: string) {
   await ensureKey(order.id);
   const [fresh] = await sql.query<OrderRow>("select * from orders where id = $1", [orderId]);
   return fresh ?? null;
+}
+
+export type CouponResult =
+  | { ok: true; code: string; finalCents: number; discountCents: number; label: string }
+  | { ok: false; error: string };
+
+/** Confere um cupom e calcula o valor final (nunca abaixo de R$ 1,00). */
+export async function resolveCoupon(rawCode: string, priceCents: number): Promise<CouponResult> {
+  const code = rawCode.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 30);
+  if (!code) return { ok: false, error: "Digite o cupom." };
+  const sql = await getSql();
+  const rows = await sql.query<{ percent: number | null; amount_cents: number | null }>(
+    `select percent, amount_cents from coupons
+      where code = $1 and active and (expires_at is null or expires_at > now()) and (max_uses is null or uses < max_uses)`,
+    [code],
+  );
+  const row = rows[0];
+  if (!row) return { ok: false, error: "Cupom inválido ou expirado." };
+  let final = priceCents;
+  let label = "";
+  if (row.percent) {
+    final = Math.round((priceCents * (100 - row.percent)) / 100);
+    label = `${row.percent}% de desconto`;
+  } else if (row.amount_cents) {
+    final = priceCents - row.amount_cents;
+    label = `${(row.amount_cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} de desconto`;
+  }
+  final = Math.max(100, Math.min(priceCents, final));
+  return { ok: true, code, finalCents: final, discountCents: priceCents - final, label };
 }

@@ -15,12 +15,13 @@ export type OrderView = {
 export type ShopFail = { ok: false; error: string };
 
 export const createPix = createServerFn({ method: "POST" })
-  .validator((data: { plan: string; name: string; email: string; whatsapp: string; origin?: string }) => ({
+  .validator((data: { plan: string; name: string; email: string; whatsapp: string; origin?: string; coupon?: string }) => ({
     plan: String(data?.plan || ""),
     name: String(data?.name || "").trim().slice(0, 100),
     email: String(data?.email || "").trim().toLowerCase().slice(0, 120),
     whatsapp: String(data?.whatsapp || "").replace(/\D/g, "").slice(0, 15),
     origin: String(data?.origin || ""),
+    coupon: String(data?.coupon || "").slice(0, 40),
   }))
   .handler(async ({ data }): Promise<OrderView | ShopFail> => {
     const plan = PLANS.find((p) => p.id === data.plan);
@@ -47,17 +48,27 @@ export const createPix = createServerFn({ method: "POST" })
       return { ok: false, error: "Você já gerou vários Pix. Pague um deles ou tente de novo daqui a pouco." };
     }
 
+    let amountCents = plan.priceCents;
+    let couponCode = "";
+    if (data.coupon.trim()) {
+      const { resolveCoupon } = await import("./shop.server");
+      const coupon = await resolveCoupon(data.coupon, plan.priceCents);
+      if (!coupon.ok) return { ok: false, error: coupon.error };
+      amountCents = coupon.finalCents;
+      couponCode = coupon.code;
+    }
+
     const orderId = randomUUID();
     await sql.query(
-      `insert into orders (id, plan, amount_cents, buyer_name, buyer_email, buyer_whatsapp)
-       values ($1,$2,$3,$4,$5,$6)`,
-      [orderId, plan.id, plan.priceCents, data.name, data.email, data.whatsapp],
+      `insert into orders (id, plan, amount_cents, buyer_name, buyer_email, buyer_whatsapp, coupon)
+       values ($1,$2,$3,$4,$5,$6,$7)`,
+      [orderId, plan.id, amountCents, data.name, data.email, data.whatsapp, couponCode],
     );
 
     const notificationUrl = /^https:\/\/[^\s/]+$/.test(data.origin) ? `${data.origin}/api/mp-webhook` : undefined;
     const pix = await createPixCharge({
       orderId,
-      amountCents: plan.priceCents,
+      amountCents,
       description: `LeadHunter — plano ${plan.name}`,
       email: data.email,
       name: data.name,
@@ -78,7 +89,7 @@ export const createPix = createServerFn({ method: "POST" })
       orderId,
       status: "pendente",
       plan: plan.id,
-      amountCents: plan.priceCents,
+      amountCents,
       qrCode: pix.qrCode,
       qrBase64: pix.qrBase64,
       key: null,
@@ -112,3 +123,23 @@ export const getOrder = createServerFn({ method: "POST" })
       days: plan?.days ?? null,
     };
   });
+
+export const checkCoupon = createServerFn({ method: "POST" })
+  .validator((data: { plan: string; code: string }) => ({
+    plan: String(data?.plan || ""),
+    code: String(data?.code || "").slice(0, 40),
+  }))
+  .handler(
+    async ({
+      data,
+    }): Promise<{ ok: true; code: string; finalCents: number; discountCents: number; label: string } | { ok: false; error: string }> => {
+      const plan = PLANS.find((p) => p.id === data.plan);
+      if (!plan) return { ok: false, error: "Escolha um plano." };
+      try {
+        const { resolveCoupon } = await import("./shop.server");
+        return await resolveCoupon(data.code, plan.priceCents);
+      } catch {
+        return { ok: false, error: "Não consegui conferir o cupom agora." };
+      }
+    },
+  );

@@ -30,6 +30,17 @@ export type AdminOrder = {
   paidAt: string | null;
 };
 
+export type AdminCoupon = {
+  code: string;
+  percent: number | null;
+  amountCents: number | null;
+  maxUses: number | null;
+  uses: number;
+  active: boolean;
+  expiresAt: string | null;
+  note: string;
+};
+
 export type AdminSite = {
   slug: string;
   name: string;
@@ -60,6 +71,7 @@ export type AdminOverview = {
   expiring: AdminExpiring[];
   trials: AdminTrial[];
   sites: AdminSite[];
+  coupons: AdminCoupon[];
   announcement: string;
   stats: {
     totalKeys: number;
@@ -197,12 +209,36 @@ export const adminOverview = createServerFn({ method: "POST" })
               to_char(s.created_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as created_at, k.buyer
          from sites s left join access_keys k on k.id = s.key_id order by s.id desc limit 100`,
     );
+    const couponRows = await sql.query<{
+      code: string;
+      percent: number | null;
+      amount_cents: number | null;
+      max_uses: number | null;
+      uses: number;
+      active: boolean;
+      expires_at: string | null;
+      note: string;
+    }>(
+      `select code, percent, amount_cents, max_uses, uses, active, note,
+              to_char(expires_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as expires_at
+         from coupons order by created_at desc limit 100`,
+    );
     const announcement = await sql.query<{ value: string }>(
       "select value from app_settings where key = 'announcement'",
     );
 
     return {
       ok: true,
+      coupons: couponRows.map((c) => ({
+        code: c.code,
+        percent: c.percent,
+        amountCents: c.amount_cents,
+        maxUses: c.max_uses,
+        uses: Number(c.uses),
+        active: c.active,
+        expiresAt: c.expires_at,
+        note: c.note,
+      })),
       sites: sitesRows.map((s) => ({
         slug: s.slug,
         name: s.name,
@@ -441,5 +477,60 @@ export const adminSiteAction = createServerFn({ method: "POST" })
         data.slug,
         data.action === "suspender" ? "suspenso" : "ativo",
       ]);
+    return { ok: true };
+  });
+
+export const adminSaveCoupon = createServerFn({ method: "POST" })
+  .validator(
+    (data: { token: string; code: string; kind: "percent" | "amount"; value: number; maxUses?: number; days?: number; note?: string }) => ({
+      token: T(data),
+      code: String(data?.code || "").trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 30),
+      kind: data?.kind === "amount" ? ("amount" as const) : ("percent" as const),
+      value: Math.max(0, Math.round(Number(data?.value) || 0)),
+      maxUses: data?.maxUses ? Math.max(1, Math.round(Number(data.maxUses))) : null,
+      days: data?.days ? Math.max(1, Math.round(Number(data.days))) : null,
+      note: String(data?.note || "").slice(0, 120),
+    }),
+  )
+  .handler(async ({ data }): Promise<{ ok: true } | { ok: false; code: string; error?: string }> => {
+    if (!(await guard(data.token))) return { ok: false, code: "SESSAO" };
+    if (data.code.length < 3) return { ok: false, code: "CODIGO", error: "O código precisa ter pelo menos 3 letras ou números." };
+    if (data.kind === "percent" && (data.value < 1 || data.value > 90)) {
+      return { ok: false, code: "VALOR", error: "A porcentagem deve ficar entre 1 e 90." };
+    }
+    if (data.kind === "amount" && data.value < 100) {
+      return { ok: false, code: "VALOR", error: "O desconto em reais deve ser de pelo menos R$ 1,00 (digite em centavos: 500 = R$ 5,00)." };
+    }
+    const { getDb: getSql } = await import("./db-app.server");
+    const sql = await getSql();
+    await sql.query(
+      `insert into coupons (code, percent, amount_cents, max_uses, expires_at, note)
+       values ($1,$2,$3,$4, case when $5::int is null then null else now() + make_interval(days => $5::int) end, $6)
+       on conflict (code) do update set percent = $2, amount_cents = $3, max_uses = $4,
+         expires_at = case when $5::int is null then null else now() + make_interval(days => $5::int) end,
+         note = $6, active = true`,
+      [
+        data.code,
+        data.kind === "percent" ? data.value : null,
+        data.kind === "amount" ? data.value : null,
+        data.maxUses,
+        data.days,
+        data.note,
+      ],
+    );
+    return { ok: true };
+  });
+
+export const adminToggleCoupon = createServerFn({ method: "POST" })
+  .validator((data: { token: string; code: string; active: boolean }) => ({
+    token: T(data),
+    code: String(data?.code || "").toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 30),
+    active: Boolean(data?.active),
+  }))
+  .handler(async ({ data }): Promise<{ ok: true } | AdminFail> => {
+    if (!(await guard(data.token))) return { ok: false, code: "SESSAO" };
+    const { getDb: getSql } = await import("./db-app.server");
+    const sql = await getSql();
+    await sql.query("update coupons set active = $2 where code = $1", [data.code, data.active]);
     return { ok: true };
   });

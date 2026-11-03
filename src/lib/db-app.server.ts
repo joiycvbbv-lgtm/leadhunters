@@ -52,6 +52,24 @@ const EXTRAS = [
      expires_at timestamptz
    )`,
   "create index if not exists sites_key_idx on sites (key_id)",
+  `create table if not exists audit_usage (
+     key_id bigint not null references access_keys(id) on delete cascade,
+     day date not null,
+     count int not null default 0,
+     primary key (key_id, day)
+   )`,
+  `create table if not exists coupons (
+     code text primary key,
+     percent int,
+     amount_cents int,
+     max_uses int,
+     uses int not null default 0,
+     active boolean not null default true,
+     expires_at timestamptz,
+     note text not null default '',
+     created_at timestamptz not null default now()
+   )`,
+  "alter table orders add column if not exists coupon text not null default ''",
   "create unique index if not exists trials_whatsapp_idx on trials (whatsapp)",
   "create index if not exists trials_device_idx on trials (device_id)",
 ];

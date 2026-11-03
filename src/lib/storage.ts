@@ -30,6 +30,8 @@ export type SavedLead = {
   temp?: "quente" | "morno" | "frio";
   /** quantas mensagens da cadência já foram enviadas */
   step?: number;
+  website?: string | null;
+  siteKind?: "none" | "social" | "site";
 };
 
 const ACCESS = "lh_access_key";
@@ -117,6 +119,7 @@ export type SearchPrefs = {
   mobileOnly?: boolean;
   onlyOpen?: boolean;
   broad?: boolean;
+  siteMode?: "sem" | "social" | "todas";
 };
 
 export function loadPrefs(): SearchPrefs | null {
