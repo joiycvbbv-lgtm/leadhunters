@@ -11,6 +11,7 @@ export type AdminKey = {
   dailyLimit: number;
   maxDevices: number;
   devices: number;
+  google: string | null;
   usedToday: number;
   activatedAt: string | null;
   expiresAt: string | null;
@@ -123,6 +124,7 @@ export const adminOverview = createServerFn({ method: "POST" })
       daily_limit: number;
       max_devices: number;
       devices: number;
+      google: string | null;
       used_today: number;
       activated_at: string | null;
       expires_at: string | null;
@@ -130,6 +132,7 @@ export const adminOverview = createServerFn({ method: "POST" })
     }>(
       `select k.id, k.key_plain, k.key_hash, k.kind, k.status, k.buyer, k.note, k.daily_limit, k.max_devices,
               (select count(*) from key_devices d where d.key_id = k.id) as devices,
+              (select g.email from google_links g where g.key_id = k.id) as google,
               coalesce((select u.count from search_usage u where u.key_id = k.id and u.day = (now() at time zone 'America/Sao_Paulo')::date), 0) as used_today,
               to_char(k.activated_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as activated_at, to_char(k.expires_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as expires_at, to_char(k.created_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as created_at
          from access_keys k order by k.id desc limit 1000`,
@@ -274,6 +277,7 @@ export const adminOverview = createServerFn({ method: "POST" })
         dailyLimit: k.daily_limit,
         maxDevices: k.max_devices,
         devices: Number(k.devices),
+        google: k.google,
         usedToday: Number(k.used_today),
         activatedAt: k.activated_at,
         expiresAt: k.expires_at,
@@ -350,6 +354,7 @@ export type AdminPatch = {
   maxDevices?: number;
   extendDays?: number;
   resetDevices?: boolean;
+  unlinkGoogle?: boolean;
 };
 
 export const adminUpdateKey = createServerFn({ method: "POST" })
@@ -398,6 +403,9 @@ export const adminUpdateKey = createServerFn({ method: "POST" })
          where id = $1`,
         [id, days],
       );
+    }
+    if (patch.unlinkGoogle) {
+      await sql.query("delete from google_links where key_id = $1", [id]);
     }
     if (patch.resetDevices) {
       await sql.query("delete from key_devices where key_id = $1", [id]);

@@ -1,4 +1,4 @@
-import { createHash, createHmac, randomInt, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
 import { getDb as getSql } from "./db-app.server";
 
 /* ---------- formato e hash das keys ---------- */
@@ -24,9 +24,58 @@ export function generateKey(kind: "full" | "test") {
 
 /* ---------- tokens assinados (painel admin) ---------- */
 
+const instanceSecret = randomBytes(32).toString("hex");
+
+/**
+ * Segredo usado para assinar sessões. Nunca fica escrito no código: vem das variáveis da Vercel
+ * (SESSION_SECRET, e também a senha do admin e a conexão do banco, que ninguém de fora conhece).
+ */
 function secret() {
-  // Recomendado: definir SESSION_SECRET nas variáveis de ambiente da Vercel.
-  return process.env.SESSION_SECRET || "lh-segredo-padrao-troque-na-vercel-7f3a9c";
+  const base = `${process.env.SESSION_SECRET || ""}|${process.env.ADMIN_PASSWORD || ""}|${process.env.DATABASE_URL || process.env.POSTGRES_URL || ""}`;
+  if (base === "||") return instanceSecret;
+  return createHash("sha256").update(`lh-secret:${base}`).digest("hex");
+}
+
+/** Assina um pequeno objeto com validade (usado no login com Google). */
+export function signBlob(payload: Record<string, unknown>, kind: string, ttlMs: number) {
+  const body = Buffer.from(JSON.stringify({ ...payload, k: kind, e: Date.now() + ttlMs })).toString("base64url");
+  return `${body}.${sign(`blob:${body}`)}`;
+}
+
+export function readBlob<T extends Record<string, unknown>>(token: string, kind: string): T | null {
+  const [body, mac] = String(token || "").split(".");
+  if (!body || !mac) return null;
+  const good = Buffer.from(sign(`blob:${body}`));
+  const given = Buffer.from(mac);
+  if (good.length !== given.length || !timingSafeEqual(good, given)) return null;
+  try {
+    const data = JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as T & { k?: string; e?: number };
+    if (data.k !== kind || !data.e || Date.now() > data.e) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+/** Sessão de quem entrou com Google: vale no lugar do texto da key e continua respeitando bloqueio, validade e aparelhos. */
+export function issueSessionToken(keyId: number) {
+  const exp = Date.now() + 90 * 86_400_000;
+  return `LHS.${keyId}.${exp}.${sign(`s:${keyId}:${exp}`)}`;
+}
+
+function readSessionToken(raw: string): number | null {
+  const parts = String(raw || "").split(".");
+  if (parts.length !== 4 || parts[0] !== "LHS") return null;
+  const keyId = Number(parts[1]);
+  const exp = Number(parts[2]);
+  if (!keyId || !exp || Date.now() > exp) return null;
+  const good = Buffer.from(sign(`s:${keyId}:${exp}`));
+  const given = Buffer.from(parts[3]);
+  return good.length === given.length && timingSafeEqual(good, given) ? keyId : null;
+}
+
+export function isSessionToken(raw: string) {
+  return String(raw || "").startsWith("LHS.");
 }
 
 function sign(payload: string) {
@@ -98,17 +147,18 @@ export async function usedToday(keyId: number) {
  * e inicia a validade no primeiro uso.
  */
 export async function checkAccess(rawKey: string, deviceId: string, bind: boolean): Promise<AccessResult> {
-  const key = normalizeKey(rawKey);
   const device = String(deviceId || "").slice(0, 80);
-  if (key.length !== 18 || device.length < 8) return { ok: false, code: "KEY_INVALIDA" };
+  if (device.length < 8) return { ok: false, code: "KEY_INVALIDA" };
+  const sessionKeyId = isSessionToken(rawKey) ? readSessionToken(rawKey) : null;
+  const key = normalizeKey(rawKey);
+  if (isSessionToken(rawKey) ? !sessionKeyId : key.length !== 18) return { ok: false, code: "KEY_INVALIDA" };
 
   const sql = await getSql();
-  const rows = await sql.query<KeyRow>(
-    `select id, kind, status, buyer, daily_limit, max_devices, valid_days, valid_minutes,
-            activated_at::text as activated_at, to_char(expires_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as expires_at
-       from access_keys where key_hash = $1`,
-    [hashKey(key)],
-  );
+  const columns = `id, kind, status, buyer, daily_limit, max_devices, valid_days, valid_minutes,
+            activated_at::text as activated_at, to_char(expires_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as expires_at`;
+  const rows = sessionKeyId
+    ? await sql.query<KeyRow>(`select ${columns} from access_keys where id = $1`, [sessionKeyId])
+    : await sql.query<KeyRow>(`select ${columns} from access_keys where key_hash = $1`, [hashKey(key)]);
   const row = rows[0];
   if (!row) return { ok: false, code: "KEY_INVALIDA" };
   if (row.status !== "ativa") return { ok: false, code: "KEY_REVOGADA" };

@@ -52,6 +52,19 @@ const EXTRAS = [
      expires_at timestamptz
    )`,
   "create index if not exists sites_key_idx on sites (key_id)",
+  `create table if not exists google_links (
+     sub text primary key,
+     email text not null,
+     name text not null default '',
+     key_id bigint not null unique references access_keys(id) on delete cascade,
+     created_at timestamptz not null default now()
+   )`,
+  `create table if not exists ai_usage (
+     key_id bigint not null references access_keys(id) on delete cascade,
+     day date not null,
+     count int not null default 0,
+     primary key (key_id, day)
+   )`,
   `create table if not exists audit_usage (
      key_id bigint not null references access_keys(id) on delete cascade,
      day date not null,
