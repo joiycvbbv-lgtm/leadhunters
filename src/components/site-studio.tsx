@@ -10,6 +10,7 @@ import {
   Loader2,
   Monitor,
   Smartphone,
+  Sparkles,
   Trash2,
   X,
 } from "lucide-react";
@@ -22,6 +23,14 @@ import {
   setSiteMode,
   type MySite,
 } from "@/lib/sites.functions";
+import { aiBrief, aiCopy } from "@/lib/ai.functions";
+import {
+  PROMPT_FORMATS,
+  PROMPT_STYLES,
+  buildPrompt,
+  type PromptFormat,
+  type PromptStyle,
+} from "@/lib/prompt-kit";
 import type { SavedLead } from "@/lib/storage";
 import {
   DESIGNS,
@@ -120,6 +129,7 @@ function waDigits(phone: string) {
 /* ---------- Estúdio ---------- */
 
 type Props = {
+  initialPane?: "site" | "prompt";
   lead: SavedLead;
   accessKey: string;
   deviceId: string;
@@ -162,6 +172,7 @@ function initialSite(lead: SavedLead): SiteData {
 }
 
 export function SiteStudio({
+  initialPane = "site",
   lead,
   accessKey,
   deviceId,
@@ -189,6 +200,17 @@ export function SiteStudio({
   const [device, setDevice] = useState<"mobile" | "desktop">("mobile");
   const [pixKey, setPixKey] = useState("");
   const [copied, setCopied] = useState("");
+  const [view, setView] = useState<"site" | "prompt">(initialPane);
+  const [notes, setNotes] = useState(lead.notes || "");
+  const [tone, setTone] = useState<"direto" | "acolhedor" | "premium">("direto");
+  const [aiBusy, setAiBusy] = useState("");
+  const [aiInfo, setAiInfo] = useState("");
+  const [aiWarnings, setAiWarnings] = useState<string[]>([]);
+  const [undo, setUndo] = useState<{ tagline: string; about: string; hl: string; items: string } | null>(null);
+  const [pStyle, setPStyle] = useState<PromptStyle>("premium");
+  const [pFormat, setPFormat] = useState<PromptFormat>("unico");
+  const [pDetail, setPDetail] = useState<"completo" | "curto">("completo");
+  const [brief, setBrief] = useState("");
 
   useEffect(() => {
     try {
@@ -229,6 +251,78 @@ export function SiteStudio({
   const link = slug ? `${window.location.origin}/s/${slug}` : "";
   const photosSize = site.photos.reduce((sum, p) => sum + p.length, 0) + site.logo.length;
   const tooHeavy = photosSize > 3_000_000;
+
+  const prompt = useMemo(
+    () => buildPrompt(data, { style: pStyle, format: pFormat, detail: pDetail, brief }),
+    [data, pStyle, pFormat, pDetail, brief],
+  );
+
+  function facts() {
+    return {
+      name: data.name,
+      kindLabel: KIND_LABELS[data.kind],
+      category: data.category,
+      city: data.city,
+      address: data.address,
+      notes,
+      hasHours: data.hours.length > 0,
+      tone,
+    };
+  }
+
+  async function writeWithAi() {
+    setAiBusy("copy");
+    setError("");
+    setAiWarnings([]);
+    try {
+      const res = await aiCopy({ data: { key: accessKey, deviceId, facts: facts() } });
+      if (!res.ok) {
+        if (ACCESS_ERRORS.includes(res.error)) onAccessError(res.error);
+        else setError(res.error);
+        return;
+      }
+      setUndo({ tagline: site.tagline, about: site.about, hl: hlText, items: itemsText });
+      const c = res.copy;
+      patch({ tagline: c.tagline || site.tagline, about: c.about || site.about });
+      if (c.highlights.length) setHlText(c.highlights.join("\n"));
+      if (c.items.length) setItemsText(itemsToText(c.items));
+      setAiWarnings(c.warnings);
+      setAiInfo(`${res.usage.used} de ${res.usage.limit} gerações de IA usadas hoje`);
+      notify("Textos escritos. Leia e ajuste antes de publicar.");
+    } catch {
+      setError("Não consegui falar com a IA agora. Tente de novo.");
+    } finally {
+      setAiBusy("");
+    }
+  }
+
+  async function makeBrief() {
+    setAiBusy("brief");
+    setError("");
+    try {
+      const style = PROMPT_STYLES.find((item) => item.id === pStyle);
+      const res = await aiBrief({
+        data: { key: accessKey, deviceId, facts: facts(), style: style ? `${style.label}: ${style.text}` : "", format: pFormat },
+      });
+      if (!res.ok) {
+        if (ACCESS_ERRORS.includes(res.error)) onAccessError(res.error);
+        else setError(res.error);
+        return;
+      }
+      setBrief(res.brief);
+      setAiInfo(`${res.usage.used} de ${res.usage.limit} gerações de IA usadas hoje`);
+      notify("Briefing criado e já incluído no prompt");
+    } catch {
+      setError("Não consegui falar com a IA agora. Tente de novo.");
+    } finally {
+      setAiBusy("");
+    }
+  }
+
+  function openAi(url: string) {
+    window.open(url, "_blank", "noopener");
+    copy(prompt, "prompt", "Prompt copiado. Cole na IA com Ctrl+V.");
+  }
 
   function patch(change: Partial<SiteData>) {
     setSite((current) => ({ ...current, ...change }));
@@ -375,6 +469,14 @@ export function SiteStudio({
           <Globe className="size-5 text-primary" /> Site de {lead.name}
         </p>
         <div className="flex items-center gap-2">
+          <div className="flex gap-1">
+            <button type="button" onClick={() => setView("site")} className={chip(view === "site")}>
+              Site pronto
+            </button>
+            <button type="button" onClick={() => setView("prompt")} className={chip(view === "prompt")}>
+              Prompt para IA
+            </button>
+          </div>
           <div className="flex gap-1 lg:hidden">
             <button type="button" onClick={() => setPane("editar")} className={chip(pane === "editar")}>
               Editar
@@ -398,6 +500,96 @@ export function SiteStudio({
           <div className={`space-y-5 ${pane === "previa" ? "hidden lg:block" : ""}`}>
             {error && <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm font-medium text-danger">{error}</p>}
 
+            {view === "prompt" && (
+              <section className={`space-y-4 p-4 ${card}`}>
+                <div>
+                  <h3 className="flex items-center gap-2 font-semibold">
+                    <Sparkles className="size-5 text-primary" /> Virar prompt
+                  </h3>
+                  <p className="mt-1 text-xs text-muted">
+                    Monta um prompt profissional com os dados reais da empresa, pronto para colar no Claude, no ChatGPT ou no Gemini e gerar o site lá.
+                    Confira os dados na aba “Site pronto” antes de copiar.
+                  </p>
+                </div>
+                <div>
+                  <p className="mb-2 text-sm font-semibold">Estilo</p>
+                  <div className="flex flex-wrap gap-2">
+                    {PROMPT_STYLES.map((item) => (
+                      <button key={item.id} type="button" onClick={() => setPStyle(item.id)} className={chip(pStyle === item.id)}>
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="block text-sm">
+                    <span className="mb-1 block font-semibold">Formato do código</span>
+                    <select value={pFormat} onChange={(e) => setPFormat(e.target.value as PromptFormat)} className={field}>
+                      {PROMPT_FORMATS.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block text-sm">
+                    <span className="mb-1 block font-semibold">Tamanho</span>
+                    <select value={pDetail} onChange={(e) => setPDetail(e.target.value as "completo" | "curto")} className={field}>
+                      <option value="completo">Completo (melhor resultado)</option>
+                      <option value="curto">Curto</option>
+                    </select>
+                  </label>
+                </div>
+                <div className="rounded-xl bg-primary-soft p-3">
+                  <p className="text-sm font-semibold">Briefing criativo feito pela IA do painel</p>
+                  <p className="mt-0.5 text-xs text-muted">
+                    A IA cria a direção visual específica para esta empresa (conceito, cores, fontes, detalhes) e inclui no prompt. Usa 1 geração de IA.
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <button type="button" onClick={() => void makeBrief()} disabled={aiBusy === "brief"} className={`px-4 py-2 text-sm ${btnPrimary}`}>
+                      {aiBusy === "brief" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+                      {brief ? "Gerar outro briefing" : "Gerar briefing com IA"}
+                    </button>
+                    {brief && (
+                      <button type="button" onClick={() => setBrief("")} className={btnGhost}>
+                        Tirar do prompt
+                      </button>
+                    )}
+                  </div>
+                  {aiInfo && <p className="mt-2 text-xs text-muted">{aiInfo}</p>}
+                </div>
+                <textarea
+                  readOnly
+                  value={prompt}
+                  rows={14}
+                  onFocus={(event) => event.currentTarget.select()}
+                  className="w-full rounded-xl border border-border bg-surface-2 p-3 font-mono text-xs leading-relaxed text-fg outline-none"
+                />
+                <p className="text-xs text-muted">{prompt.length.toLocaleString("pt-BR")} caracteres</p>
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" onClick={() => copy(prompt, "prompt", "Prompt copiado")} className={`px-4 py-2.5 ${btnPrimary}`}>
+                    {copied === "prompt" ? <Check className="size-4" /> : <Copy className="size-4" />} Copiar prompt
+                  </button>
+                  <button type="button" onClick={() => openAi("https://claude.ai/new")} className={btnGhost}>
+                    Copiar e abrir o Claude
+                  </button>
+                  <button type="button" onClick={() => openAi("https://chatgpt.com/")} className={btnGhost}>
+                    ChatGPT
+                  </button>
+                  <button type="button" onClick={() => openAi("https://gemini.google.com/app")} className={btnGhost}>
+                    Gemini
+                  </button>
+                  <button type="button" onClick={() => download(`prompt-${slugify(data.name || "site")}.txt`, prompt, "text/plain;charset=utf-8")} className={btnGhost}>
+                    <Download className="size-4" /> Baixar .txt
+                  </button>
+                </div>
+                <p className="text-xs text-muted">
+                  Dica: no Claude, cole o prompt, envie e peça para ele entregar o arquivo pronto. Depois troque os marcadores [EDITAR] pelos dados e fotos reais.
+                </p>
+              </section>
+            )}
+
+            {view === "site" && (<>
             <section className={`space-y-3 p-4 ${card}`}>
               <h3 className="font-semibold">1. Dados da empresa</h3>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -457,6 +649,61 @@ export function SiteStudio({
                   </select>
                 </label>
               </div>
+            </section>
+
+            <section className={`space-y-3 p-4 ${card}`}>
+              <h3 className="flex items-center gap-2 font-semibold">
+                <Sparkles className="size-5 text-primary" /> Textos com IA (sem cara de IA)
+              </h3>
+              <p className="text-xs text-muted">
+                A IA escreve o texto do site com frases curtas e naturais, usando só o que você escrever abaixo. Ela não inventa preço, ano nem produto. O visual do site
+                é desenhado por nós, não pela IA.
+              </p>
+              <label className="block text-sm">
+                <span className="mb-1 block font-semibold">O que a empresa vende ou faz, diferenciais, preços</span>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={4}
+                  placeholder="Ex.: Hambúrguer artesanal de 160g, pão feito no dia. X-Burger R$ 28, X-Bacon R$ 33. Entrega no bairro. Atende de quarta a domingo à noite."
+                  className={field}
+                />
+              </label>
+              <div className="flex flex-wrap items-end gap-3">
+                <label className="block text-sm">
+                  <span className="mb-1 block font-semibold">Tom</span>
+                  <select value={tone} onChange={(e) => setTone(e.target.value as typeof tone)} className={field}>
+                    <option value="direto">Direto e simples</option>
+                    <option value="acolhedor">Acolhedor</option>
+                    <option value="premium">Sóbrio e refinado</option>
+                  </select>
+                </label>
+                <button type="button" onClick={() => void writeWithAi()} disabled={aiBusy === "copy"} className={`h-12 px-5 ${btnPrimary}`}>
+                  {aiBusy === "copy" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />} Escrever os textos
+                </button>
+                {undo && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      patch({ tagline: undo.tagline, about: undo.about });
+                      setHlText(undo.hl);
+                      setItemsText(undo.items);
+                      setUndo(null);
+                    }}
+                    className={btnGhost}
+                  >
+                    Desfazer
+                  </button>
+                )}
+              </div>
+              {aiInfo && <p className="text-xs text-muted">{aiInfo}</p>}
+              {aiWarnings.length > 0 && (
+                <ul className="list-disc space-y-1 rounded-lg bg-amber-50 py-2 pl-7 pr-3 text-xs text-amber-900 dark:bg-amber-500/15 dark:text-amber-100">
+                  {aiWarnings.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              )}
             </section>
 
             <section className={`space-y-3 p-4 ${card}`}>
@@ -683,6 +930,7 @@ export function SiteStudio({
                 Vercel ou na Netlify em nome dele. Aqui no painel o site fica no endereço do seu próprio painel.
               </p>
             </section>
+            </>)}
           </div>
 
           <div className={`lg:sticky lg:top-20 lg:h-[calc(100vh-6rem)] ${pane === "editar" ? "hidden lg:block" : ""}`}>

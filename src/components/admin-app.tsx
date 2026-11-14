@@ -681,6 +681,7 @@ export function AdminApp() {
                         </button>
                       )}
                       {k.key && !revealed.has(k.id) ? maskKey(k.key) : k.hint}
+                      {k.google && <span className="mt-0.5 block font-sans text-[11px] text-muted">Google: {k.google}</span>}
                       {k.kind === "test" && <span className="ml-1 rounded bg-primary-soft px-1 text-[10px] font-bold text-primary">TESTE</span>}
                     </td>
                     <td className="pr-3">
@@ -720,6 +721,11 @@ export function AdminApp() {
                         <button type="button" onClick={() => void patch(k.id, { extendDays: 30 })} className={btnGhost}>
                           +30d
                         </button>
+                        {k.google && (
+                          <button type="button" onClick={() => void patch(k.id, { unlinkGoogle: true })} className={btnGhost}>
+                            Desvincular Google
+                          </button>
+                        )}
                         <button type="button" onClick={() => void patch(k.id, { resetDevices: true })} className={btnGhost}>
                           <RotateCcw className="size-3" /> Aparelhos
                         </button>

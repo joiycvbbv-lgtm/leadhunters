@@ -52,6 +52,7 @@ import { ALL_NICHES, NICHE_GROUPS } from "@/lib/niches";
 import { OBJECOES } from "@/lib/objecoes";
 import { MySitesModal, SiteStudio } from "@/components/site-studio";
 import { SiteAuditModal } from "@/components/site-audit";
+import { linkGoogle } from "@/lib/google.functions";
 import {
   FIRST_TEMPLATES,
   FOLLOW_TEMPLATES,
@@ -302,6 +303,17 @@ const TEMPS = [
   ["morno", "🌤 Morno"],
   ["frio", "❄️ Frio"],
 ] as const;
+
+function readTicket(ticket: string): { email: string; name: string } {
+  try {
+    const body = ticket.split(".")[0].replace(/-/g, "+").replace(/_/g, "/");
+    const bytes = Uint8Array.from(atob(body + "=".repeat((4 - (body.length % 4)) % 4)), (ch) => ch.charCodeAt(0));
+    const data = JSON.parse(new TextDecoder().decode(bytes)) as { email?: string; name?: string };
+    return { email: data.email ?? "", name: data.name ?? "" };
+  } catch {
+    return { email: "", name: "" };
+  }
+}
 
 function daysSince(iso: string) {
   return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
@@ -569,6 +581,7 @@ const LeadCard = memo(function LeadCard({
   saved,
   onKeep,
   onAudit,
+  onPrompt,
 }: {
   lead: Lead;
   city: string;
@@ -576,6 +589,7 @@ const LeadCard = memo(function LeadCard({
   saved: boolean;
   onKeep: (lead: Lead) => void;
   onAudit?: (lead: Lead) => void;
+  onPrompt?: (lead: Lead) => void;
 }) {
   return (
     <article className={`lead-card fade-up p-4 ${card}`}>
@@ -654,6 +668,11 @@ const LeadCard = memo(function LeadCard({
         </div>
       </div>
       <div className="mt-3 flex flex-wrap gap-4 text-sm">
+        {onPrompt && (
+          <button type="button" onClick={() => onPrompt(lead)} className="font-semibold text-primary hover:underline">
+            Virar prompt
+          </button>
+        )}
         {lead.siteKind === "site" && onAudit && (
           <button type="button" onClick={() => onAudit(lead)} className="font-semibold text-primary hover:underline">
             Analisar o site
@@ -695,6 +714,7 @@ const PipelineRow = memo(function PipelineRow({
   selected,
   onSelect,
   onSite,
+  onPrompt,
 }: {
   lead: SavedLead;
   message: string;
@@ -708,6 +728,7 @@ const PipelineRow = memo(function PipelineRow({
   selected?: boolean;
   onSelect?: (id: string) => void;
   onSite?: (id: string) => void;
+  onPrompt?: (id: string) => void;
 }) {
   const follow = followState(lead.followUp, today);
   const active = lead.status !== "fechado" && lead.status !== "perdido";
@@ -809,6 +830,11 @@ const PipelineRow = memo(function PipelineRow({
           {onSite && (
             <button type="button" onClick={() => onSite(lead.id)} className={`${btnGhost} inline-flex items-center gap-1.5`}>
               <Globe className="size-4" /> Criar site
+            </button>
+          )}
+          {onPrompt && (
+            <button type="button" onClick={() => onPrompt(lead.id)} className={btnGhost}>
+              Virar prompt
             </button>
           )}
           <button type="button" onClick={() => onNotes(lead.id)} className={btnGhost}>
@@ -980,6 +1006,13 @@ export function LeadApp() {
   const [focusIndex, setFocusIndex] = useState(0);
   const [objOpen, setObjOpen] = useState(false);
   const [siteLeadId, setSiteLeadId] = useState<string | null>(null);
+  const [sitePane, setSitePane] = useState<"site" | "prompt">("site");
+  const [siteExtra, setSiteExtra] = useState<SavedLead | null>(null);
+  const [gTicket, setGTicket] = useState("");
+  const [gEmail, setGEmail] = useState("");
+  const [gKey, setGKey] = useState("");
+  const [gBusy, setGBusy] = useState(false);
+  const [gError, setGError] = useState("");
   const [mySitesOpen, setMySitesOpen] = useState(false);
   const [dailyGoal, setDailyGoal] = useState(20);
   const [tourOpen, setTourOpen] = useState(false);
@@ -1035,6 +1068,32 @@ export function LeadApp() {
     setTheme(savedTheme);
     const device = getDeviceId();
     setDeviceId(device);
+    const hash = window.location.hash;
+    if (hash.startsWith("#glogin=") || hash.startsWith("#glink=")) {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      if (hash.startsWith("#glink=")) {
+        const ticket = hash.slice("#glink=".length);
+        setGTicket(ticket);
+        setGEmail(readTicket(ticket).email);
+        setReady(true);
+        return;
+      }
+      const token = hash.slice("#glogin=".length);
+      checkAccessKey({ data: { key: token, deviceId: device, bind: true } })
+        .then((res) => {
+          if (res.ok) {
+            saveAccessKey(token);
+            setAccessKey(token);
+            setInfo(res.info);
+            setStep("app");
+          } else {
+            setAuthError(accessMessage(res.code));
+          }
+        })
+        .catch(() => setAuthError("Não consegui entrar com o Google agora. Tente de novo."))
+        .finally(() => setReady(true));
+      return;
+    }
     const stored = loadAccessKey();
     if (!stored) {
       setReady(true);
@@ -1503,6 +1562,55 @@ export function LeadApp() {
     });
   }, []);
 
+  const openSiteEditor = useCallback((id: string) => {
+    setSiteExtra(null);
+    setSitePane("site");
+    setSiteLeadId(id);
+  }, []);
+
+  const openPromptEditor = useCallback((id: string) => {
+    setSiteExtra(null);
+    setSitePane("prompt");
+    setSiteLeadId(id);
+  }, []);
+
+  const promptFromLead = useCallback(
+    (lead: Lead) => {
+      setSiteExtra({ ...lead, city, status: "novo", notes: "", value: ticket, addedAt: new Date().toISOString() } as SavedLead);
+      setSitePane("prompt");
+      setSiteLeadId(lead.id);
+    },
+    [city, ticket],
+  );
+
+  async function submitGoogleLink() {
+    setGBusy(true);
+    setGError("");
+    try {
+      const res = await linkGoogle({ data: { ticket: gTicket, key: gKey, deviceId } });
+      if (!res.ok) {
+        setGError(res.error);
+        return;
+      }
+      const who = readTicket(gTicket);
+      if (who.name && !loadUserName()) {
+        saveUserName(who.name);
+        setUserName(who.name);
+      }
+      saveAccessKey(res.token);
+      setAccessKey(res.token);
+      setInfo(res.info);
+      setNow(Date.now());
+      setGTicket("");
+      setGKey("");
+      setStep("app");
+    } catch {
+      setGError("Não consegui falar com o servidor. Tente de novo.");
+    } finally {
+      setGBusy(false);
+    }
+  }
+
   function startFocus() {
     const todayStr = todayIso();
     const active = pipelineRef.current.filter((row) => row.status !== "fechado" && row.status !== "perdido");
@@ -1897,6 +2005,54 @@ export function LeadApp() {
             </button>
           </form>
           <div className="mt-5 border-t border-border pt-5">
+            {gTicket ? (
+              <form
+                className="space-y-3"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void submitGoogleLink();
+                }}
+              >
+                <p className="text-sm">
+                  Conta Google conectada: <strong>{gEmail || "sua conta"}</strong>.
+                </p>
+                <p className="text-xs text-muted">
+                  Falta só ligar a sua key a essa conta. É uma vez só. Depois, é só entrar com o Google, sem digitar a key.
+                </p>
+                <input
+                  value={gKey}
+                  onChange={(event) => setGKey(formatKey(event.target.value))}
+                  placeholder="LH-XXXX-XXXX-XXXX-XXXX"
+                  className={`${field} font-mono tracking-wider`}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                {gError && <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm font-medium text-danger">{gError}</p>}
+                <button type="submit" disabled={gBusy || gKey.replace(/[^A-Za-z0-9]/g, "").length !== 18} className={`h-11 w-full ${btnPrimary}`}>
+                  {gBusy ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />} Ligar minha key
+                </button>
+                <button type="button" onClick={() => setGTicket("")} className="w-full text-xs font-semibold text-muted hover:underline">
+                  Cancelar
+                </button>
+              </form>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = `/api/google/start?d=${encodeURIComponent(deviceId)}`;
+                }}
+                className="mb-4 flex h-11 w-full items-center justify-center gap-3 rounded-xl border border-border bg-surface text-sm font-semibold text-fg transition hover:border-primary"
+              >
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                  <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-8.9Z" />
+                  <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24Z" />
+                  <path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1Z" />
+                  <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.5 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1c.9-2.8 3.6-4.9 6.7-4.9Z" />
+                </svg>
+                Entrar com Google
+              </button>
+            )}
+            {!gTicket && (<>
             {!trialOpen ? (
               <button
                 type="button"
@@ -1940,6 +2096,7 @@ export function LeadApp() {
                 </button>
               </form>
             )}
+            </>)}
           </div>
           <p className="mt-5 text-center text-xs text-muted">
             Sem key não há acesso.{" "}
@@ -2390,6 +2547,7 @@ export function LeadApp() {
                     saved={savedKeys.has(lead.id) || savedKeys.has(lead.phone)}
                     onKeep={keep}
                     onAudit={setAuditLead}
+                    onPrompt={promptFromLead}
                   />
                 ))}
               </div>
@@ -2478,7 +2636,8 @@ export function LeadApp() {
                     onRemove={removeLead}
                     onCopy={copyText}
                     onContact={markContact}
-                    onSite={setSiteLeadId}
+                    onSite={openSiteEditor}
+                    onPrompt={openPromptEditor}
                   />
                 ))}
               </div>
@@ -2658,7 +2817,8 @@ export function LeadApp() {
                 onContact={markContact}
                 selected={selected.has(lead.id)}
                 onSelect={toggleSelect}
-                onSite={setSiteLeadId}
+                onSite={openSiteEditor}
+                onPrompt={openPromptEditor}
               />
             ))}
           </div>
@@ -3073,17 +3233,21 @@ export function LeadApp() {
       </nav>
       {siteLeadId &&
         (() => {
-          const siteLead = pipeline.find((row) => row.id === siteLeadId);
+          const siteLead = pipeline.find((row) => row.id === siteLeadId) ?? siteExtra ?? undefined;
           if (!siteLead) return null;
           return (
             <SiteStudio
-              key={siteLead.id}
+              key={`${siteLead.id}-${sitePane}`}
+              initialPane={sitePane}
               lead={siteLead}
               accessKey={accessKey}
               deviceId={deviceId}
               sellerName={userName}
               isTest={isTest}
-              onClose={() => setSiteLeadId(null)}
+              onClose={() => {
+                setSiteLeadId(null);
+                setSiteExtra(null);
+              }}
               onUsage={(used, limit) => setInfo((prev) => (prev ? { ...prev, usedToday: used, dailyLimit: limit } : prev))}
               onAccessError={(code) => logout(accessMessage(code))}
               notify={notify}
