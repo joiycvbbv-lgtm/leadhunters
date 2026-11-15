@@ -283,6 +283,18 @@ export function buildSite(input: SiteData): string {
   const title = `${rawName}${cityShort ? ` · ${category} em ${cityShort}` : ` · ${category}`}`;
   const description = `${rawName}${cityShort ? `, ${category.toLowerCase()} em ${cityShort}` : ""}.${d.address ? ` ${d.address}.` : ""}`;
   const mapQuery = encodeURIComponent(`${rawName} ${d.address}`.trim());
+  const themeKey = `lh-site-theme-${slugify(rawName)}`;
+  const interestOptions = d.items.map((item) => `<option value="${esc(item.name)}">${esc(item.name)}</option>`).join("");
+  const whatsappForm = wa
+    ? `<form class="lead-form" id="lead-form" data-phone="${digits}" data-company="${name}">
+        <h3>Peça informações</h3>
+        <label>Seu nome<input name="nome" autocomplete="name" required maxlength="80" placeholder="Como podemos chamar você?"></label>
+        ${interestOptions ? `<label>Tenho interesse em<select name="interesse"><option value="">Escolha um serviço ou produto</option>${interestOptions}</select></label>` : ""}
+        <label>Mensagem<textarea name="mensagem" rows="3" maxlength="500" placeholder="Conte rapidamente o que você precisa"></textarea></label>
+        <button class="btn" type="submit">${ICON.wa}<span>Continuar pelo WhatsApp</span></button>
+        <small>Este formulário não salva os dados. Ao continuar, o WhatsApp será aberto com a mensagem preenchida.</small>
+      </form>`
+    : "";
   const sections: [string, string][] = [["sobre", "Sobre"]];
   if (d.items.length) sections.push(["itens", preset.itemsTitle]);
   if (hasPhotos && d.photos.length > 1) sections.push(["galeria", "Fotos"]);
@@ -360,12 +372,14 @@ ${d.address ? `<p>${ICON.pin}<span>${esc(d.address)}</span></p>` : ""}
 ${d.phone ? `<p>${ICON.phone}<a href="tel:+${digits}">${esc(formatPhone(d.phone))}</a></p>` : ""}
 </div>
 ${hours.length ? `<ul class="hours">${hours.map((line, i) => `<li data-day="${i}">${esc(line)}</li>`).join("")}</ul>` : ""}
-<p class="links">${wa ? `<a class="btn" href="${wa}" target="_blank" rel="noopener">${ICON.wa}<span>${esc(preset.cta)}</span></a>` : ""}${d.mapsUrl ? `<a class="btn ghost" href="${d.mapsUrl}" target="_blank" rel="noopener">Abrir no Google Maps</a>` : ""}${d.instagram ? `<a class="btn ghost" href="${d.instagram}" target="_blank" rel="noopener">Instagram</a>` : ""}</p></div>
+<p class="links">${wa ? `<a class="btn" href="${wa}" target="_blank" rel="noopener">${ICON.wa}<span>${esc(preset.cta)}</span></a>` : ""}${d.mapsUrl ? `<a class="btn ghost" href="${d.mapsUrl}" target="_blank" rel="noopener">Abrir no Google Maps</a>` : ""}${d.instagram ? `<a class="btn ghost" href="${d.instagram}" target="_blank" rel="noopener">Instagram</a>` : ""}</p>${whatsappForm}</div>
 <div class="map"><iframe loading="lazy" title="Mapa" src="https://www.google.com/maps?q=${mapQuery}&output=embed"></iframe></div></div></section>`;
 
   const footer = `<footer><div class="wrap"><span>${name}</span><span>${d.address ? esc(d.address) : ""}</span></div></footer>`;
 
   const css = `:root{--bg:${theme.bg};--fg:${theme.fg};--muted:${theme.muted};--line:${theme.line};--card:${theme.card};--accent:${accent};--accent-fg:${accentFg};--head:${font.head};--body:${font.body}}
+html[data-mode="dark"]{--bg:#111318;--fg:#f2f1ee;--muted:#aaa7a0;--line:#32353b;--card:#1b1e24}
+html[data-mode="light"]{--bg:#faf8f4;--fg:#24221e;--muted:#706d66;--line:#e6e1d8;--card:#fff}
 *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);line-height:1.6;font-size:17px;-webkit-font-smoothing:antialiased}
 img{display:block;max-width:100%}a{color:inherit}.wrap{width:min(1120px,100% - 40px);margin-inline:auto}
@@ -374,6 +388,10 @@ h1,h2,h3{font-family:var(--head);font-weight:${d.design === "urbano" ? 700 : d.d
 .top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:66px}
 .brand{font-family:var(--head);font-weight:700;font-size:21px;${d.design === "urbano" ? "text-transform:uppercase;letter-spacing:.03em;" : ""}}.logo{height:38px;width:auto}
 .top nav{display:flex;gap:26px;font-size:15px;color:var(--muted)}.top nav a{text-decoration:none}.top nav a:hover{color:var(--fg)}
+html[data-mode="dark"] .top{background:rgba(17,19,24,.9)}
+html[data-mode="light"] .top{background:rgba(250,248,244,.9)}
+.theme-toggle{border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:999px;padding:9px 12px;font:600 13px var(--body);cursor:pointer;white-space:nowrap}
+.theme-toggle:hover{border-color:var(--accent)}
 .btn{display:inline-flex;align-items:center;gap:10px;background:var(--accent);color:var(--accent-fg);padding:14px 24px;border-radius:${d.design === "urbano" ? "3px" : d.design === "editorial" ? "999px" : "12px"};font-weight:600;font-size:16px;text-decoration:none;border:1.5px solid var(--accent);transition:transform .18s,box-shadow .18s}
 .btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px -12px var(--accent)}.btn.ghost{background:transparent;color:var(--fg);border-color:var(--line)}.btn.ghost:hover{border-color:var(--fg);box-shadow:none}
 .top .btn{padding:10px 18px;font-size:15px;white-space:nowrap}.brand{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
@@ -394,7 +412,13 @@ h1,h2,h3{font-family:var(--head);font-weight:${d.design === "urbano" ? 700 : d.d
 .it-top{display:flex;align-items:baseline;gap:10px}.it-top h3{font-size:22px;font-family:var(--head)}.dots{flex:1;border-bottom:1.5px dotted var(--line);transform:translateY(-4px)}.it-top strong{font-family:var(--head);font-size:20px;color:var(--accent)}.items p{color:var(--muted);font-size:15px;margin-top:4px;max-width:46ch}.after{margin-top:34px}
 .gal{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-top:8px}.gal img{width:100%;height:100%;object-fit:cover;border-radius:${d.design === "urbano" ? "2px" : "10px"};aspect-ratio:4/3;grid-column:span 2}.gal img:nth-child(1){grid-column:span 4;grid-row:span 2;aspect-ratio:auto;min-height:320px}
 .info{display:grid;gap:12px;margin-bottom:22px}.hours{list-style:none;margin:6px 0 26px;max-width:380px;border-top:1px solid var(--line)}.hours li{padding:9px 0;border-bottom:1px solid var(--line);color:var(--muted);font-size:15px}.hours li.today{color:var(--fg);font-weight:600}.hours li.today::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:10px;vertical-align:middle}
-.links{display:flex;flex-wrap:wrap;gap:12px}.map iframe{width:100%;height:100%;min-height:380px;border:1px solid var(--line);border-radius:${d.design === "urbano" ? "2px" : "14px"};filter:${theme.dark ? "invert(.9) hue-rotate(180deg) saturate(.7)" : "saturate(.85)"}}
+.links{display:flex;flex-wrap:wrap;gap:12px}
+.lead-form{display:grid;gap:12px;margin-top:24px;max-width:560px;padding:20px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.lead-form h3{font-size:22px}
+.lead-form label{display:grid;gap:5px;font-size:14px;font-weight:600}
+.lead-form input,.lead-form select,.lead-form textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--bg);color:var(--fg);font:400 15px var(--body)}
+.lead-form small{color:var(--muted);font-size:12px;line-height:1.5}
+.map iframe{width:100%;height:100%;min-height:380px;border:1px solid var(--line);border-radius:${d.design === "urbano" ? "2px" : "14px"};filter:${theme.dark ? "invert(.9) hue-rotate(180deg) saturate(.7)" : "saturate(.85)"}}
 footer{border-top:1px solid var(--line);padding:26px 0;font-size:14px;color:var(--muted)}footer .wrap{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between}
 .wa{position:fixed;right:18px;bottom:18px;z-index:40;width:56px;height:56px;border-radius:50%;background:#1fb85a;color:#fff;display:grid;place-items:center;box-shadow:0 10px 26px -8px rgba(0,0,0,.45);transition:transform .18s}.wa:hover{transform:scale(1.07)}.wa svg{width:28px;height:28px}
 ${d.design === "vitrine" ? `.hero.type{background:color-mix(in srgb,var(--accent) 12%,var(--bg))}.sec.alt{background:color-mix(in srgb,var(--accent) 7%,var(--bg))}.hero.type .chip{background:var(--card)}.hero.type h1{color:color-mix(in srgb,var(--accent) 80%,#000)}` : ""}
@@ -406,13 +430,15 @@ ${d.design === "editorial" ? `.hero h1{font-weight:500;letter-spacing:-.035em}.h
 .lhbar{position:fixed;left:14px;bottom:18px;z-index:40;max-width:calc(100% - 100px);background:rgba(20,20,20,.9);color:#fff;font:500 12px/1.35 system-ui,sans-serif;padding:9px 13px;border-radius:999px}`;
 
   const script = `document.querySelectorAll('[data-today]');
+(function(){var themeKey=${JSON.stringify(themeKey)},html=document.documentElement,button=document.getElementById('theme-toggle');try{var saved=localStorage.getItem(themeKey);if(saved==='light'||saved==='dark')html.dataset.mode=saved}catch(e){}if(button){button.addEventListener('click',function(){var next=html.dataset.mode==='dark'?'light':'dark';html.dataset.mode=next;try{localStorage.setItem(themeKey,next)}catch(e){}})}
+var form=document.getElementById('lead-form');if(form){form.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(form),name=String(fd.get('nome')||'').trim(),interest=String(fd.get('interesse')||'').trim(),detail=String(fd.get('mensagem')||'').trim();var parts=['Olá! Meu nome é '+name+'. Tenho interesse em '+(interest||'conhecer melhor os serviços')+' de '+form.dataset.company+'.'];if(detail)parts.push(detail);window.open('https://wa.me/'+form.dataset.phone+'?text='+encodeURIComponent(parts.join(' ')),'_blank','noopener,noreferrer')})}
 (function(){var day=(new Date().getDay()+6)%7;var li=document.querySelectorAll('ul.hours li');var o=document.getElementById('open');var t=document.querySelector('[data-today]');
 if(li.length===7){li[day].className='today';if(t)t.textContent='Hoje: '+li[day].textContent.replace(/^[^:]+:\\s*/,'');
 var m=li[day].textContent.match(/(\\d{1,2}):(\\d{2})\\s*[–-]\\s*(\\d{1,2}):(\\d{2})/);
 if(m&&o){var n=new Date(),a=+m[1]*60+ +m[2],b=+m[3]*60+ +m[4],c=n.getHours()*60+n.getMinutes();var open=b>a?(c>=a&&c<b):(c>=a||c<b);o.textContent=open?'Aberto agora':'Fechado agora';o.hidden=false}}})();`;
 
   return `<!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-mode="${theme.dark ? "dark" : "light"}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -430,7 +456,7 @@ if(m&&o){var n=new Date(),a=+m[1]*60+ +m[2],b=+m[3]*60+ +m[4],c=n.getHours()*60+
 <style>${css}</style>
 </head>
 <body>
-<div class="top"><div class="wrap">${logo}<nav>${nav}</nav>${wa ? `<a class="btn" href="${wa}" target="_blank" rel="noopener">${esc(preset.cta)}</a>` : ""}</div></div>
+<div class="top"><div class="wrap">${logo}<nav>${nav}</nav><button class="theme-toggle" type="button" id="theme-toggle" aria-label="Alternar tema claro e escuro">◐ Tema</button>${wa ? `<a class="btn" href="${wa}" target="_blank" rel="noopener">${esc(preset.cta)}</a>` : ""}</div></div>
 ${hero}
 ${about}
 ${items}

@@ -94,7 +94,7 @@ const EXAMPLES: Partial<Record<Kind, string>> = {
   generico: "Serviço principal | Descreva aqui | A combinar",
 };
 
-async function compress(file: File, maxSide: number, quality: number, type: "image/jpeg" | "image/png"): Promise<string> {
+async function compress(file: File, maxSide: number, quality: number, type: "image/jpeg" | "image/png" | "image/webp"): Promise<string> {
   const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" } as ImageBitmapOptions);
   const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement("canvas");
@@ -109,6 +109,35 @@ async function compress(file: File, maxSide: number, quality: number, type: "ima
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close?.();
   return canvas.toDataURL(type, quality);
+}
+
+async function dominantLogoColor(source: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 32;
+      canvas.height = 32;
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      if (!context) return resolve(null);
+      context.drawImage(image, 0, 0, 32, 32);
+      const pixels = context.getImageData(0, 0, 32, 32).data;
+      let red = 0, green = 0, blue = 0, count = 0;
+      for (let i = 0; i < pixels.length; i += 16) {
+        const alpha = pixels[i + 3];
+        const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
+        const brightness = r * 0.299 + g * 0.587 + b * 0.114;
+        const saturation = Math.max(r, g, b) - Math.min(r, g, b);
+        if (alpha < 120 || brightness < 35 || brightness > 225 || saturation < 22) continue;
+        red += r; green += g; blue += b; count += 1;
+      }
+      if (!count) return resolve(null);
+      const hex = (value: number) => Math.round(value / count).toString(16).padStart(2, "0");
+      resolve(`#${hex(red)}${hex(green)}${hex(blue)}`);
+    };
+    image.onerror = () => resolve(null);
+    image.src = source;
+  });
 }
 
 function download(name: string, text: string, type: string) {
@@ -362,7 +391,7 @@ export function SiteStudio({
     for (const file of Array.from(files)) {
       if (next.length >= 8) break;
       try {
-        next.push(await compress(file, 1280, 0.7, "image/jpeg"));
+        next.push(await compress(file, 1280, 0.72, "image/webp"));
       } catch {
         setError("Não consegui ler uma das fotos. Use arquivos JPG, PNG ou WEBP.");
       }
@@ -375,7 +404,10 @@ export function SiteStudio({
     const file = files?.[0];
     if (!file) return;
     try {
-      patch({ logo: await compress(file, 480, 0.9, "image/png") });
+      const logo = await compress(file, 480, 0.9, "image/png");
+      const color = await dominantLogoColor(logo);
+      patch({ logo, ...(color ? { color } : {}) });
+      if (color) notify("Cor principal extraída da logomarca.");
     } catch {
       setError("Não consegui ler o logo. Use JPG, PNG ou WEBP.");
     }
