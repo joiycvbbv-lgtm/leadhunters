@@ -416,13 +416,13 @@ function formatKey(raw: string) {
     .join("-");
 }
 
-const card = "rounded-2xl border border-border bg-surface shadow-card";
+const card = "rounded-[1.5rem] border border-border/80 bg-surface shadow-card";
 const field =
-  "w-full rounded-xl border border-border bg-surface-2 px-3.5 py-3 text-fg outline-none placeholder:text-muted/70 focus:border-primary";
+  "w-full rounded-2xl border border-border bg-surface-2 px-4 py-3 text-sm text-fg outline-none placeholder:text-muted/70 focus:border-primary focus:ring-4 focus:ring-primary/10";
 const btnPrimary =
-  "inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-primary to-primary-deep font-semibold text-primary-fg shadow-[0_6px_16px_-6px_rgba(29,111,224,0.6)] transition hover:brightness-105 disabled:opacity-60";
+  "inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-deep px-5 py-3 text-sm font-bold text-primary-fg shadow-[0_12px_24px_-12px_rgba(79,70,229,0.65)] transition duration-200 hover:-translate-y-0.5 hover:brightness-105 active:translate-y-0 disabled:opacity-60";
 const btnGhost =
-  "rounded-xl border border-border bg-surface px-3 py-2 text-sm font-semibold text-fg transition hover:border-primary hover:text-primary";
+  "rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-sm font-semibold text-fg transition duration-200 hover:border-primary/50 hover:bg-primary-soft hover:text-primary";
 
 type FollowState = "atrasado" | "hoje" | "futuro" | null;
 
@@ -1099,6 +1099,7 @@ export function LeadApp() {
   const [step, setStep] = useState<"login" | "app">("login");
   const [mode, setMode] = useState<"login" | "register">("login");
   const [keyInput, setKeyInput] = useState("");
+  const [showKey, setShowKey] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [authError, setAuthError] = useState("");
   const [checking, setChecking] = useState(false);
@@ -1985,25 +1986,95 @@ export function LeadApp() {
 
   if (step !== "app") {
     return (
-      <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
-        <div className="pointer-events-none absolute -left-24 top-10 size-72 rounded-full bg-primary/15 blur-3xl" aria-hidden />
-        <div className="pointer-events-none absolute -right-20 bottom-10 size-80 rounded-full bg-sky-300/30 blur-3xl" aria-hidden />
-        <div className={`relative w-full max-w-md p-6 sm:p-8 ${card}`}>
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-b from-primary to-primary-deep text-primary-fg shadow-[0_8px_20px_-8px_rgba(29,111,224,0.7)]">
-              <Target className="size-6" />
+      <main className="login-shell relative flex min-h-screen items-center justify-center overflow-x-hidden px-3 py-3 sm:px-6 sm:py-6 lg:px-8">
+        <div className="pointer-events-none absolute -left-24 top-[-8rem] size-80 rounded-full bg-primary/10 blur-3xl" aria-hidden />
+        <div className="pointer-events-none absolute -right-24 bottom-[-7rem] size-96 rounded-full bg-sky-300/15 blur-3xl" aria-hidden />
+        <div className="login-layout relative grid w-full max-w-6xl gap-4 lg:min-h-[740px] lg:grid-cols-[1.08fr_0.92fr]">
+          <section className="login-story relative hidden flex-col justify-between overflow-hidden rounded-[2rem] p-8 text-white shadow-card lg:flex xl:p-10">
+            <div className="login-orb login-orb-one" aria-hidden />
+            <div className="login-orb login-orb-two" aria-hidden />
+            <div className="relative z-10 flex items-center gap-3">
+              <div className="flex size-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-white shadow-inner backdrop-blur">
+                <Target className="size-6" />
+              </div>
+              <div>
+                <p className="text-sm font-extrabold uppercase tracking-[0.16em] text-white">LeadHunter</p>
+                <p className="text-xs font-medium text-white/60">Prospecção local</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">LeadHunter</p>
-              <h1 className="font-display text-2xl font-semibold leading-tight">Acesso ao painel</h1>
+            <div className="relative z-10 mt-8 max-w-xl">
+              <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-sky-100">
+                <Sparkles className="size-3.5" /> Oportunidades locais, em um só lugar
+              </p>
+              <h2 className="mt-5 font-display text-4xl font-bold leading-[1.08] tracking-tight xl:text-5xl">
+                Seu próximo cliente pode estar <span className="text-sky-300">sem site.</span>
+              </h2>
+              <p className="mt-4 max-w-lg text-base leading-7 text-white/70">
+                Encontre empresas, organize os contatos e acompanhe cada oportunidade até a criação do site.
+              </p>
+              <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                {[
+                  ["01", "Encontrar", "Busque por cidade e nicho."],
+                  ["02", "Acompanhar", "Organize contatos e retornos."],
+                  ["03", "Apresentar", "Crie sites para seus leads."],
+                ].map(([number, title, detail]) => (
+                  <div key={number} className="rounded-2xl border border-white/10 bg-white/[0.07] p-3">
+                    <span className="text-xs font-extrabold tracking-[0.14em] text-sky-300">{number}</span>
+                    <p className="mt-2 text-sm font-bold text-white">{title}</p>
+                    <p className="mt-1 text-xs leading-5 text-white/55">{detail}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+            <div className="login-demo-card relative z-10 ml-auto mt-8 w-full max-w-sm rounded-2xl border border-white/10 p-4 shadow-xl backdrop-blur-xl">
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-xl bg-white/10 text-sky-200">
+                  <Building2 className="size-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/50">Exemplo de oportunidade</p>
+                  <p className="mt-0.5 truncate text-sm font-bold text-white">Negócio local</p>
+                </div>
+                <span className="rounded-full bg-amber-300/15 px-2.5 py-1 text-[10px] font-bold text-amber-200">Sem site</span>
+              </div>
+              <div className="mt-4 flex items-center justify-between text-xs">
+                <span className="text-white/60">Prioridade de contato</span>
+                <span className="font-bold text-sky-200">84 / 100</span>
+              </div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+                <div className="h-full w-[84%] rounded-full bg-gradient-to-r from-sky-300 to-indigo-300" />
+              </div>
+            </div>
+          </section>
+          <section className={`login-panel relative flex flex-col justify-center p-5 sm:p-8 lg:p-10 ${card}`}>
+            <div className="mb-7 flex items-center gap-3 lg:hidden">
+              <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-deep text-primary-fg shadow-lg">
+                <Target className="size-5" />
+              </div>
+              <div>
+                <p className="text-sm font-extrabold uppercase tracking-[0.14em] text-primary">LeadHunter</p>
+                <p className="text-xs text-muted">Prospecção local</p>
+              </div>
+            </div>
+            <div className="mb-6">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">
+                {mode === "login" ? "Bem-vinda de volta" : "Primeiro acesso"}
+              </p>
+              <h1 className="mt-2 font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+                {mode === "login" ? "Acesse seu painel" : "Ative seu acesso"}
+              </h1>
+              <p className="mt-2 max-w-md text-sm leading-6 text-muted">
+                {mode === "login"
+                  ? "Entre para encontrar novos leads e acompanhar seus contatos."
+                  : "Informe seu nome e a chave recebida para ativar sua conta."}
+              </p>
+            </div>
 
           <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl bg-primary-soft p-1">
             {(
               [
-                ["login", "Login", LogIn],
-                ["register", "Registrar", UserPlus],
+                ["login", "Entrar", LogIn],
+                ["register", "Primeiro acesso", UserPlus],
               ] as const
             ).map(([id, label, Icon]) => (
               <button
@@ -2012,6 +2083,7 @@ export function LeadApp() {
                 onClick={() => {
                   setMode(id);
                   setAuthError("");
+                  setShowKey(false);
                 }}
                 className={`flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition ${
                   mode === id ? "bg-surface text-primary shadow-sm" : "text-muted hover:text-fg"
@@ -2022,10 +2094,10 @@ export function LeadApp() {
             ))}
           </div>
 
-          <p className="mb-5 text-sm text-muted">
+          <p className="mb-5 text-sm leading-6 text-muted">
             {mode === "login"
-              ? "Digite a key que você recebeu na compra para entrar."
-              : "Primeiro acesso: informe seu nome e a key que você recebeu na compra."}
+              ? "Use a chave de acesso que você recebeu na compra."
+              : "Informe seu nome e a chave para começar a usar o painel."}
           </p>
 
           <form
@@ -2048,18 +2120,28 @@ export function LeadApp() {
               </label>
             )}
             <label className="block text-sm">
-              <span className="mb-1.5 block font-semibold">Sua key</span>
+              <span className="mb-1.5 block font-semibold">Chave de acesso</span>
               <div className="relative">
-                <KeyRound className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted" />
+                <KeyRound className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted" />
                 <input
+                  type={showKey ? "text" : "password"}
                   value={keyInput}
                   onChange={(event) => setKeyInput(formatKey(event.target.value))}
                   placeholder="LH-XXXX-XXXX-XXXX-XXXX"
-                  className={`${field} pl-10 font-mono tracking-wider`}
+                  className={`${field} pl-11 pr-20 font-mono tracking-wider`}
                   autoComplete="off"
                   spellCheck={false}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowKey((value) => !value)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs font-bold text-muted transition hover:bg-primary-soft hover:text-primary"
+                  aria-label={showKey ? "Ocultar chave" : "Mostrar chave"}
+                >
+                  {showKey ? "Ocultar" : "Mostrar"}
+                </button>
               </div>
+              <p className="mt-1.5 text-xs text-muted">Sua chave só é usada para validar este acesso.</p>
             </label>
             {authError && (
               <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm font-medium text-danger">{authError}</p>
@@ -2084,7 +2166,9 @@ export function LeadApp() {
                 <p className="text-xs text-muted">
                   Falta só ligar a sua key a essa conta. É uma vez só. Depois, é só entrar com o Google, sem digitar a key.
                 </p>
+                <p className="text-xs font-semibold text-muted">Chave de acesso</p>
                 <input
+                  type="password"
                   value={gKey}
                   onChange={(event) => setGKey(formatKey(event.target.value))}
                   placeholder="LH-XXXX-XXXX-XXXX-XXXX"
@@ -2164,19 +2248,20 @@ export function LeadApp() {
             </>)}
           </div>
           <p className="mt-5 text-center text-xs text-muted">
-            Sem key não há acesso.{" "}
+            Ainda não tem uma chave?{" "}
             <a href="/comprar" className="font-semibold text-primary hover:underline">
-              Comprar acesso
+              Conheça as opções de acesso
             </a>
           </p>
+          </section>
         </div>
       </main>
     );
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-5xl px-4 pb-28 pt-5 sm:px-6 sm:pb-16">
-      <header className={`mb-6 flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 ${card}`}>
+    <div className="mx-auto min-h-screen max-w-7xl px-4 pb-28 pt-5 sm:px-6 sm:pb-16 lg:px-8 lg:pt-7">
+      <header className={`sticky top-3 z-30 mb-6 flex flex-wrap items-center justify-between gap-4 p-4 backdrop-blur-xl sm:p-5 ${card}`}>
         <div className="flex items-center gap-3">
           <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-b from-primary to-primary-deep text-primary-fg shadow-[0_8px_20px_-8px_rgba(29,111,224,0.7)]">
             <Target className="size-6" />
@@ -2189,7 +2274,7 @@ export function LeadApp() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <nav className="hidden rounded-xl bg-primary-soft p-1 sm:flex">
+          <nav className="hidden items-center gap-1 rounded-2xl border border-border bg-surface-2 p-1 sm:flex">
             {(
               [
                 ["buscar", "Buscar"],
@@ -2203,7 +2288,7 @@ export function LeadApp() {
                 type="button"
                 onClick={() => setTab(id)}
                 className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                  tab === id ? "bg-surface text-primary shadow-sm" : "text-muted hover:text-fg"
+                  tab === id ? "bg-primary text-primary-fg shadow-sm" : "text-muted hover:bg-surface hover:text-fg"
                 }`}
               >
                 {label}
