@@ -16,6 +16,7 @@ import {
   Globe,
   HelpCircle,
   KeyRound,
+  LayoutDashboard,
   List,
   Loader2,
   LogIn,
@@ -184,7 +185,7 @@ const CITIES = [
 
 const QUANTITIES = [5, 10, 15, 20, 30, 40, 50, 60];
 
-type Tab = "buscar" | "hoje" | "pipeline" | "vendas";
+type Tab = "inicio" | "buscar" | "hoje" | "pipeline" | "vendas";
 
 const STATUSES: { id: Status; label: string }[] = [
   { id: "novo", label: "Novo" },
@@ -1021,7 +1022,7 @@ const KanbanBoard = memo(function KanbanBoard({
 });
 
 export function LeadApp() {
-  const [tab, setTab] = useState<Tab>("buscar");
+  const [tab, setTab] = useState<Tab>("inicio");
   const [ready, setReady] = useState(false);
   const [city, setCity] = useState(CITIES[0]);
   const [niche, setNiche] = useState("restaurante");
@@ -2277,6 +2278,7 @@ export function LeadApp() {
           <nav className="hidden items-center gap-1 rounded-2xl border border-border bg-surface-2 p-1 sm:flex">
             {(
               [
+                ["inicio", "Resumo"],
                 ["buscar", "Buscar"],
                 ["hoje", "Hoje"],
                 ["pipeline", "Pipeline"],
@@ -2371,6 +2373,149 @@ export function LeadApp() {
             Renovar
           </a>
         </div>
+      )}
+
+      {tab === "inicio" && (
+        <section className="fade-up space-y-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Seu negócio em foco</p>
+              <h2 className="mt-1 font-display text-2xl font-bold tracking-tight sm:text-3xl">Visão geral</h2>
+              <p className="mt-1 text-sm text-muted">Acompanhe sua prospecção e escolha o próximo passo.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => setTab("buscar")} className={`${btnGhost} inline-flex items-center gap-2`}>
+                <Search className="size-4" /> Buscar leads
+              </button>
+              <button type="button" onClick={startFocus} className={`${btnPrimary} inline-flex items-center gap-2`}>
+                <Zap className="size-4" /> Começar prospecção
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {([
+              ["Leads ativos", String(pipeline.filter((row) => row.status !== "fechado" && row.status !== "perdido").length), Users, "pipeline"],
+              ["Retornos pendentes", String(dueCount), CalendarClock, "hoje"],
+              ["Contatos hoje", `${sendStats.todayCount}/${dailyGoal}`, MessageCircle, "hoje"],
+              ["Vendas fechadas", String(closed.length), BadgeCheck, "vendas"],
+            ] as const).map(([label, value, Icon, destination]) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => setTab(destination)}
+                className={`group p-4 text-left transition duration-200 hover:-translate-y-0.5 hover:border-primary/40 sm:p-5 ${card}`}
+              >
+                <span className="mb-3 flex size-10 items-center justify-center rounded-2xl bg-primary-soft text-primary transition group-hover:bg-primary group-hover:text-primary-fg">
+                  <Icon className="size-5" />
+                </span>
+                <span className="block text-sm text-muted">{label}</span>
+                <span className="mt-1 block font-display text-2xl font-bold tabular-nums">{value}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+            <div className={`p-4 sm:p-5 ${card}`}>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h3 className="flex items-center gap-2 font-display text-lg font-semibold">
+                    <Target className="size-5 text-primary" /> Prioridades de hoje
+                  </h3>
+                  <p className="mt-1 text-sm text-muted">
+                    {todayLists.due.length} retorno(s) pendente(s) · {todayLists.stale.length} parado(s) · {todayLists.fresh.length} novo(s)
+                  </p>
+                </div>
+                <button type="button" onClick={() => setTab("hoje")} className="text-sm font-semibold text-primary hover:underline">
+                  Abrir fila
+                </button>
+              </div>
+              <div className="mt-4 space-y-2">
+                {[
+                  ...todayLists.due.map((lead) => ({ lead, reason: "Retorno pendente" })),
+                  ...todayLists.stale.map((lead) => ({ lead, reason: "Sem resposta recente" })),
+                  ...todayLists.fresh.map((lead) => ({ lead, reason: "Novo para contatar" })),
+                ].filter((item, index, all) => all.findIndex((candidate) => candidate.lead.id === item.lead.id) === index)
+                  .slice(0, 5).map(({ lead, reason }) => (
+                  <button
+                    key={lead.id}
+                    type="button"
+                    onClick={() => { setPipeQuery(lead.name); setTab("pipeline"); }}
+                    className="flex w-full items-center justify-between gap-3 rounded-2xl border border-border/70 bg-surface-2 px-3.5 py-3 text-left transition hover:border-primary/40 hover:bg-primary-soft/50"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold">{lead.name}</span>
+                      <span className="mt-0.5 block text-xs text-muted">{reason} · {lead.city || "Cidade não informada"}</span>
+                    </span>
+                    <span className="shrink-0 rounded-full bg-primary-soft px-2.5 py-1 text-[10px] font-bold text-primary">{STATUSES.find((item) => item.id === lead.status)?.label ?? lead.status}</span>
+                  </button>
+                ))}
+                {pipeline.length === 0 && (
+                  <div className="rounded-2xl border border-dashed border-border px-4 py-6 text-center">
+                    <p className="text-sm font-semibold">Seu pipeline ainda está vazio.</p>
+                    <p className="mt-1 text-xs text-muted">Busque empresas e salve as melhores oportunidades para começar.</p>
+                    <button type="button" onClick={() => setTab("buscar")} className="mt-3 text-sm font-bold text-primary hover:underline">Buscar meu primeiro lead</button>
+                  </div>
+                )}
+                {pipeline.length > 0 && todayLists.due.length + todayLists.stale.length + todayLists.fresh.length === 0 && (
+                  <p className="rounded-2xl bg-primary-soft px-4 py-5 text-center text-sm font-medium text-primary">Tudo em dia por aqui. Você pode buscar novas oportunidades.</p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className={`p-4 sm:p-5 ${card}`}>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h3 className="flex items-center gap-2 font-display text-lg font-semibold"><Zap className="size-5 text-primary" /> Meta diária</h3>
+                    <p className="mt-1 text-sm text-muted">{sendStats.todayCount} de {dailyGoal} contatos registrados</p>
+                  </div>
+                  <span className="font-display text-2xl font-bold tabular-nums text-primary">
+                    {Math.min(100, Math.round((sendStats.todayCount / Math.max(1, dailyGoal)) * 100))}%
+                  </span>
+                </div>
+                <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-primary-soft">
+                  <div className="h-full rounded-full bg-gradient-to-r from-sky-400 to-primary transition-all" style={{ width: `${Math.min(100, Math.round((sendStats.todayCount / Math.max(1, dailyGoal)) * 100))}%` }} />
+                </div>
+                <p className="mt-2 text-xs text-muted">{sendStats.streak} dia(s) seguidos com atividade</p>
+              </div>
+
+              <div className={`p-4 sm:p-5 ${card}`}>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h3 className="font-display text-lg font-semibold">Atividade recente</h3>
+                    <p className="mt-1 text-sm text-muted">Leads adicionados ou contatados por último.</p>
+                  </div>
+                  <button type="button" onClick={() => setTab("pipeline")} className="text-sm font-semibold text-primary hover:underline">Pipeline</button>
+                </div>
+                <div className="mt-3 space-y-1">
+                  {[...pipeline]
+                    .sort((a, b) => (b.lastContact || b.addedAt || "").localeCompare(a.lastContact || a.addedAt || ""))
+                    .slice(0, 4)
+                    .map((lead) => {
+                      const stamp = lead.lastContact || lead.addedAt;
+                      return (
+                        <button
+                          key={lead.id}
+                          type="button"
+                          onClick={() => { setPipeQuery(lead.name); setTab("pipeline"); }}
+                          className="flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left transition hover:bg-surface-2"
+                        >
+                          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary"><Building2 className="size-4" /></span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm font-semibold">{lead.name}</span>
+                            <span className="block truncate text-xs text-muted">{lead.lastContact ? "Último contato" : "Adicionado ao pipeline"} · {stamp ? new Date(stamp).toLocaleDateString("pt-BR") : "Data não informada"}</span>
+                          </span>
+                          <span className="shrink-0 text-[10px] font-bold text-muted">{STATUSES.find((item) => item.id === lead.status)?.label ?? lead.status}</span>
+                        </button>
+                      );
+                    })}
+                  {pipeline.length === 0 && <p className="rounded-xl bg-surface-2 px-3 py-4 text-center text-sm text-muted">Sua atividade aparecerá aqui quando salvar leads.</p>}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       )}
 
       {tab === "buscar" && (
@@ -3359,6 +3504,7 @@ export function LeadApp() {
       >
         {(
           [
+            ["inicio", "Resumo", LayoutDashboard],
             ["buscar", "Buscar", Search],
             ["hoje", "Hoje", CalendarClock],
             ["pipeline", "Pipeline", Users],
