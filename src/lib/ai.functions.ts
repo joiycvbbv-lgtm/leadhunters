@@ -5,6 +5,8 @@ export type AiCopy = {
   about: string;
   highlights: string[];
   items: { name: string; desc: string; price: string }[];
+  design: "editorial" | "urbano" | "limpo" | "vitrine";
+  color: string;
   warnings: string[];
 };
 
@@ -85,12 +87,17 @@ REGRAS DE VERDADE (as mais importantes)
 - Se uma informação não foi dada, não escreva sobre ela. Prefira texto curto e verdadeiro a texto longo e inventado.
 - "items" só pode ter itens que aparecem nas observações do vendedor. O preço só entra se estiver escrito lá; senão use "".
 - "highlights" só com fatos das observações. Se não houver, devolva lista vazia.
+- Escolha um layout existente: editorial, urbano, limpo ou vitrine, conforme o negócio.
+- Escolha uma cor principal hexadecimal de seis dígitos que combine com o negócio e tenha bom contraste.
+- Não invente informação da empresa nem gere código HTML; o painel constrói a prévia com segurança.
 
 FORMATO: responda APENAS com um JSON válido, sem comentários e sem markdown, neste formato:
 {"tagline": "até 70 caracteres, ou \\"\\" se não houver algo verdadeiro e específico para dizer",
  "about": "2 a 3 frases curtas, até 380 caracteres",
  "highlights": ["até 5 itens, cada um com até 60 caracteres"],
  "items": [{"name": "", "desc": "até 120 caracteres", "price": ""}],
+ "design": "editorial | urbano | limpo | vitrine",
+ "color": "#hexadecimal de seis dígitos",
  "warnings": ["o que está faltando para o texto ficar melhor, em frases curtas"]}`;
 
 export const aiCopy = createServerFn({ method: "POST" })
@@ -109,7 +116,7 @@ export const aiCopy = createServerFn({ method: "POST" })
         const user = `Escreva os textos do site desta empresa.\n\nTom: ${TONES[f.tone]}.\n\nFATOS CONFIRMADOS\n- Nome: ${f.name}\n- Tipo de negócio: ${f.kindLabel}${f.category ? ` (categoria: ${f.category})` : ""}\n- Cidade: ${f.city || "não informada"}\n- Endereço: ${f.address || "não informado"}\n\nOBSERVAÇÕES DO VENDEDOR (o que a empresa vende ou faz, diferenciais, preços):\n${f.notes || "(nenhuma observação)"}`;
         let text: string;
         try {
-          text = await callClaude({ system: COPY_SYSTEM, user, maxTokens: 900, temperature: 0.6 });
+          text = await callClaude({ system: COPY_SYSTEM, user, maxTokens: 1100, temperature: 0.6 });
         } catch (error) {
           await refund(guard.keyId);
           const code = error instanceof AiError ? error.code : "IA_ERRO";
@@ -128,6 +135,10 @@ export const aiCopy = createServerFn({ method: "POST" })
           copy: {
             tagline: clean(raw.tagline, 90),
             about: clean(raw.about, 600),
+            design: (["editorial", "urbano", "limpo", "vitrine"] as const).includes(raw.design as AiCopy["design"])
+              ? (raw.design as AiCopy["design"])
+              : "limpo",
+            color: /^#[0-9a-fA-F]{6}$/.test(String(raw.color || "")) ? String(raw.color) : "#1d6fe0",
             highlights: list(raw.highlights, 5, 80),
             items: (Array.isArray(raw.items) ? raw.items : [])
               .map((item) => ({

@@ -46,13 +46,13 @@ import {
   type SiteItem,
 } from "@/lib/site-builder";
 
-const card = "rounded-2xl border border-border bg-surface shadow-card";
+const card = "rounded-[1.5rem] border border-border/80 bg-surface shadow-card";
 const field =
-  "w-full rounded-xl border border-border bg-surface-2 px-3.5 py-3 text-fg outline-none placeholder:text-muted/70 focus:border-primary";
+  "w-full rounded-2xl border border-border bg-surface-2 px-4 py-3 text-sm text-fg outline-none placeholder:text-muted/70 focus:border-primary focus:ring-4 focus:ring-primary/10";
 const btnPrimary =
-  "inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-primary to-primary-deep font-semibold text-primary-fg shadow-[0_6px_16px_-6px_rgba(29,111,224,0.6)] transition hover:brightness-105 disabled:opacity-60";
+  "inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-deep px-5 py-3 text-sm font-bold text-primary-fg shadow-[0_12px_24px_-12px_rgba(79,70,229,0.65)] transition duration-200 hover:-translate-y-0.5 hover:brightness-105 active:translate-y-0 disabled:opacity-60";
 const btnGhost =
-  "inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-3 py-2 text-sm font-semibold text-fg transition hover:border-primary hover:text-primary disabled:opacity-50";
+  "inline-flex items-center gap-1.5 rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-sm font-semibold text-fg transition duration-200 hover:border-primary/50 hover:bg-primary-soft hover:text-primary disabled:opacity-50";
 const chip = (active: boolean) =>
   `rounded-full border px-3 py-1.5 text-sm font-medium transition ${
     active
@@ -206,7 +206,7 @@ export function SiteStudio({
   const [aiBusy, setAiBusy] = useState("");
   const [aiInfo, setAiInfo] = useState("");
   const [aiWarnings, setAiWarnings] = useState<string[]>([]);
-  const [undo, setUndo] = useState<{ tagline: string; about: string; hl: string; items: string } | null>(null);
+  const [undo, setUndo] = useState<{ tagline: string; about: string; hl: string; items: string; design: DesignId; color: string } | null>(null);
   const [pStyle, setPStyle] = useState<PromptStyle>("premium");
   const [pFormat, setPFormat] = useState<PromptFormat>("unico");
   const [pDetail, setPDetail] = useState<"completo" | "curto">("completo");
@@ -270,7 +270,7 @@ export function SiteStudio({
     };
   }
 
-  async function writeWithAi() {
+  async function writeWithAi(createSite = false) {
     setAiBusy("copy");
     setError("");
     setAiWarnings([]);
@@ -281,14 +281,25 @@ export function SiteStudio({
         else setError(res.error);
         return;
       }
-      setUndo({ tagline: site.tagline, about: site.about, hl: hlText, items: itemsText });
+      setUndo({ tagline: site.tagline, about: site.about, hl: hlText, items: itemsText, design: site.design, color: site.color });
       const c = res.copy;
-      patch({ tagline: c.tagline || site.tagline, about: c.about || site.about });
+      patch({
+        tagline: c.tagline || site.tagline,
+        about: c.about || site.about,
+        design: c.design || site.design,
+        color: c.color || site.color,
+      });
       if (c.highlights.length) setHlText(c.highlights.join("\n"));
       if (c.items.length) setItemsText(itemsToText(c.items));
       setAiWarnings(c.warnings);
       setAiInfo(`${res.usage.used} de ${res.usage.limit} gerações de IA usadas hoje`);
-      notify("Textos escritos. Leia e ajuste antes de publicar.");
+      if (createSite) {
+        setView("site");
+        setPane("previa");
+        notify("Rascunho criado pela IA. Revise a prévia antes de publicar.");
+      } else {
+        notify("Textos e identidade visual prontos. Revise antes de publicar.");
+      }
     } catch {
       setError("Não consegui falar com a IA agora. Tente de novo.");
     } finally {
@@ -477,6 +488,9 @@ export function SiteStudio({
               Prompt para IA
             </button>
           </div>
+          <button type="button" onClick={() => void writeWithAi(true)} disabled={loading || Boolean(aiBusy)} className={`h-10 px-3 text-xs sm:px-4 sm:text-sm ${btnPrimary}`}>
+            {aiBusy === "copy" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />} <span className="hidden sm:inline">Criar site com IA</span><span className="sm:hidden">IA</span>
+          </button>
           <div className="flex gap-1 lg:hidden">
             <button type="button" onClick={() => setPane("editar")} className={chip(pane === "editar")}>
               Editar
@@ -653,11 +667,10 @@ export function SiteStudio({
 
             <section className={`space-y-3 p-4 ${card}`}>
               <h3 className="flex items-center gap-2 font-semibold">
-                <Sparkles className="size-5 text-primary" /> Textos com IA (sem cara de IA)
+                <Sparkles className="size-5 text-primary" /> Criação de site com IA
               </h3>
               <p className="text-xs text-muted">
-                A IA escreve o texto do site com frases curtas e naturais, usando só o que você escrever abaixo. Ela não inventa preço, ano nem produto. O visual do site
-                é desenhado por nós, não pela IA.
+                A IA prepara os textos, escolhe uma identidade visual e preenche o rascunho. Ela usa apenas as informações confirmadas abaixo; confira tudo na prévia antes de publicar.
               </p>
               <label className="block text-sm">
                 <span className="mb-1 block font-semibold">O que a empresa vende ou faz, diferenciais, preços</span>
@@ -678,14 +691,17 @@ export function SiteStudio({
                     <option value="premium">Sóbrio e refinado</option>
                   </select>
                 </label>
-                <button type="button" onClick={() => void writeWithAi()} disabled={aiBusy === "copy"} className={`h-12 px-5 ${btnPrimary}`}>
-                  {aiBusy === "copy" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />} Escrever os textos
+                <button type="button" onClick={() => void writeWithAi(true)} disabled={Boolean(aiBusy)} className={`h-12 px-5 ${btnPrimary}`}>
+                  {aiBusy === "copy" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />} Criar site com IA
+                </button>
+                <button type="button" onClick={() => void writeWithAi()} disabled={Boolean(aiBusy)} className={`h-12 px-5 ${btnGhost}`}>
+                  Só revisar os textos
                 </button>
                 {undo && (
                   <button
                     type="button"
                     onClick={() => {
-                      patch({ tagline: undo.tagline, about: undo.about });
+                      patch({ tagline: undo.tagline, about: undo.about, design: undo.design, color: undo.color });
                       setHlText(undo.hl);
                       setItemsText(undo.items);
                       setUndo(null);

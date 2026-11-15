@@ -2387,6 +2387,11 @@ export function LeadApp() {
               <button type="button" onClick={() => setTab("buscar")} className={`${btnGhost} inline-flex items-center gap-2`}>
                 <Search className="size-4" /> Buscar leads
               </button>
+              {pipeline.length > 0 && (
+                <button type="button" onClick={() => openSiteEditor(pipeline[0].id)} className={`${btnGhost} inline-flex items-center gap-2`}>
+                  <Sparkles className="size-4" /> Criar site com IA
+                </button>
+              )}
               <button type="button" onClick={startFocus} className={`${btnPrimary} inline-flex items-center gap-2`}>
                 <Zap className="size-4" /> Começar prospecção
               </button>
