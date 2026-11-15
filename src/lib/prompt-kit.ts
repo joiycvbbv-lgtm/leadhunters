@@ -7,10 +7,10 @@ export type PromptFormat = "unico" | "tres" | "react" | "next";
 export type PromptOptions = { style: PromptStyle; format: PromptFormat; detail: "completo" | "curto"; brief?: string };
 
 export const PROMPT_STYLES: { id: PromptStyle; label: string; text: string }[] = [
-  { id: "escuro", label: "Moderno escuro", text: "fundo escuro, contraste alto, cantos pouco arredondados, uma cor de destaque forte, sensação atual" },
-  { id: "claro", label: "Claro e minimalista", text: "fundo branco ou off-white, muito espaço em branco, tipografia limpa, poucas cores" },
-  { id: "colorido", label: "Colorido e vivo", text: "cores marcantes em blocos, formas arredondadas, clima amigável, sem exagero" },
-  { id: "premium", label: "Premium e elegante", text: "tons sóbrios (preto, grafite, bege, dourado), títulos em fonte serifada, transições suaves e muito capricho" },
+  { id: "escuro", label: "Editorial escuro", text: "grafite ou preto quente, fotografia como foco, composição editorial assimétrica, poucos detalhes e contraste controlado" },
+  { id: "claro", label: "Natural e claro", text: "off-white, tons naturais ligados ao negócio, fotografia verdadeira em destaque, bastante respiro e tipografia com personalidade" },
+  { id: "colorido", label: "Vitrine autoral", text: "uma cor principal marcante escolhida para a marca, fundos neutros, composição de vitrine e hierarquia visual própria" },
+  { id: "premium", label: "Premium e elegante", text: "paleta curta e sóbria, tipografia expressiva, fotografia editorial real, alinhamentos precisos e detalhes discretos" },
 ];
 
 export const PROMPT_FORMATS: { id: PromptFormat; label: string; text: string }[] = [
@@ -88,6 +88,9 @@ export function buildPrompt(site: SiteData, options: PromptOptions): string {
   const format = PROMPT_FORMATS.find((item) => item.id === options.format) ?? PROMPT_FORMATS[0];
   const name = site.name.trim() || "[NOME DA EMPRESA]";
   const facts = factsBlock(site);
+  const photoGuidance = site.photos.length
+    ? `Há ${site.photos.length} foto(s) original(is) selecionada(s) no painel. Este prompt não carrega os arquivos: peça ao usuário para anexar as fotos originais nesta conversa antes de criar o código. Use somente essas imagens como fotos do estabelecimento; a primeira deve ser a capa. Se não receber os anexos, deixe marcadores [ADICIONAR FOTO REAL: ...]. Não troque por imagens de banco, geradas por IA, Google Maps ou URLs raspadas.`
+    : "Nenhuma foto real foi fornecida ainda. Não invente nem busque imagens de banco, geradas por IA, Google Maps ou URLs raspadas. Deixe áreas bem compostas com marcadores [ADICIONAR FOTO REAL: ...] e peça ao dono fotos autorizadas do local, produtos ou serviços.";
   const out: string[] = [];
   const add = (line = "") => out.push(line);
 
@@ -98,9 +101,10 @@ export function buildPrompt(site: SiteData, options: PromptOptions): string {
     facts.forEach((line) => add(line));
     add();
     add(`Objetivo: ${GOALS[kind]}. Botão principal: "${preset.cta}" (WhatsApp).`);
-    add(`Estilo: ${style.text}. Cor principal: ${site.color}.`);
-    add(`Seções: ${SECTIONS[kind].join("; ")}.`);
-    add("Regras: mobile first, rápido, acessível, botão flutuante de WhatsApp, mapa incorporado e SEO local. Onde faltar informação (preços, fotos, textos), deixe marcadores [EDITAR: ...] visíveis em vez de inventar. Sem emojis como ícones, sem gradientes roxos, sem blocos de três cartões iguais.");
+    add(`Direção de arte: ${style.text}. Cor principal: ${site.color}.`);
+    add(`Seções: ${SECTIONS[kind].join("; ")}. Remova qualquer seção que dependa de informações que não foram fornecidas.`);
+    add(photoGuidance);
+    add("Regras: mobile first, rápido, acessível, WhatsApp claro, mapa e SEO local. Evite modelo genérico: nada de hero centralizado com gradiente, três cartões iguais, ícones decorativos ou textos de enchimento.");
     add(format.text);
     return out.join("\n");
   }
@@ -122,15 +126,19 @@ export function buildPrompt(site: SiteData, options: PromptOptions): string {
   add("# REGRA DE OURO SOBRE INFORMAÇÕES");
   add("- Use SOMENTE os dados acima. Nunca invente preços, produtos, nomes de pessoas, depoimentos, certificações, convênios, anos de história ou números.");
   add("- Onde faltar informação, deixe um marcador visível no formato [EDITAR: o que colocar] para o dono trocar depois.");
-  add("- Fotos: use espaços de imagem com borda e fundo suave, marcados como [ADICIONAR FOTO: descrição]. Não use fotos de bancos de imagem nem links externos de imagem.");
+  add(`- ${photoGuidance}`);
+  add("- Se o usuário anexar fotos reais, use os arquivos recebidos no hero e na galeria, com object-fit e enquadramento responsivo. Nunca invente pessoas, fachada, produtos ou resultados.");
+  add("- Imagens desta empresa não devem vir de banco de imagens, geração de IA, Google Maps, hotlink ou raspagem de sites.");
   add("- Não copie textos de avaliações de clientes. Mostre apenas a nota e a quantidade de avaliações.");
   add();
-  add("# DESIGN");
-  add(`- Estilo: ${style.label} — ${style.text}.`);
-  add(`- Cor principal: ${site.color}. Escolha cores de apoio que combinem e respeitem contraste de acessibilidade (WCAG AA).`);
-  add("- Tipografia: combine 2 fontes do Google Fonts (títulos e texto), com boa leitura no celular.");
-  add("- Layout mobile first, com seções bem espaçadas, alinhamentos cuidadosos e hierarquia clara. Animações discretas ao rolar a página.");
-  add("- Evite o visual de site feito por IA: sem gradientes roxos ou azuis, sem emojis como ícones, sem três cartões iguais com ícone, sem frases como 'Bem-vindo ao' ou 'soluções', sem tudo centralizado, sem sombras e brilhos exagerados.");
+  add("# DIREÇÃO DE ARTE");
+  add(`- Direção escolhida: ${style.label} — ${style.text}.`);
+  add(`- Cor principal: ${site.color}. Use no máximo três cores de apoio e contraste acessível.`);
+  add("- Defina um conceito visual específico para o tipo de negócio e a cidade; explique-o em uma linha e aplique-o de ponta a ponta.");
+  add("- Use tipografia com personalidade e uma grade própria: combine uma seção assimétrica, uma imagem em escala grande e áreas de leitura alinhadas. Evite centralizar todos os blocos.");
+  add("- Crie componentes exclusivos para o conteúdo real deste negócio. Não transforme cada informação em um cartão; use listas, faixas, composição editorial e espaço negativo conforme fizer sentido.");
+  add("- Mobile first, leitura fácil e carregamento rápido; use transições discretas só quando ajudarem.");
+  add("- Não use estrutura pronta de landing page, hero genérico com gradiente, três cards iguais, ícones de enfeite, emojis, depoimentos inventados, slogans vazios ou sombras/brilhos exagerados.");
   add();
   add("# ESTRUTURA (nesta ordem)");
   add("0. Barra de navegação fixa com o nome da empresa, links de âncora e botão de WhatsApp.");
@@ -154,6 +162,7 @@ export function buildPrompt(site: SiteData, options: PromptOptions): string {
   add();
   add("# COMO RESPONDER");
   add("1. Entregue primeiro o código completo e funcional, sem cortar partes.");
-  add("2. Depois, em no máximo 8 linhas, liste o que o dono deve editar (todos os marcadores [EDITAR] e [ADICIONAR FOTO]) e como publicar de graça (Vercel, Netlify ou GitHub Pages).");
+  add("2. Depois, liste em até 8 linhas o que falta confirmar e como publicar.");
+  add("3. Se não recebeu fotos anexadas, não invente imagens: deixe os marcadores [ADICIONAR FOTO REAL] e informe que o dono precisa enviar fotos autorizadas.");
   return out.join("\n");
 }

@@ -46,6 +46,7 @@ import {
   Zap,
 } from "lucide-react";
 import { checkAccessKey, searchPlaces, type KeyCheck, type Lead } from "@/lib/leads.functions";
+import { aiLeadMessage } from "@/lib/ai.functions";
 import { loadCloud, saveCloud, type CloudData } from "@/lib/cloud.functions";
 import { getAnnouncement, requestTrial } from "@/lib/extras.functions";
 import { SUPPORT_WHATSAPP } from "@/lib/plans";
@@ -778,6 +779,8 @@ const PipelineRow = memo(function PipelineRow({
   onSelect,
   onSite,
   onPrompt,
+  onAiMessage,
+  aiBusyId,
 }: {
   lead: SavedLead;
   message: string;
@@ -792,6 +795,8 @@ const PipelineRow = memo(function PipelineRow({
   onSelect?: (id: string) => void;
   onSite?: (id: string) => void;
   onPrompt?: (id: string) => void;
+  onAiMessage?: (lead: SavedLead) => void;
+  aiBusyId?: string;
 }) {
   const follow = followState(lead.followUp, today);
   const active = lead.status !== "fechado" && lead.status !== "perdido";
@@ -893,6 +898,11 @@ const PipelineRow = memo(function PipelineRow({
           >
             Copiar msg
           </button>
+          {onAiMessage && (
+            <button type="button" onClick={() => onAiMessage(lead)} disabled={Boolean(aiBusyId)} className={`${btnGhost} inline-flex items-center gap-1.5`}>
+              {aiBusyId === lead.id ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />} Mensagem com IA
+            </button>
+          )}
           {onSite && (
             <button type="button" onClick={() => onSite(lead.id)} className={`${btnGhost} inline-flex items-center gap-1.5`}>
               <Globe className="size-4" /> Criar site
@@ -1057,6 +1067,9 @@ export function LeadApp() {
   const [goal, setGoal] = useState(0);
   const [recent, setRecent] = useState<RecentSearch[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [aiLeadDraft, setAiLeadDraft] = useState<{ lead: SavedLead; text: string } | null>(null);
+  const [aiLeadBusyId, setAiLeadBusyId] = useState("");
+  const [aiLeadError, setAiLeadError] = useState("");
   const [tempFilter, setTempFilter] = useState<"todas" | "quente" | "morno" | "frio">("todas");
   const [hideSaved, setHideSaved] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -1806,6 +1819,37 @@ export function LeadApp() {
       setTrialError("Não consegui falar com o servidor. Tente de novo.");
     } finally {
       setTrialBusy(false);
+    }
+  }
+
+  async function draftAiLeadMessage(lead: SavedLead) {
+    if (aiLeadBusyId) return;
+    setAiLeadBusyId(lead.id);
+    setAiLeadError("");
+    try {
+      const res = await aiLeadMessage({
+        data: {
+          key: accessKey,
+          deviceId,
+          sellerName: userName,
+          lead: { name: lead.name, category: lead.category, city: lead.city, status: lead.status, notes: lead.notes },
+        },
+      });
+      if (!res.ok) {
+        if (ACCESS_ERRORS.includes(res.error)) logout(accessMessage(res.error));
+        else {
+          setAiLeadError(res.error);
+          notify(res.error);
+        }
+        return;
+      }
+      setAiLeadDraft({ lead, text: res.message });
+    } catch {
+      const message = "Não consegui gerar a mensagem agora. Tente novamente.";
+      setAiLeadError(message);
+      notify(message);
+    } finally {
+      setAiLeadBusyId("");
     }
   }
 
@@ -2938,6 +2982,8 @@ export function LeadApp() {
                     onContact={markContact}
                     onSite={openSiteEditor}
                     onPrompt={openPromptEditor}
+                    onAiMessage={draftAiLeadMessage}
+                    aiBusyId={aiLeadBusyId}
                   />
                 ))}
               </div>
@@ -3119,6 +3165,8 @@ export function LeadApp() {
                 onSelect={toggleSelect}
                 onSite={openSiteEditor}
                 onPrompt={openPromptEditor}
+                onAiMessage={draftAiLeadMessage}
+                aiBusyId={aiLeadBusyId}
               />
             ))}
           </div>
@@ -3503,6 +3551,42 @@ export function LeadApp() {
           </div>
         </div>
       )}
+      {aiLeadDraft && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto bg-fg/45 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="ai-lead-title">
+          <section className={`my-auto w-full max-w-xl space-y-4 p-5 sm:p-6 ${card}`}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">Assistente de prospecção</p>
+                <h2 id="ai-lead-title" className="mt-1 font-display text-xl font-bold">Mensagem para {aiLeadDraft.lead.name}</h2>
+                <p className="mt-1 text-sm text-muted">Revise e ajuste a mensagem antes de abrir o WhatsApp.</p>
+              </div>
+              <button type="button" onClick={() => setAiLeadDraft(null)} aria-label="Fechar" className="rounded-xl p-2 text-muted hover:bg-surface-2 hover:text-fg"><X className="size-5" /></button>
+            </div>
+            <textarea
+              value={aiLeadDraft.text}
+              onChange={(event) => setAiLeadDraft((current) => current ? { ...current, text: event.target.value } : current)}
+              rows={6}
+              className={field}
+              autoFocus
+            />
+            {aiLeadError && <p className="rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">{aiLeadError}</p>}
+            <p className="text-xs text-muted">A IA usa os dados do lead e evita afirmar fatos não confirmados. O limite diário do seu plano é aplicado.</p>
+            <div className="flex flex-wrap justify-end gap-2">
+              <button type="button" onClick={() => copyText(aiLeadDraft.text, "Mensagem copiada")} className={btnGhost}><Copy className="size-4" /> Copiar</button>
+              <a
+                href={waLink(aiLeadDraft.lead.phone, aiLeadDraft.lead.name, aiLeadDraft.text, aiLeadDraft.lead.city)}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => { markContact(aiLeadDraft.lead.id); setAiLeadDraft(null); }}
+                className={`${btnPrimary} inline-flex items-center`}
+              >
+                <MessageCircle className="size-4" /> Revisar no WhatsApp
+              </a>
+            </div>
+          </section>
+        </div>
+      )}
+      {aiLeadBusyId && <span className="sr-only" aria-live="polite">Gerando mensagem personalizada</span>}
       <nav
         className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-surface/95 backdrop-blur sm:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}

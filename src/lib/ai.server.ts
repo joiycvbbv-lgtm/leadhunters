@@ -6,6 +6,17 @@ export class AiError extends Error {
   }
 }
 
+const ACTIVE_MODELS = new Set([
+  "claude-sonnet-5",
+  "claude-haiku-4-5-20251001",
+  "claude-sonnet-4-5-20250929",
+]);
+
+function selectedModel() {
+  const requested = process.env.ANTHROPIC_MODEL?.trim();
+  return requested && ACTIVE_MODELS.has(requested) ? requested : "claude-sonnet-5";
+}
+
 /** Chama o Claude pela API da Anthropic (a chave fica só no servidor). */
 export async function callClaude(options: { system: string; user: string; maxTokens: number; temperature?: number }) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -16,7 +27,7 @@ export async function callClaude(options: { system: string; user: string; maxTok
       method: "POST",
       headers: { "content-type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
       body: JSON.stringify({
-        model: process.env.ANTHROPIC_MODEL || "claude-haiku-5-5",
+        model: selectedModel(),
         max_tokens: options.maxTokens,
         temperature: options.temperature ?? 0.7,
         system: options.system,
@@ -53,7 +64,7 @@ export function extractJson<T>(text: string): T | null {
 }
 
 export const AI_MESSAGES: Record<string, string> = {
-  IA_NAO_CONFIGURADA: "A IA ainda não foi ligada neste site. O dono precisa criar a variável ANTHROPIC_API_KEY na Vercel.",
+  IA_NAO_CONFIGURADA: "A IA precisa da variável ANTHROPIC_API_KEY nas configurações da Vercel. O modelo atualizado já vem selecionado por padrão.",
   IA_CHAVE_INVALIDA: "A chave da IA configurada no site foi recusada. O dono precisa conferir a ANTHROPIC_API_KEY.",
   IA_OCUPADA: "A IA está ocupada agora. Tente de novo em alguns segundos.",
   IA_DEMOROU: "A IA demorou demais para responder. Tente de novo, ou use o prompt rápido.",

@@ -291,12 +291,16 @@ export function SiteStudio({
       });
       if (c.highlights.length) setHlText(c.highlights.join("\n"));
       if (c.items.length) setItemsText(itemsToText(c.items));
-      setAiWarnings(c.warnings);
+      setAiWarnings([...c.warnings, ...(createSite && site.photos.length === 0 ? ["Adicione fotos reais autorizadas do estabelecimento antes de publicar; o rascunho não inventa imagens."] : [])]);
       setAiInfo(`${res.usage.used} de ${res.usage.limit} gerações de IA usadas hoje`);
       if (createSite) {
         setView("site");
         setPane("previa");
-        notify("Rascunho criado pela IA. Revise a prévia antes de publicar.");
+        notify(
+          site.photos.length > 0
+            ? "Rascunho criado. Revise a prévia antes de publicar."
+            : "Rascunho criado. Adicione fotos reais autorizadas do cliente antes de publicar.",
+        );
       } else {
         notify("Textos e identidade visual prontos. Revise antes de publicar.");
       }
@@ -524,6 +528,17 @@ export function SiteStudio({
                     Monta um prompt profissional com os dados reais da empresa, pronto para colar no Claude, no ChatGPT ou no Gemini e gerar o site lá.
                     Confira os dados na aba “Site pronto” antes de copiar.
                   </p>
+                </div>
+                <div className="rounded-2xl border border-primary/20 bg-primary-soft p-4 text-sm">
+                  <p className="font-semibold text-primary">Fotos reais, sem aparência de banco de imagens</p>
+                  <p className="mt-1 text-xs leading-5 text-muted">
+                    {site.photos.length > 0
+                      ? `O painel já tem ${site.photos.length} foto(s) autorizada(s), mas o prompt é só texto. Anexe também os arquivos originais na conversa com a IA externa para que ela possa usá-los.`
+                      : "Peça fotos do próprio estabelecimento ao cliente e adicione-as na aba Site pronto. O prompt orienta a IA a deixar espaços para fotos reais enquanto elas não forem enviadas."}
+                  </p>
+                  <button type="button" onClick={() => { setView("site"); setPane("editar"); }} className="mt-2 text-xs font-bold text-primary hover:underline">
+                    {site.photos.length > 0 ? "Revisar as fotos no editor" : "Adicionar fotos reais no editor"}
+                  </button>
                 </div>
                 <div>
                   <p className="mb-2 text-sm font-semibold">Estilo</p>
