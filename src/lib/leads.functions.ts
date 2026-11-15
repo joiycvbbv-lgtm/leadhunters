@@ -23,6 +23,8 @@ export type Lead = {
   website: string | null;
   /** none = sem site, social = só Instagram/Facebook/Linktree etc., site = tem site próprio */
   siteKind: "none" | "social" | "site";
+  /** quando o Google Places retornou estes dados; não valida se o site continua ativo */
+  observedAt: string;
 };
 
 const SOCIAL_HOSTS =
@@ -149,6 +151,7 @@ function toLead(place: Place, index: number, city: string): Lead | null {
     businessStatus: place.businessStatus || "OPERATIONAL",
     website: place.websiteUri || null,
     siteKind: siteKindOf(place.websiteUri),
+    observedAt: new Date().toISOString(),
   };
 }
 

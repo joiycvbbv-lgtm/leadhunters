@@ -32,6 +32,8 @@ export type SavedLead = {
   step?: number;
   website?: string | null;
   siteKind?: "none" | "social" | "site";
+  /** quando os dados foram retornados pelo Google Places */
+  observedAt?: string;
 };
 
 const ACCESS = "lh_access_key";

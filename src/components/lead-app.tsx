@@ -441,6 +441,53 @@ function brDate(iso: string) {
   return y && m && d ? `${d}/${m}` : iso;
 }
 
+function observationAge(observedAt?: string) {
+  if (!observedAt) return null;
+  const date = new Date(observedAt);
+  if (!Number.isFinite(date.getTime())) return null;
+
+  const elapsed = Math.max(0, Date.now() - date.getTime());
+  const days = Math.floor(elapsed / 86_400_000);
+  let age = "agora";
+  if (elapsed >= 86_400_000) age = days === 1 ? "há 1 dia" : `há ${days} dias`;
+  else if (elapsed >= 3_600_000) {
+    const hours = Math.floor(elapsed / 3_600_000);
+    age = hours === 1 ? "há 1 hora" : `há ${hours} horas`;
+  } else if (elapsed >= 60_000) {
+    const minutes = Math.floor(elapsed / 60_000);
+    age = minutes === 1 ? "há 1 minuto" : `há ${minutes} minutos`;
+  }
+
+  return { age, exact: date.toLocaleString("pt-BR"), stale: days >= 30 };
+}
+
+function ObservationBadge({ observedAt, showMissing = false }: { observedAt?: string; showMissing?: boolean }) {
+  const observation = observationAge(observedAt);
+  if (!observation && !showMissing) return null;
+  const stale = !observation || observation.stale;
+  return (
+    <span
+      title={
+        observation
+          ? `Dados recebidos do Google Places em ${observation.exact}. Isso não confirma se o site continua ativo.`
+          : "Este lead não tem uma data registrada de consulta ao Google."
+      }
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${
+        stale
+          ? "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200"
+          : "bg-surface-2 text-muted"
+      }`}
+    >
+      <Clock className="size-3.5" />
+      {observation
+        ? stale
+          ? `Dados podem estar antigos · ${observation.age}`
+          : `Google consultado ${observation.age}`
+        : "Sem data de consulta"}
+    </span>
+  );
+}
+
 type AccessInfo = Extract<KeyCheck, { ok: true }>["info"];
 
 function accessMessage(code: string) {
@@ -508,10 +555,21 @@ function chip(active: boolean) {
 }
 
 function exportCsv(rows: SavedLead[]) {
-  const head = ["Nome", "Telefone", "Cidade", "Status", "Valor", "Retorno", "Notas", "Endereço", "Maps"];
+  const head = ["Nome", "Telefone", "Cidade", "Status", "Valor", "Retorno", "Notas", "Endereço", "Maps", "Consulta Google"];
   const esc = (value: string | number) => `"${String(value ?? "").replaceAll('"', '""').replaceAll("\n", " ")}"`;
   const lines = rows.map((r) =>
-    [r.name, formatPhone(r.phone), r.city, r.status, r.value, r.followUp || "", r.notes, r.address, r.mapsUrl || ""]
+    [
+      r.name,
+      formatPhone(r.phone),
+      r.city,
+      r.status,
+      r.value,
+      r.followUp || "",
+      r.notes,
+      r.address,
+      r.mapsUrl || "",
+      r.observedAt ? new Date(r.observedAt).toLocaleString("pt-BR") : "",
+    ]
       .map(esc)
       .join(";"),
   );
@@ -625,10 +683,14 @@ const LeadCard = memo(function LeadCard({
                 Só rede social
               </span>
             ) : (
-              <span className="inline-block rounded-full bg-danger/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-danger">
-                Sem site
+              <span
+                title="O Google Places não informa um site oficial; confirme antes de abordar."
+                className="inline-block rounded-full bg-danger/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-danger"
+              >
+                Google sem site
               </span>
             )}
+            <ObservationBadge observedAt={lead.observedAt} />
             {lead.hoursToday && (
               <span className="inline-flex items-center gap-1 text-xs text-muted">
                 <Clock className="size-3.5" /> Hoje: {lead.hoursToday}
@@ -753,7 +815,7 @@ const PipelineRow = memo(function PipelineRow({
           <p className="text-sm text-muted">
             {formatPhone(lead.phone)} · {lead.city}
           </p>
-          {(follow && active) || stale || lead.notes || lead.temp ? (
+          {(follow && active) || stale || lead.notes || lead.temp || lead.observedAt || lead.siteKind ? (
             <div className="mt-1.5 flex flex-wrap items-center gap-2">
               {lead.temp && (
                 <span className="inline-flex items-center rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-bold text-primary-deep dark:text-primary">
@@ -778,6 +840,9 @@ const PipelineRow = memo(function PipelineRow({
                   <CalendarClock className="size-3.5" />
                   {follow === "atrasado" ? "Retorno atrasado" : follow === "hoje" ? "Retorno hoje" : `Retorno ${brDate(lead.followUp!)}`}
                 </span>
+              )}
+              {(lead.observedAt || lead.siteKind) && (
+                <ObservationBadge observedAt={lead.observedAt} showMissing />
               )}
               {lead.notes && <span className="max-w-xs truncate text-xs text-muted">{lead.notes}</span>}
             </div>
@@ -3462,6 +3527,7 @@ export function LeadApp() {
               {(
                 [
                   ["Como busco empresas?", "Na aba Buscar, escolha a cidade e o tipo de negócio e clique em buscar. Só aparecem empresas sem site cadastrado no Google."],
+                  ["Quando os dados foram consultados?", "Cada cartão mostra quando o Google Places retornou os dados. Isso não confirma se o site ainda está ativo; confira o site ou o Maps antes de abordar leads antigos."],
                   ["O que é a prioridade?", "É uma nota de 0 a 100 que soma nota do Google, número de avaliações, se está aberta agora e se o telefone é celular. Serve para decidir quem chamar primeiro."],
                   ["Por que a busca acabou?", "Cada key tem um limite de buscas por dia. A barra \"Buscas de hoje\" mostra quanto falta, e o limite volta no dia seguinte."],
                   ["Meus dados ficam salvos?", "Sim, na nuvem, ligados à sua key. Você também pode baixar um backup na aba Vendas."],
