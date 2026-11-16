@@ -53,6 +53,9 @@ function injectHeadStreaming(response: Response, host: string): Response {
   );
   const headers = new Headers(response.headers);
   headers.delete("content-length");
+  // Never let a cached HTML shell outlive its deployment: otherwise it can
+  // reference hashed JS/CSS chunks that belong to a different Vercel build.
+  headers.set("cache-control", "no-store, max-age=0, must-revalidate");
   return new Response(transformed, {
     status: response.status,
     statusText: response.statusText,
