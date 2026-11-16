@@ -6,22 +6,27 @@ import {
   Download,
   ExternalLink,
   Globe,
+  History,
   ImagePlus,
   Loader2,
   Monitor,
   Smartphone,
   Sparkles,
   Trash2,
+  RotateCcw,
   X,
 } from "lucide-react";
 import {
   deleteSite,
   getSiteForLead,
   listMySites,
+  listSiteVersions,
+  restoreSiteVersion,
   placeDetails,
   publishSite,
   setSiteMode,
   type MySite,
+  type SiteVersion,
 } from "@/lib/sites.functions";
 import { aiBrief, aiCopy } from "@/lib/ai.functions";
 import {
@@ -1042,6 +1047,39 @@ export function MySitesModal({
   notify: (text: string) => void;
 }) {
   const [sites, setSites] = useState<MySite[] | null>(null);
+  const [versions, setVersions] = useState<Record<string, SiteVersion[] | null>>({});
+  const [versionBusy, setVersionBusy] = useState<string | null>(null);
+
+  async function toggleHistory(slug: string) {
+    if (versions[slug]) {
+      setVersions((current) => ({ ...current, [slug]: null }));
+      return;
+    }
+    setVersionBusy(slug);
+    const res = await listSiteVersions({ data: { key: accessKey, deviceId, slug } }).catch(() => null);
+    setVersionBusy(null);
+    if (!res?.ok) {
+      if (res && !res.ok && ACCESS_ERRORS.includes(res.error)) onAccessError(res.error);
+      notify("Não foi possível carregar o histórico.");
+      return;
+    }
+    setVersions((current) => ({ ...current, [slug]: res.versions }));
+  }
+
+  async function restoreVersion(site: MySite, version: SiteVersion) {
+    if (!window.confirm(`Restaurar “${site.name}” para a versão de ${new Date(version.createdAt).toLocaleString("pt-BR")}?`)) return;
+    setVersionBusy(site.slug);
+    const res = await restoreSiteVersion({ data: { key: accessKey, deviceId, slug: site.slug, versionId: version.id } }).catch(() => null);
+    setVersionBusy(null);
+    if (!res?.ok) {
+      if (res && !res.ok && ACCESS_ERRORS.includes(res.error)) onAccessError(res.error);
+      notify(res && !res.ok ? res.error : "Não foi possível restaurar a versão.");
+      return;
+    }
+    notify("Versão restaurada. O site já está atualizado.");
+    setVersions((current) => ({ ...current, [site.slug]: null }));
+    await load();
+  }
 
   async function load() {
     const res = await listMySites({ data: { key: accessKey, deviceId } }).catch(() => null);
@@ -1100,6 +1138,10 @@ export function MySitesModal({
                     >
                       <Copy className="size-4" /> Copiar link
                     </button>
+                    <button type="button" className={btnGhost} onClick={() => void toggleHistory(site.slug)} disabled={versionBusy === site.slug}>
+                      {versionBusy === site.slug ? <Loader2 className="size-4 animate-spin" /> : <History className="size-4" />}
+                      Histórico
+                    </button>
                     <button
                       type="button"
                       className={`${btnGhost} text-danger`}
@@ -1112,6 +1154,28 @@ export function MySitesModal({
                       <Trash2 className="size-4" /> Apagar
                     </button>
                   </div>
+                  {versions[site.slug] && (
+                    <div className="rounded-2xl border border-border bg-surface-2 p-3">
+                      <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted">Últimas versões</p>
+                      {versions[site.slug]!.length === 0 ? (
+                        <p className="text-xs text-muted">Ainda não há versões anteriores para este site.</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {versions[site.slug]!.map((version) => (
+                            <div key={version.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface px-3 py-2">
+                              <div>
+                                <p className="text-xs font-semibold">{new Date(version.createdAt).toLocaleString("pt-BR")}</p>
+                                <p className="text-[11px] text-muted">{version.kind === "final" ? "Site final" : "Prévia"} · {version.name}</p>
+                              </div>
+                              <button type="button" className={btnGhost} onClick={() => void restoreVersion(site, version)} disabled={versionBusy === site.slug}>
+                                <RotateCcw className="size-3.5" /> Restaurar
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}

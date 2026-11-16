@@ -2305,21 +2305,97 @@ export function LeadApp() {
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-7xl px-4 pb-28 pt-5 sm:px-6 sm:pb-16 lg:px-8 lg:pt-7">
-      <header className={`sticky top-3 z-30 mb-6 flex flex-wrap items-center justify-between gap-4 p-4 backdrop-blur-xl sm:p-5 ${card}`}>
-        <div className="flex items-center gap-3">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-b from-primary to-primary-deep text-primary-fg shadow-[0_8px_20px_-8px_rgba(29,111,224,0.7)]">
-            <Target className="size-6" />
+    <div className="mx-auto min-h-screen max-w-none bg-[#f5f7fb] px-4 pb-28 pt-5 text-fg dark:bg-[#0b1020] sm:px-6 sm:pb-16 lg:pl-[292px] lg:pr-8 lg:pt-7">
+      <aside className="fixed bottom-4 left-4 top-4 z-40 hidden w-[256px] flex-col rounded-[2rem] bg-gradient-to-b from-[#111a32] via-[#17264b] to-[#10172b] p-5 text-white shadow-[0_24px_70px_-26px_rgba(10,20,48,.8)] lg:flex">
+        <div className="flex items-center gap-3 px-1">
+          <div className="flex size-11 items-center justify-center rounded-2xl bg-white/10 text-white ring-1 ring-white/15">
+            <Target className="size-5" />
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">LeadHunter</p>
-            <h1 className="font-display text-xl font-semibold leading-tight sm:text-2xl">
+            <p className="text-xs font-bold tracking-[0.22em] text-blue-200">LEADHUNTER</p>
+            <p className="mt-0.5 text-xs text-white/55">Prospecção inteligente</p>
+          </div>
+        </div>
+        <div className="mt-9">
+          <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Menu principal</p>
+          <nav aria-label="Navegação principal" className="space-y-1.5">
+            {([
+              ["inicio", "Visão geral", LayoutDashboard],
+              ["buscar", "Buscar empresas", Search],
+              ["hoje", "Tarefas de hoje", CalendarClock],
+              ["pipeline", "Pipeline", Columns3],
+              ["vendas", "Vendas", Wallet],
+            ] as const).map(([id, label, Icon]) => (
+              <button
+                key={id}
+                type="button"
+                aria-current={tab === id ? "page" : undefined}
+                onClick={() => setTab(id)}
+                className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-semibold transition ${
+                  tab === id ? "bg-white text-[#17264b] shadow-lg shadow-black/10" : "text-white/70 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <Icon className={`size-4 shrink-0 ${tab === id ? "text-primary" : "text-white/65"}`} />
+                <span className="flex-1">{label}</span>
+                {id === "hoje" && dueCount > 0 && (
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${tab === id ? "bg-danger text-white" : "bg-white/15 text-white"}`}>{dueCount}</span>
+                )}
+              </button>
+            ))}
+          </nav>
+        </div>
+        <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.06] p-4">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold text-white/70">Meta de contatos</p>
+            <span className="font-mono text-xs font-bold text-blue-200">{Math.min(sendStats.todayCount, dailyGoal)}/{dailyGoal}</span>
+          </div>
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
+            <div className="h-full rounded-full bg-gradient-to-r from-sky-300 to-indigo-300 transition-all" style={{ width: `${Math.min(100, Math.round((sendStats.todayCount / Math.max(1, dailyGoal)) * 100))}%` }} />
+          </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-white/45">Um contato por vez. Constância traz mais respostas.</p>
+        </div>
+        <div className="mt-auto space-y-3">
+          <button
+            type="button"
+            onClick={() => {
+              if (pipeline.length > 0) openSiteEditor(pipeline[0].id);
+              else setTab("pipeline");
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-400 to-indigo-400 px-4 py-3 text-sm font-bold text-[#10172b] shadow-lg shadow-sky-950/20 transition hover:brightness-110"
+          >
+            <Sparkles className="size-4" /> Criar site
+          </button>
+          <div className="flex items-center gap-3 rounded-2xl px-2 py-2">
+            <div className="flex size-9 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white">
+              {(userName || "LH").slice(0, 1).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold">{userName || "Seu painel"}</p>
+              <p className="text-[11px] text-white/45">Conta ativa</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <header className={`sticky top-3 z-30 mb-6 flex flex-wrap items-center justify-between gap-3 rounded-[1.75rem] border border-white/70 bg-white/85 p-3 shadow-[0_16px_42px_-30px_rgba(15,23,42,.45)] backdrop-blur-xl dark:border-white/5 dark:bg-surface/85 sm:p-4 ${card}`}>
+        <div className="flex items-center gap-3 lg:hidden">
+          <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-b from-primary to-primary-deep text-primary-fg shadow-[0_8px_20px_-8px_rgba(79,70,229,0.45)]">
+            <Target className="size-5" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">LeadHunter</p>
+            <h1 className="font-display text-lg font-semibold leading-tight">
               {userName ? `Olá, ${userName.split(" ")[0]}` : "Empresas sem site"}
             </h1>
           </div>
         </div>
+        <div className="hidden min-w-0 flex-1 lg:block">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Área de trabalho</p>
+          <h1 className="mt-1 font-display text-2xl font-bold tracking-tight">
+            {tab === "inicio" ? "Visão geral" : tab === "buscar" ? "Buscar empresas" : tab === "hoje" ? "Tarefas de hoje" : tab === "pipeline" ? "Pipeline de vendas" : "Vendas"}
+          </h1>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
-          <nav className="hidden items-center gap-1 rounded-2xl border border-border bg-surface-2 p-1 sm:flex">
+          <nav className="hidden items-center gap-1 rounded-2xl border border-border bg-surface-2 p-1 sm:flex lg:hidden">
             {(
               [
                 ["inicio", "Resumo"],
@@ -2421,24 +2497,43 @@ export function LeadApp() {
 
       {tab === "inicio" && (
         <section className="fade-up space-y-5">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Seu negócio em foco</p>
-              <h2 className="mt-1 font-display text-2xl font-bold tracking-tight sm:text-3xl">Visão geral</h2>
-              <p className="mt-1 text-sm text-muted">Acompanhe sua prospecção e escolha o próximo passo.</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => setTab("buscar")} className={`${btnGhost} inline-flex items-center gap-2`}>
-                <Search className="size-4" /> Buscar leads
-              </button>
-              {pipeline.length > 0 && (
-                <button type="button" onClick={() => openSiteEditor(pipeline[0].id)} className={`${btnGhost} inline-flex items-center gap-2`}>
-                  <Sparkles className="size-4" /> Criar site com IA
+          <div className="relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#121c3b] via-[#253b73] to-[#4f46e5] p-6 text-white shadow-[0_28px_70px_-30px_rgba(45,55,145,.65)] sm:p-8">
+            <div aria-hidden="true" className="absolute -right-16 -top-24 -z-10 size-72 rounded-full bg-cyan-300/20 blur-3xl" />
+            <div aria-hidden="true" className="absolute -bottom-24 right-1/3 -z-10 size-56 rounded-full bg-violet-300/20 blur-3xl" />
+            <div className="flex flex-col gap-7 xl:flex-row xl:items-end xl:justify-between">
+              <div className="max-w-2xl">
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-blue-100">
+                  <Sparkles className="size-3.5" /> Central de prospecção
+                </span>
+                <h2 className="mt-4 font-display text-3xl font-bold tracking-tight sm:text-4xl">Encontre oportunidades. Feche mais negócios.</h2>
+                <p className="mt-3 max-w-xl text-sm leading-6 text-blue-100/80 sm:text-base">Seus contatos, retornos e sites em um só lugar. Escolha uma ação para continuar de onde parou.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={() => setTab("buscar")} className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/20">
+                  <Search className="size-4" /> Buscar empresas
                 </button>
-              )}
-              <button type="button" onClick={startFocus} className={`${btnPrimary} inline-flex items-center gap-2`}>
-                <Zap className="size-4" /> Começar prospecção
-              </button>
+                {pipeline.length > 0 && (
+                  <button type="button" onClick={() => openSiteEditor(pipeline[0].id)} className="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-bold text-[#263b75] shadow-lg transition hover:-translate-y-0.5">
+                    <Sparkles className="size-4" /> Criar site com IA
+                  </button>
+                )}
+                <button type="button" onClick={startFocus} className="inline-flex items-center gap-2 rounded-2xl bg-cyan-300 px-4 py-3 text-sm font-bold text-[#102449] shadow-lg transition hover:-translate-y-0.5">
+                  <Zap className="size-4" /> Começar
+                </button>
+              </div>
+            </div>
+            <div className="mt-7 grid grid-cols-2 gap-3 border-t border-white/15 pt-5 sm:grid-cols-4">
+              {[
+                ["Ativos", pipeline.filter((row) => row.status !== "fechado" && row.status !== "perdido").length],
+                ["Retornos", dueCount],
+                ["Contatos hoje", sendStats.todayCount],
+                ["Meta diária", dailyGoal],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.07] px-4 py-3">
+                  <p className="text-xs font-medium text-blue-100/70">{label}</p>
+                  <p className="mt-1 text-xl font-bold tabular-nums">{value}</p>
+                </div>
+              ))}
             </div>
           </div>
 

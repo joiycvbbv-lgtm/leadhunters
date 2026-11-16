@@ -12,6 +12,14 @@ export type MySite = {
   expiresAt: string | null;
 };
 
+export type SiteVersion = {
+  id: string;
+  name: string;
+  kind: "previa" | "final";
+  indexable: boolean;
+  createdAt: string;
+};
+
 export type PublishResult =
   | { ok: true; slug: string; kind: "previa" | "final" }
   | { ok: false; error: string };
@@ -58,7 +66,11 @@ export const placeDetails = createServerFn({ method: "POST" })
       const used = await consumeSearch(access.keyId, limit);
       if (used === null) return { ok: false, error: "LIMITE_DIARIO" };
       try {
-        const apiKey = process.env.GOOGLE_PLACES_KEY || "AIzaSyArYtHwPLYnMwDF9ctcEThDDzPHYrVFQjg";
+        const apiKey = process.env.GOOGLE_PLACES_KEY?.trim();
+        if (!apiKey) {
+          await refundSearch(access.keyId);
+          return { ok: false, error: "A integração do Google Places não está configurada neste painel." };
+        }
         const response = await fetch(
           `https://places.googleapis.com/v1/places/${encodeURIComponent(data.placeId)}?languageCode=pt-BR&regionCode=BR`,
           {
@@ -147,6 +159,18 @@ export const publishSite = createServerFn({ method: "POST" })
         ]);
         if (own.length) {
           await sql.query(
+            `insert into site_versions (site_id, name, data, kind, indexable)
+               select id, name, data, kind, indexable from sites
+                where id = $1 and (name is distinct from $2 or data is distinct from $3
+                  or kind is distinct from $4 or indexable is distinct from $5)`,
+            [own[0].id, site.name, json, data.kind, indexable],
+          );
+          await sql.query(
+            `delete from site_versions where site_id = $1
+              and id not in (select id from site_versions where site_id = $1 order by created_at desc, id desc limit 3)`,
+            [own[0].id],
+          );
+          await sql.query(
             `update sites set data = $2, name = $3, kind = $4, indexable = $5, updated_at = now(),
                     expires_at = case when $4 = 'previa' then now() + interval '30 days' else null end
               where id = $1`,
@@ -215,6 +239,83 @@ export const listMySites = createServerFn({ method: "POST" })
         expiresAt: r.expires_at,
       })),
     };
+  });
+
+export const listSiteVersions = createServerFn({ method: "POST" })
+  .validator((data: Auth & { slug: string }) => ({ ...auth(data), slug: cleanSlug(data?.slug) }))
+  .handler(async ({ data }): Promise<{ ok: true; versions: SiteVersion[] } | { ok: false; error: string }> => {
+    const { checkAccess } = await import("./keys.server");
+    const { getDb } = await import("./db-app.server");
+    const access = await checkAccess(data.key, data.deviceId, false);
+    if (!access.ok) return { ok: false, error: access.code };
+    const sql = await getDb();
+    const rows = await sql.query<{
+      id: string;
+      name: string;
+      kind: string;
+      indexable: boolean;
+      created_at: string;
+    }>(
+      `select v.id::text as id, v.name, v.kind, v.indexable, ${ISO("v.created_at")} as created_at
+         from site_versions v join sites s on s.id = v.site_id
+        where s.slug = $1 and s.key_id = $2
+        order by v.created_at desc, v.id desc limit 3`,
+      [data.slug, access.keyId],
+    );
+    return {
+      ok: true,
+      versions: rows.map((row) => ({
+        id: row.id,
+        name: row.name,
+        kind: row.kind === "final" ? "final" : "previa",
+        indexable: row.indexable,
+        createdAt: row.created_at,
+      })),
+    };
+  });
+
+export const restoreSiteVersion = createServerFn({ method: "POST" })
+  .validator((data: Auth & { slug: string; versionId: string }) => ({
+    ...auth(data),
+    slug: cleanSlug(data?.slug),
+    versionId: String(data?.versionId || "").replace(/[^0-9]/g, "").slice(0, 20),
+  }))
+  .handler(async ({ data }): Promise<{ ok: true } | { ok: false; error: string }> => {
+    const { checkAccess } = await import("./keys.server");
+    const { getDb } = await import("./db-app.server");
+    const access = await checkAccess(data.key, data.deviceId, false);
+    if (!access.ok) return { ok: false, error: access.code };
+    if (!data.versionId) return { ok: false, error: "Versão inválida." };
+    const sql = await getDb();
+    const [site] = await sql.query<{ id: number }>(
+      "select id from sites where slug = $1 and key_id = $2",
+      [data.slug, access.keyId],
+    );
+    if (!site) return { ok: false, error: "Site não encontrado." };
+    const [version] = await sql.query<{ name: string; data: string; kind: string; indexable: boolean }>(
+      "select name, data, kind, indexable from site_versions where id = $1::bigint and site_id = $2",
+      [data.versionId, site.id],
+    );
+    if (!version) return { ok: false, error: "Essa versão não está mais disponível." };
+    await sql.query(
+      `insert into site_versions (site_id, name, data, kind, indexable)
+         select id, name, data, kind, indexable from sites
+          where id = $1 and (name is distinct from $2 or data is distinct from $3
+            or kind is distinct from $4 or indexable is distinct from $5)`,
+      [site.id, version.name, version.data, version.kind, version.indexable],
+    );
+    await sql.query(
+      `update sites set name = $2, data = $3, kind = $4, indexable = $5, updated_at = now(),
+              expires_at = case when $4 = 'previa' then now() + interval '30 days' else null end
+        where id = $1`,
+      [site.id, version.name, version.data, version.kind, version.indexable],
+    );
+    await sql.query(
+      `delete from site_versions where site_id = $1
+        and id not in (select id from site_versions where site_id = $1 order by created_at desc, id desc limit 3)`,
+      [site.id],
+    );
+    return { ok: true };
   });
 
 export const setSiteMode = createServerFn({ method: "POST" })
