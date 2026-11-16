@@ -291,8 +291,9 @@ export function buildSite(input: SiteData): string {
         <label>Seu nome<input name="nome" autocomplete="name" required maxlength="80" placeholder="Como podemos chamar você?"></label>
         ${interestOptions ? `<label>Tenho interesse em<select name="interesse"><option value="">Escolha um serviço ou produto</option>${interestOptions}</select></label>` : ""}
         <label>Mensagem<textarea name="mensagem" rows="3" maxlength="500" placeholder="Conte rapidamente o que você precisa"></textarea></label>
+        <label class="privacy-consent"><input type="checkbox" name="privacidade" required><span>Li o <a href="#privacidade">aviso de privacidade</a> e quero continuar pelo WhatsApp.</span></label>
         <button class="btn" type="submit">${ICON.wa}<span>Continuar pelo WhatsApp</span></button>
-        <small>Este formulário não salva os dados. Ao continuar, o WhatsApp será aberto com a mensagem preenchida.</small>
+        <small>Este formulário não salva respostas. A mensagem só vai para o WhatsApp quando você continuar.</small>
       </form>`
     : "";
   const sections: [string, string][] = [["sobre", "Sobre"]];
@@ -305,7 +306,20 @@ export function buildSite(input: SiteData): string {
     "@type": "LocalBusiness",
     name: rawName,
     ...(digits ? { telephone: `+${digits}` } : {}),
-    ...(d.address ? { address: { "@type": "PostalAddress", streetAddress: d.address } } : {}),
+    ...(d.address || d.city ? {
+      address: {
+        "@type": "PostalAddress",
+        ...(d.address ? { streetAddress: d.address } : {}),
+        ...(cityShort ? { addressLocality: cityShort } : {}),
+        ...(d.city.includes(",") ? { addressRegion: d.city.split(",").slice(1).join(",").trim() } : {}),
+        addressCountry: "BR",
+      },
+    } : {}),
+    ...(d.city ? { areaServed: { "@type": "City", name: d.city } } : {}),
+    ...(d.instagram ? { sameAs: [d.instagram] } : {}),
+    ...(d.rating > 0 && d.reviews > 0 ? {
+      aggregateRating: { "@type": "AggregateRating", ratingValue: d.rating, reviewCount: d.reviews, bestRating: 5, worstRating: 1 },
+    } : {}),
     ...(d.mapsUrl ? { hasMap: d.mapsUrl } : {}),
   };
 
@@ -376,6 +390,15 @@ ${hours.length ? `<ul class="hours">${hours.map((line, i) => `<li data-day="${i}
 <div class="map"><iframe loading="lazy" title="Mapa" src="https://www.google.com/maps?q=${mapQuery}&output=embed"></iframe></div></div></section>`;
 
   const footer = `<footer><div class="wrap"><span>${name}</span><span>${d.address ? esc(d.address) : ""}</span></div></footer>`;
+  const privacyNotice = `<div class="privacy-note" id="privacy-note" role="note" hidden>
+    <p>Usamos armazenamento local apenas para lembrar sua preferência de tema. O formulário só abre o WhatsApp quando você continua.</p>
+    <button type="button" id="privacy-ok">Entendi</button>
+  </div>
+  <details class="privacy-details" id="privacidade"><summary>Aviso de privacidade e termos</summary>
+    <h3>Privacidade</h3><p>Este site não armazena as respostas do formulário. Ao continuar, o nome, o interesse e a mensagem preenchidos serão usados para abrir uma conversa com ${name} no WhatsApp. Consulte também a política de privacidade do WhatsApp.</p>
+    <p>A preferência de tema é guardada no armazenamento local do seu navegador. O painel do site pode exibir totais agregados de visitas, cliques no WhatsApp e inícios de formulário, sem incluir o conteúdo das mensagens. Você pode apagar a preferência nas configurações do navegador.</p>
+    <h3>Termos de uso</h3><p>Informações sobre serviços, horários e preços devem ser confirmadas diretamente com ${name}. O contato pelo WhatsApp depende da disponibilidade do serviço.</p>
+  </details>`;
 
   const css = `:root{--bg:${theme.bg};--fg:${theme.fg};--muted:${theme.muted};--line:${theme.line};--card:${theme.card};--accent:${accent};--accent-fg:${accentFg};--head:${font.head};--body:${font.body}}
 html[data-mode="dark"]{--bg:#111318;--fg:#f2f1ee;--muted:#aaa7a0;--line:#32353b;--card:#1b1e24}
@@ -425,12 +448,22 @@ ${d.design === "vitrine" ? `.hero.type{background:color-mix(in srgb,var(--accent
 ${d.design === "editorial" ? `.hero h1{font-weight:500;letter-spacing:-.035em}.hero.photo h1{font-weight:500}` : ""}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}.hero-copy>*{animation:rise .7s both}.hero-copy>*:nth-child(2){animation-delay:.08s}.hero-copy>*:nth-child(3){animation-delay:.16s}.hero-copy>*:nth-child(4){animation-delay:.24s}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto!important}}
+
+.privacy-note{position:fixed;z-index:60;left:20px;right:20px;bottom:20px;max-width:600px;margin-inline:auto;display:flex;align-items:center;gap:16px;padding:16px 18px;border:1px solid color-mix(in srgb,var(--accent) 32%,var(--line));border-radius:20px;background:color-mix(in srgb,var(--card) 78%,transparent);color:var(--fg);box-shadow:0 16px 50px rgba(0,0,0,.2);backdrop-filter:blur(22px) saturate(1.3)}
+.privacy-note[hidden]{display:none}.privacy-note p{font-size:13px;color:var(--muted);line-height:1.45}.privacy-note button{flex:none;border:0;border-radius:999px;padding:10px 15px;background:var(--accent);color:var(--accent-fg);font:600 13px var(--body)}
+.privacy-details{width:min(1120px,100% - 40px);margin:24px auto;padding:16px 18px;border:1px solid var(--line);border-radius:18px;background:var(--card);color:var(--muted);font-size:14px}
+.privacy-details summary{cursor:pointer;color:var(--fg);font-weight:700}.privacy-details h3{margin-top:16px;color:var(--fg);font-size:18px}.privacy-details p{margin-top:8px}
+.privacy-consent{display:flex!important;flex-direction:row!important;align-items:flex-start!important;gap:10px!important;font-size:13px!important;color:var(--muted)!important}
+.privacy-consent input{margin-top:4px;accent-color:var(--accent)}.privacy-consent a{color:var(--accent)}
+@media(max-width:560px){.privacy-note{align-items:flex-start;left:12px;right:12px;bottom:12px;padding:13px;border-radius:16px}.privacy-note button{padding:9px 12px}}
+
 @media(max-width:560px){.top .btn{display:none}.hero.photo{min-height:78vh}}
 @media(max-width:820px){.top nav{display:none}.hero.type .hero-in,.two{grid-template-columns:1fr}.items{grid-template-columns:1fr}.gal{grid-template-columns:repeat(2,1fr)}.gal img,.gal img:nth-child(1){grid-column:span 1;grid-row:auto;aspect-ratio:4/3;min-height:0}.gal img:nth-child(1){grid-column:span 2}.map iframe{min-height:300px}body{font-size:16px}}
 .lhbar{position:fixed;left:14px;bottom:18px;z-index:40;max-width:calc(100% - 100px);background:rgba(20,20,20,.9);color:#fff;font:500 12px/1.35 system-ui,sans-serif;padding:9px 13px;border-radius:999px}`;
 
   const script = `document.querySelectorAll('[data-today]');
 (function(){var themeKey=${JSON.stringify(themeKey)},html=document.documentElement,button=document.getElementById('theme-toggle');try{var saved=localStorage.getItem(themeKey);if(saved==='light'||saved==='dark')html.dataset.mode=saved}catch(e){}if(button){button.addEventListener('click',function(){var next=html.dataset.mode==='dark'?'light':'dark';html.dataset.mode=next;try{localStorage.setItem(themeKey,next)}catch(e){}})}
+var privacyNote=document.getElementById('privacy-note'),privacyOk=document.getElementById('privacy-ok'),privacyKey=themeKey+'-privacy';try{if(privacyNote&&localStorage.getItem(privacyKey)!=='ok')privacyNote.hidden=false}catch(e){}if(privacyOk)privacyOk.addEventListener('click',function(){if(privacyNote)privacyNote.hidden=true;try{localStorage.setItem(privacyKey,'ok')}catch(e){}});
 var form=document.getElementById('lead-form');if(form){form.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(form),name=String(fd.get('nome')||'').trim(),interest=String(fd.get('interesse')||'').trim(),detail=String(fd.get('mensagem')||'').trim();var parts=['Olá! Meu nome é '+name+'. Tenho interesse em '+(interest||'conhecer melhor os serviços')+' de '+form.dataset.company+'.'];if(detail)parts.push(detail);window.open('https://wa.me/'+form.dataset.phone+'?text='+encodeURIComponent(parts.join(' ')),'_blank','noopener,noreferrer')})}
 (function(){var day=(new Date().getDay()+6)%7;var li=document.querySelectorAll('ul.hours li');var o=document.getElementById('open');var t=document.querySelector('[data-today]');
 if(li.length===7){li[day].className='today';if(t)t.textContent='Hoje: '+li[day].textContent.replace(/^[^:]+:\\s*/,'');
@@ -463,6 +496,8 @@ ${items}
 ${gallery}
 ${contact}
 ${footer}
+${privacyNotice}
+<!--LH_METRICS-->
 ${wa ? `<a class="wa" href="${wa}" target="_blank" rel="noopener" aria-label="${esc(preset.cta)}">${ICON.wa}</a>` : ""}
 <!--LH_BAR-->
 <script>${script}</script>
@@ -471,11 +506,15 @@ ${wa ? `<a class="wa" href="${wa}" target="_blank" rel="noopener" aria-label="${
 }
 
 /** Aplica os avisos de prévia e o bloqueio do Google no HTML pronto (usado só na hospedagem). */
-export function finalizeHosted(html: string, mode: "previa" | "final", indexable: boolean) {
+export function finalizeHosted(html: string, mode: "previa" | "final", indexable: boolean, slug = "") {
   const robots = indexable && mode === "final" ? "" : '<meta name="robots" content="noindex,nofollow">';
   const bar =
     mode === "previa"
       ? '<div class="lhbar">Prévia de demonstração. Este não é o site oficial da empresa.</div>'
       : "";
-  return html.replace("<!--LH_ROBOTS-->", robots).replace("<!--LH_BAR-->", bar);
+  const safeSlug = /^[a-z0-9-]{1,80}$/.test(slug) ? slug : "";
+  const metrics = mode === "final" && safeSlug
+    ? `<script>(function(){var base=${JSON.stringify(`/metric/${safeSlug}/`)};function send(type){var img=new Image();img.src=base+type+'?t='+Date.now()}document.querySelectorAll('a[href*="wa.me"]').forEach(function(link){link.addEventListener('click',function(){send('whatsapp')},{passive:true})});var form=document.getElementById('lead-form');if(form)form.addEventListener('submit',function(){send('form')},{passive:true})})();</script>`
+    : "";
+  return html.replace("<!--LH_ROBOTS-->", robots).replace("<!--LH_BAR-->", bar).replace("<!--LH_METRICS-->", metrics);
 }

@@ -51,7 +51,7 @@ import {
   type SiteItem,
 } from "@/lib/site-builder";
 
-const card = "rounded-[1.5rem] border border-border/80 bg-surface shadow-card";
+const card = "glass-panel rounded-[1.6rem]";
 const field =
   "w-full rounded-2xl border border-border bg-surface-2 px-4 py-3 text-sm text-fg outline-none placeholder:text-muted/70 focus:border-primary focus:ring-4 focus:ring-primary/10";
 const btnPrimary =
@@ -1124,6 +1124,7 @@ export function MySitesModal({
                       {site.status !== "ativo" ? " · suspenso" : ""}
                     </span>
                   </p>
+                  <p className="text-xs text-muted">{site.whatsappClicks} cliques no WhatsApp · {site.formSubmissions} formulários iniciados</p>
                   {site.expiresAt && (
                     <p className="text-xs text-muted">Expira em {new Date(site.expiresAt).toLocaleDateString("pt-BR")}</p>
                   )}

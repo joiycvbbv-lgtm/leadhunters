@@ -7,6 +7,8 @@ export type MySite = {
   kind: "previa" | "final";
   indexable: boolean;
   views: number;
+  whatsappClicks: number;
+  formSubmissions: number;
   status: string;
   createdAt: string;
   expiresAt: string | null;
@@ -218,11 +220,13 @@ export const listMySites = createServerFn({ method: "POST" })
       kind: string;
       indexable: boolean;
       views: number;
+      whatsapp_clicks: number;
+      form_submissions: number;
       status: string;
       created_at: string;
       expires_at: string | null;
     }>(
-      `select slug, name, kind, indexable, views, status, ${ISO("created_at")} as created_at, ${ISO("expires_at")} as expires_at
+      `select slug, name, kind, indexable, views, whatsapp_clicks, form_submissions, status, ${ISO("created_at")} as created_at, ${ISO("expires_at")} as expires_at
          from sites where key_id = $1 order by id desc limit 100`,
       [access.keyId],
     );
@@ -234,6 +238,8 @@ export const listMySites = createServerFn({ method: "POST" })
         kind: r.kind === "final" ? "final" : "previa",
         indexable: r.indexable,
         views: Number(r.views),
+        whatsappClicks: Number(r.whatsapp_clicks),
+        formSubmissions: Number(r.form_submissions),
         status: r.status,
         createdAt: r.created_at,
         expiresAt: r.expires_at,

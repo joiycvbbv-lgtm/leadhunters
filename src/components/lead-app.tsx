@@ -418,7 +418,7 @@ function formatKey(raw: string) {
     .join("-");
 }
 
-const card = "rounded-[1.5rem] border border-border/80 bg-surface shadow-card";
+const card = "glass-panel rounded-[1.6rem]";
 const field =
   "w-full rounded-2xl border border-border bg-surface-2 px-4 py-3 text-sm text-fg outline-none placeholder:text-muted/70 focus:border-primary focus:ring-4 focus:ring-primary/10";
 const btnPrimary =
@@ -2306,7 +2306,7 @@ export function LeadApp() {
 
   return (
     <div className="mx-auto min-h-screen max-w-none bg-[#f5f7fb] px-4 pb-28 pt-5 text-fg dark:bg-[#0b1020] sm:px-6 sm:pb-16 lg:pl-[292px] lg:pr-8 lg:pt-7">
-      <aside className="fixed bottom-4 left-4 top-4 z-40 hidden w-[256px] flex-col rounded-[2rem] bg-gradient-to-b from-[#111a32] via-[#17264b] to-[#10172b] p-5 text-white shadow-[0_24px_70px_-26px_rgba(10,20,48,.8)] lg:flex">
+      <aside className="fixed bottom-4 left-4 top-4 z-40 hidden w-[256px] flex-col rounded-[2rem] bg-gradient-to-b from-[#111a32]/90 via-[#17264b]/85 to-[#10172b]/90 p-5 text-white shadow-[0_24px_70px_-26px_rgba(10,20,48,.8)] backdrop-blur-2xl ring-1 ring-inset ring-white/10 lg:flex">
         <div className="flex items-center gap-3 px-1">
           <div className="flex size-11 items-center justify-center rounded-2xl bg-white/10 text-white ring-1 ring-white/15">
             <Target className="size-5" />
@@ -2497,7 +2497,7 @@ export function LeadApp() {
 
       {tab === "inicio" && (
         <section className="fade-up space-y-5">
-          <div className="relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#121c3b] via-[#253b73] to-[#4f46e5] p-6 text-white shadow-[0_28px_70px_-30px_rgba(45,55,145,.65)] sm:p-8">
+          <div className="relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#121c3b]/90 via-[#253b73]/85 to-[#4f46e5]/90 p-6 text-white shadow-[0_28px_70px_-30px_rgba(45,55,145,.65)] backdrop-blur-2xl ring-1 ring-inset ring-white/15 sm:p-8">
             <div aria-hidden="true" className="absolute -right-16 -top-24 -z-10 size-72 rounded-full bg-cyan-300/20 blur-3xl" />
             <div aria-hidden="true" className="absolute -bottom-24 right-1/3 -z-10 size-56 rounded-full bg-violet-300/20 blur-3xl" />
             <div className="flex flex-col gap-7 xl:flex-row xl:items-end xl:justify-between">

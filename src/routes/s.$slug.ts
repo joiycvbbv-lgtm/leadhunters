@@ -34,7 +34,7 @@ async function handle({ params }: { params: { slug: string } }) {
     if (!row) return notFound();
     sql.query("update sites set views = views + 1 where slug = $1", [slug]).catch(() => undefined);
     const mode = row.kind === "final" ? "final" : "previa";
-    const html = finalizeHosted(buildSite(JSON.parse(row.data)), mode, row.indexable);
+    const html = finalizeHosted(buildSite(JSON.parse(row.data)), mode, row.indexable, slug);
     return new Response(html, {
       status: 200,
       headers: { ...PAGE_HEADERS, "cache-control": "public, max-age=60, s-maxage=60" },
