@@ -334,7 +334,23 @@ export function AdminApp() {
         </div>
       </header>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <nav aria-label="Navegação administrativa" className={`sticky top-3 z-20 flex flex-wrap gap-2 rounded-2xl border border-border/70 bg-surface/80 p-2 shadow-lg backdrop-blur-2xl`}>
+        {[
+          ["Visão geral", "#admin-overview"],
+          ["Licenças", "#admin-keys"],
+          ["Financeiro", "#admin-orders"],
+          ["Sites", "#admin-sites"],
+          ["Clientes e testes", "#admin-trials"],
+          ["Renovações", "#admin-expiring"],
+          ["Marketing", "#admin-marketing"],
+        ].map(([label, href]) => (
+          <a key={href} href={href} className="rounded-xl px-3 py-2 text-xs font-semibold text-muted transition hover:bg-primary-soft hover:text-primary">
+            {label}
+          </a>
+        ))}
+      </nav>
+
+      <div id="admin-overview" className="grid scroll-mt-24 grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {(
           [
             ["Keys", s.totalKeys],
@@ -371,7 +387,7 @@ export function AdminApp() {
         />
       </section>
 
-      <section className={`p-4 ${card}`}>
+      <section id="admin-marketing" className={`scroll-mt-24 p-4 ${card}`}>
         <h2 className="mb-1 font-semibold">Aviso para todos os clientes</h2>
         <p className="mb-3 text-xs text-muted">Aparece como uma faixa no painel de quem estiver logado. Deixe vazio para tirar.</p>
         <textarea
@@ -459,7 +475,7 @@ export function AdminApp() {
       </section>
 
       {data.sites.length > 0 && (
-        <section className={`p-4 ${card}`}>
+        <section id="admin-sites" className={`scroll-mt-24 p-4 ${card}`}>
           <h2 className="mb-3 font-semibold">Sites publicados ({data.sites.length})</h2>
           <div className="divide-y divide-border text-sm">
             {data.sites.map((site) => (
@@ -497,7 +513,7 @@ export function AdminApp() {
       )}
 
       {data.trials.length > 0 && (
-        <section className={`p-4 ${card}`}>
+        <section id="admin-trials" className={`scroll-mt-24 p-4 ${card}`}>
           <h2 className="mb-3 font-semibold">Testes grátis ({data.trials.length})</h2>
           <div className="divide-y divide-border text-sm">
             {data.trials.map((t) => (
@@ -526,7 +542,7 @@ export function AdminApp() {
       )}
 
       {data.expiring.length > 0 && (
-        <section className={`p-4 ${card}`}>
+        <section id="admin-expiring" className={`scroll-mt-24 p-4 ${card}`}>
           <h2 className="mb-3 font-semibold">Vencendo em 7 dias ({data.expiring.length})</h2>
           <div className="divide-y divide-border text-sm">
             {data.expiring.map((k) => (
@@ -558,7 +574,7 @@ export function AdminApp() {
         </section>
       )}
 
-      <section className={`p-4 ${card}`}>
+      <section id="admin-keys" className={`scroll-mt-24 p-4 ${card}`}>
         <h2 className="mb-3 flex items-center gap-2 font-semibold">
           <PlusCircle className="size-4 text-primary" /> Gerar keys
         </h2>
@@ -744,7 +760,7 @@ export function AdminApp() {
         </p>
       </section>
 
-      <section className={`p-4 ${card}`}>
+      <section id="admin-orders" className={`scroll-mt-24 p-4 ${card}`}>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-semibold">Pedidos Pix</h2>
           <button
