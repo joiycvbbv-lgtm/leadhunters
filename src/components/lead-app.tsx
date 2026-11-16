@@ -448,6 +448,24 @@ function formatKey(raw: string) {
     .join("-");
 }
 
+function BrandMark({ className = "size-6" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="leadHunterMark" x1="7" y1="5" x2="41" y2="43" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#8B9BFF" />
+          <stop offset="1" stopColor="#48C7E8" />
+        </linearGradient>
+      </defs>
+      <circle cx="22" cy="22" r="15.5" stroke="url(#leadHunterMark)" strokeWidth="4.2" />
+      <circle cx="22" cy="22" r="7.2" stroke="currentColor" strokeOpacity=".92" strokeWidth="3.2" />
+      <circle cx="22" cy="22" r="2.4" fill="url(#leadHunterMark)" />
+      <path d="M33.5 33.5 42 42" stroke="url(#leadHunterMark)" strokeWidth="5" strokeLinecap="round" />
+      <path d="M22 2.8v4.1M2.8 22h4.1" stroke="currentColor" strokeOpacity=".58" strokeWidth="2.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 const card = "glass-panel rounded-[1.6rem]";
 const field =
   "w-full rounded-2xl border border-border bg-surface-2 px-4 py-3 text-sm text-fg outline-none placeholder:text-muted/70 focus:border-primary focus:ring-4 focus:ring-primary/10";
@@ -2325,7 +2343,7 @@ export function LeadApp() {
             <div className="login-orb login-orb-two" aria-hidden />
             <div className="relative z-10 flex items-center gap-3">
               <div className="flex size-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-white shadow-inner backdrop-blur">
-                <Target className="size-6" />
+                <BrandMark className="size-6" />
               </div>
               <div>
                 <p className="text-sm font-extrabold uppercase tracking-[0.16em] text-white">LeadHunter</p>
@@ -2379,7 +2397,7 @@ export function LeadApp() {
           <section className={`login-panel relative flex flex-col justify-center p-5 sm:p-8 lg:p-10 ${card}`}>
             <div className="mb-7 flex items-center gap-3 lg:hidden">
               <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-deep text-primary-fg shadow-lg">
-                <Target className="size-5" />
+                <BrandMark className="size-5" />
               </div>
               <div>
                 <p className="text-sm font-extrabold uppercase tracking-[0.14em] text-primary">LeadHunter</p>
