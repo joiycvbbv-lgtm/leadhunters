@@ -48,6 +48,7 @@ import {
 import { checkAccessKey, searchPlaces, type KeyCheck, type Lead } from "@/lib/leads.functions";
 import { aiLeadMessage } from "@/lib/ai.functions";
 import { loadCloud, saveCloud, type CloudData } from "@/lib/cloud.functions";
+import { getIntegrationStatus, type IntegrationStatus } from "@/lib/integrations.functions";
 import { getAnnouncement, requestTrial } from "@/lib/extras.functions";
 import { SUPPORT_WHATSAPP } from "@/lib/plans";
 import { ALL_NICHES, NICHE_GROUPS } from "@/lib/niches";
@@ -78,6 +79,10 @@ import {
   loadPipeline,
   loadRecent,
   loadTheme,
+  loadCustomMessages,
+  loadSearchActivity,
+  loadProfilePhoto,
+  loadNotificationsEnabled,
   loadTicket,
   loadUserName,
   saveAccessKey,
@@ -89,11 +94,17 @@ import {
   saveMsg,
   saveRecent,
   savePrefs,
+  saveCustomMessages,
+  saveSearchActivity,
+  saveProfilePhoto,
+  saveNotificationsEnabled,
   savePipeline,
   saveTheme,
   saveTicket,
   saveUserName,
   type RecentSearch,
+  type SearchActivity,
+  type CustomMessage,
   type SavedLead,
   type Theme,
   type Status,
@@ -186,14 +197,30 @@ const CITIES = [
 
 const QUANTITIES = [5, 10, 15, 20, 30, 40, 50, 60];
 
-type Tab = "inicio" | "buscar" | "hoje" | "pipeline" | "vendas";
+type Tab = "inicio" | "buscar" | "hoje" | "pipeline" | "vendas" | "mensagens" | "atividades" | "relatorios" | "oportunidades" | "integracoes" | "configuracoes";
+
+const TAB_LABELS: Record<Tab, string> = {
+  inicio: "Dashboard",
+  buscar: "Buscar leads",
+  hoje: "Tarefas de hoje",
+  pipeline: "CRM / Pipeline",
+  vendas: "Vendas",
+  mensagens: "Central de mensagens",
+  atividades: "Histórico de atividades",
+  relatorios: "Relatórios",
+  oportunidades: "Inteligência de leads",
+  integracoes: "Integrações",
+  configuracoes: "Configurações",
+};
 
 const STATUSES: { id: Status; label: string }[] = [
-  { id: "novo", label: "Novo" },
-  { id: "contatado", label: "Contatado" },
-  { id: "proposta", label: "Proposta" },
-  { id: "fechado", label: "Fechado" },
-  { id: "perdido", label: "Perdido" },
+  { id: "novo", label: "Novos leads" },
+  { id: "contatado", label: "Primeiro contato" },
+  { id: "aguardando", label: "Aguardando resposta" },
+  { id: "interessado", label: "Interessados" },
+  { id: "proposta", label: "Em negociação" },
+  { id: "fechado", label: "Clientes fechados" },
+  { id: "perdido", label: "Perdidos" },
 ];
 
 function formatPhone(phone: string) {
@@ -202,12 +229,15 @@ function formatPhone(phone: string) {
   return phone;
 }
 
-function fillTemplate(template: string, name: string, city = "") {
-  return template.replaceAll("{nome}", name).replaceAll("{cidade}", city.split(",")[0]);
+function fillTemplate(template: string, name: string, city = "", category = "") {
+  return template
+    .replaceAll("{nome}", name)
+    .replaceAll("{cidade}", city.split(",")[0])
+    .replaceAll("{segmento}", category || "seu segmento");
 }
 
-function waLink(phone: string, name: string, template: string, city = "") {
-  return `https://wa.me/55${phone}?text=${encodeURIComponent(fillTemplate(template, name, city))}`;
+function waLink(phone: string, name: string, template: string, city = "", category = "") {
+  return `https://wa.me/55${phone}?text=${encodeURIComponent(fillTemplate(template, name, city, category))}`;
 }
 
 function escapeHtml(value: string) {
@@ -582,6 +612,21 @@ function exportCsv(rows: SavedLead[]) {
   const link = document.createElement("a");
   link.href = url;
   link.download = `leads-${todayIso()}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportSearchHistory(rows: SearchActivity[]) {
+  const escape = (value: string | number) => '"' + String(value ?? "").replaceAll('"', '""').replaceAll("\n", " ") + '"';
+  const lines = [
+    ["Data", "Cidade", "Segmento", "Empresas encontradas"].map(escape).join(";"),
+    ...rows.map((row) => [new Date(row.at).toLocaleString("pt-BR"), row.city, row.niche, row.count].map(escape).join(";")),
+  ];
+  const blob = new Blob([String.fromCharCode(0xfeff) + lines.join(String.fromCharCode(13, 10))], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "relatorio-buscas-" + todayIso() + ".csv";
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -1119,13 +1164,34 @@ export function LeadApp() {
   const [checking, setChecking] = useState(false);
   const [accessKey, setAccessKey] = useState("");
   const [userName, setUserName] = useState("");
+  const [profileNameDraft, setProfileNameDraft] = useState("");
+  const [profilePhoto, setProfilePhotoState] = useState("");
+  const [notificationsEnabled, setNotificationsEnabledState] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<SearchActivity[]>([]);
+  const [customMessages, setCustomMessages] = useState<CustomMessage[]>([]);
+  const [messageLeadId, setMessageLeadId] = useState("");
+  const [messageName, setMessageName] = useState("");
+  const [messageText, setMessageText] = useState("");
+  const [messageCategory, setMessageCategory] = useState("Primeiro contato");
+  const [editingMessageId, setEditingMessageId] = useState("");
+  const [activityQuery, setActivityQuery] = useState("");
+  const [activityRange, setActivityRange] = useState<"todos" | "7" | "30">("todos");
+  const [integrations, setIntegrations] = useState<IntegrationStatus | null>(null);
+  const [integrationsBusy, setIntegrationsBusy] = useState(false);
+  const [integrationRefresh, setIntegrationRefresh] = useState(0);
+  const [profileBusy, setProfileBusy] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     setPipeline(loadPipeline());
+    setSearchHistory(loadSearchActivity());
+    setCustomMessages(loadCustomMessages());
+    setProfilePhotoState(loadProfilePhoto());
+    setNotificationsEnabledState(loadNotificationsEnabled());
     setTicket(loadTicket());
     setMessage(loadMsg());
     setUserName(loadUserName());
+    setProfileNameDraft(loadUserName());
     const prefs = loadPrefs();
     if (prefs) {
       setCity(prefs.city || CITIES[0]);
@@ -1238,6 +1304,34 @@ export function LeadApp() {
         const cloud: CloudData = res.data;
         const rows = Array.isArray(cloud.pipeline) ? (cloud.pipeline as SavedLead[]) : [];
         setPipeline((local) => mergeLeads(local, rows));
+        if (Array.isArray(cloud.searchHistory) && cloud.searchHistory.length) {
+          setSearchHistory(cloud.searchHistory as SearchActivity[]);
+          saveSearchActivity(cloud.searchHistory as SearchActivity[]);
+        }
+        if (Array.isArray(cloud.customMessages)) {
+          setCustomMessages(cloud.customMessages as CustomMessage[]);
+          saveCustomMessages(cloud.customMessages as CustomMessage[]);
+        }
+        if (cloud.profilePhoto) {
+          setProfilePhotoState(cloud.profilePhoto);
+          saveProfilePhoto(cloud.profilePhoto);
+        }
+        if (cloud.preferences) {
+          const prefs = cloud.preferences;
+          if (prefs.city) setCity(prefs.city);
+          if (prefs.niche) setNiche(prefs.niche);
+          if (prefs.quantity) setQuantity(prefs.quantity);
+          if (typeof prefs.minRating === "number") setMinRating(prefs.minRating);
+          setNeighborhood(prefs.neighborhood || "");
+          if (typeof prefs.minReviews === "number") setMinReviews(prefs.minReviews);
+          setMobileOnly(Boolean(prefs.mobileOnly)); setOnlyOpen(Boolean(prefs.onlyOpen)); setBroad(Boolean(prefs.broad));
+          if (prefs.siteMode) setSiteMode(prefs.siteMode);
+        }
+        if (cloud.userName) {
+          setUserName(cloud.userName);
+          setProfileNameDraft(cloud.userName);
+          saveUserName(cloud.userName);
+        }
         if (res.version > 0) {
           if (cloud.ticket) setTicket(cloud.ticket);
           if (cloud.message) setMessage(cloud.message);
@@ -1273,7 +1367,7 @@ export function LeadApp() {
           key: accessKey,
           deviceId,
           baseVersion: versionRef.current,
-          payload: { pipeline, ticket, message, followMessage, goal },
+          payload: { pipeline, ticket, message, followMessage, goal, userName, profilePhoto, customMessages, searchHistory, preferences: { city, niche, quantity, minRating, neighborhood, minReviews, mobileOnly, onlyOpen, broad, siteMode } },
         },
       }).catch(() => null);
       if (!res) {
@@ -1292,13 +1386,30 @@ export function LeadApp() {
           const merged = mergeLeads(local, rows);
           return merged === local ? [...local] : merged;
         });
+        if (Array.isArray(res.data.customMessages)) {
+          setCustomMessages((local) => {
+            const ids = new Set(local.map((item) => item.id));
+            const merged = [...local, ...res.data.customMessages!.filter((item) => !ids.has(item.id))] as CustomMessage[];
+            saveCustomMessages(merged);
+            return merged;
+          });
+        }
+        if (Array.isArray(res.data.searchHistory)) {
+          setSearchHistory((local) => {
+            const ids = new Set(local.map((item) => item.id));
+            const merged = [...local, ...res.data.searchHistory!.filter((item) => !ids.has(item.id))] as SearchActivity[];
+            const trimmed = merged.slice(-1000);
+            saveSearchActivity(trimmed);
+            return trimmed;
+          });
+        }
       } else {
         setSync("error");
       }
     }, 1500);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pipeline, ticket, message, followMessage, goal, cloudReady, step]);
+  }, [pipeline, ticket, message, followMessage, goal, userName, profilePhoto, customMessages, searchHistory, cloudReady, step]);
 
   // Nuvem: ao voltar para a aba, traz o que outro aparelho salvou.
   useEffect(() => {
@@ -1319,6 +1430,21 @@ export function LeadApp() {
             if (res.data.message) setMessage(res.data.message);
             if (res.data.followMessage) setFollowMessage(res.data.followMessage);
             if (res.data.goal) setGoal(res.data.goal);
+            if (res.data.userName) { setUserName(res.data.userName); setProfileNameDraft(res.data.userName); }
+            if (res.data.profilePhoto) setProfilePhotoState(res.data.profilePhoto);
+            if (Array.isArray(res.data.customMessages)) setCustomMessages(res.data.customMessages as CustomMessage[]);
+            if (Array.isArray(res.data.searchHistory)) { setSearchHistory(res.data.searchHistory as SearchActivity[]); saveSearchActivity(res.data.searchHistory as SearchActivity[]); }
+            if (res.data.preferences) {
+              const prefs = res.data.preferences;
+              if (prefs.city) setCity(prefs.city);
+              if (prefs.niche) setNiche(prefs.niche);
+              if (prefs.quantity) setQuantity(prefs.quantity);
+              if (typeof prefs.minRating === "number") setMinRating(prefs.minRating);
+              setNeighborhood(prefs.neighborhood || "");
+              if (typeof prefs.minReviews === "number") setMinReviews(prefs.minReviews);
+              setMobileOnly(Boolean(prefs.mobileOnly)); setOnlyOpen(Boolean(prefs.onlyOpen)); setBroad(Boolean(prefs.broad));
+              if (prefs.siteMode) setSiteMode(prefs.siteMode);
+            }
           }
         })
         .catch(() => undefined);
@@ -1365,9 +1491,29 @@ export function LeadApp() {
     const due = pipelineRef.current.filter(
       (row) => row.followUp && row.followUp <= todayIso() && row.status !== "fechado" && row.status !== "perdido",
     ).length;
-    if (due > 0) notify(`Você tem ${due} retorno(s) para hoje`, { label: "Ver", run: () => setTab("hoje") });
+    if (due > 0) {
+      notify(`Você tem ${due} retorno(s) para hoje`, { label: "Ver", run: () => setTab("hoje") });
+      if (notificationsEnabled && typeof Notification !== "undefined" && Notification.permission === "granted") {
+        new Notification("Retornos do LeadHunter", { body: `Você tem ${due} retorno(s) agendado(s).` });
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cloudReady]);
+  }, [cloudReady, notificationsEnabled]);
+
+  useEffect(() => {
+    if (tab !== "integracoes" || !accessKey || !deviceId) return;
+    let cancelled = false;
+    setIntegrationsBusy(true);
+    getIntegrationStatus({ data: { key: accessKey, deviceId } })
+      .then((result) => {
+        if (cancelled) return;
+        if (result.ok) setIntegrations(result);
+        else notify(accessMessage(result.error));
+      })
+      .catch(() => { if (!cancelled) notify("Não consegui verificar as integrações agora."); })
+      .finally(() => { if (!cancelled) setIntegrationsBusy(false); });
+    return () => { cancelled = true; };
+  }, [tab, accessKey, deviceId, integrationRefresh, notify]);
 
   const today = todayIso();
   const deferredPipeQuery = useDeferredValue(pipeQuery);
@@ -1463,6 +1609,79 @@ export function LeadApp() {
     return [...map.values()].sort((a, b) => b.revenue - a.revenue || b.closed - a.closed || b.leads - a.leads).slice(0, 5);
   }, [pipeline, ticket]);
 
+  const totalFound = searchHistory.reduce((sum, item) => sum + item.count, 0);
+  const proposalsSent = pipeline.reduce((sum, row) => sum + (row.history?.filter((item) => /proposta gerada/i.test(item.text)).length ?? 0), 0);
+  const contactsMade = pipeline.reduce((sum, row) => sum + (row.history?.filter((item) => /Contato pelo WhatsApp|Mensagem \d+ enviada/i.test(item.text)).length ?? 0), 0);
+  const activityItems = useMemo(() => {
+    const query = activityQuery.trim().toLowerCase();
+    const cutoff = activityRange === "todos" ? 0 : Date.now() - Number(activityRange) * 86_400_000;
+    const leadEvents = pipeline.flatMap((row) => [
+      { id: `saved-${row.id}`, at: row.addedAt, company: row.name, city: row.city, text: "Lead salvo" },
+      ...(row.history ?? []).map((item, index) => ({ id: `${row.id}-${index}`, at: item.at, company: row.name, city: row.city, text: item.text })),
+    ]);
+    const searches = searchHistory.flatMap((item) => item.businesses?.length
+      ? item.businesses.map((company, index) => ({
+          id: item.id + "-" + index,
+          at: item.at,
+          company,
+          city: item.city,
+          text: "Encontrada na busca de " + item.niche,
+        }))
+      : [{
+          id: item.id,
+          at: item.at,
+          company: "Busca: " + item.niche,
+          city: item.city,
+          text: item.count + " empresas encontradas",
+        }]);
+    return [...leadEvents, ...searches]
+      .filter((item) => Number.isFinite(new Date(item.at).getTime()) && new Date(item.at).getTime() >= cutoff)
+      .filter((item) => !query || `${item.company} ${item.city} ${item.text}`.toLowerCase().includes(query))
+      .sort((x, y) => y.at.localeCompare(x.at))
+      .slice(0, 500);
+  }, [pipeline, searchHistory, activityQuery, activityRange]);
+  const searchDays = useMemo(() => {
+    const today = new Date();
+    const days = Array.from({ length: 7 }, (_, index) => {
+      const day = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (6 - index));
+      const key = day.toLocaleDateString("sv-SE");
+      return { key, label: day.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", ""), count: 0 };
+    });
+    for (const item of searchHistory) {
+      const day = days.find((entry) => entry.key === item.at.slice(0, 10));
+      if (day) day.count += item.count;
+    }
+    return days;
+  }, [searchHistory]);
+  const reportCities = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const row of pipeline) {
+      const name = (row.city || "Sem cidade").split(",")[0].trim() || "Sem cidade";
+      map.set(name, (map.get(name) ?? 0) + 1);
+    }
+    return [...map.entries()].map(([name, count]) => ({ name, count })).sort((x, y) => y.count - x.count).slice(0, 10);
+  }, [pipeline]);
+  const segmentStats = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const row of pipeline) map.set(row.category || "Sem segmento", (map.get(row.category || "Sem segmento") ?? 0) + 1);
+    return [...map.entries()].map(([name, count]) => ({ name, count })).sort((x, y) => y.count - x.count).slice(0, 8);
+  }, [pipeline]);
+  const opportunities = useMemo(() => {
+    const score = (row: SavedLead) => {
+      const rating = (Math.min(row.rating || 0, 5) / 5) * 40;
+      const reviews = Math.min(Math.log10((row.reviews || 0) + 1) / Math.log10(500), 1) * 30;
+      const noSite = row.siteKind === "none" ? 20 : row.siteKind === "social" ? 12 : 0;
+      const mobile = row.phone.length === 11 && row.phone[2] === "9" ? 10 : 3;
+      return Math.round(rating + reviews + noSite + mobile);
+    };
+    return pipeline
+      .filter((row) => row.siteKind !== "site" && row.status !== "fechado" && row.status !== "perdido")
+      .map((row) => ({ row, score: score(row) }))
+      .sort((x, y) => y.score - x.score)
+      .slice(0, 30);
+  }, [pipeline]);
+  const salesWonRate = pipeline.length ? Math.round((closed.length / pipeline.length) * 100) : 0;
+
   const months = useMemo(() => {
     const now = new Date();
     const list: { key: string; label: string; total: number }[] = [];
@@ -1548,6 +1767,12 @@ export function LeadApp() {
         return;
       }
       setResults(result.leads);
+      const searchEntry: SearchActivity = { id: `search-${Date.now()}`, at: new Date().toISOString(), city, niche, count: result.leads.length, businesses: result.leads.slice(0, 25).map((row) => row.name) };
+      setSearchHistory((prev) => {
+        const next = [...prev, searchEntry].slice(-1000);
+        saveSearchActivity(next);
+        return next;
+      });
       setRecent((prev) => {
         const next = [{ city, niche }, ...prev.filter((item) => !(item.city === city && item.niche === niche))].slice(0, 6);
         saveRecent(next);
@@ -1676,6 +1901,7 @@ export function LeadApp() {
       if (who.name && !loadUserName()) {
         saveUserName(who.name);
         setUserName(who.name);
+        setProfileNameDraft(who.name);
       }
       saveAccessKey(res.token);
       setAccessKey(res.token);
@@ -1814,6 +2040,7 @@ export function LeadApp() {
       }
       saveUserName(trialForm.name);
       setUserName(trialForm.name.trim());
+      setProfileNameDraft(trialForm.name.trim());
       await submitKey(res.key);
     } catch {
       setTrialError("Não consegui falar com o servidor. Tente de novo.");
@@ -1975,6 +2202,7 @@ export function LeadApp() {
       if (registering) {
         saveUserName(nameInput);
         setUserName(nameInput.trim());
+        setProfileNameDraft(nameInput.trim());
       }
       setKeyInput("");
       setStep("app");
@@ -2012,11 +2240,69 @@ export function LeadApp() {
           key: accessKey,
           deviceId,
           baseVersion: versionRef.current,
-          payload: { pipeline, ticket, message, followMessage, goal },
+          payload: { pipeline, ticket, message, followMessage, goal, userName, profilePhoto, customMessages, searchHistory, preferences: { city, niche, quantity, minRating, neighborhood, minReviews, mobileOnly, onlyOpen, broad, siteMode } },
         },
       }).catch(() => null);
     }
     logout();
+  }
+
+  async function toggleNotifications() {
+    if (!notificationsEnabled) {
+      if (typeof Notification === "undefined") {
+        notify("Seu navegador não oferece notificações neste dispositivo.");
+        return;
+      }
+      const permission = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
+      if (permission !== "granted") {
+        notify("Permita notificações no navegador para ativar os lembretes.");
+        return;
+      }
+    }
+    const next = !notificationsEnabled;
+    setNotificationsEnabledState(next);
+    saveNotificationsEnabled(next);
+    if (next && typeof Notification !== "undefined" && Notification.permission === "granted" && dueCount > 0) {
+      new Notification("Retornos do LeadHunter", { body: "Você tem " + dueCount + " retorno(s) agendado(s)." });
+    }
+    notify(next ? "Lembretes ativados" : "Lembretes desativados");
+  }
+
+  async function updateProfilePhoto(file?: File) {
+    if (!file) return;
+    setProfileBusy(true);
+    try {
+      const bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, 256 / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("canvas");
+      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      bitmap.close?.();
+      const photo = canvas.toDataURL("image/webp", 0.82);
+      if (photo.length > 240_000) throw new Error("size");
+      setProfilePhotoState(photo);
+      saveProfilePhoto(photo);
+      notify("Foto de perfil atualizada");
+    } catch {
+      notify("Não consegui preparar a imagem. Use uma foto menor em JPG, PNG ou WEBP.");
+    } finally {
+      setProfileBusy(false);
+    }
+  }
+
+  function saveProfile() {
+    const clean = profileNameDraft.trim().slice(0, 100);
+    if (!clean) {
+      notify("Digite seu nome antes de salvar.");
+      return;
+    }
+    setUserName(clean);
+    setProfileNameDraft(clean);
+    saveUserName(clean);
+    notify("Perfil atualizado");
   }
 
   function toggleTheme() {
@@ -2318,12 +2604,18 @@ export function LeadApp() {
         </div>
         <div className="mt-9">
           <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Menu principal</p>
-          <nav aria-label="Navegação principal" className="space-y-1.5">
+          <nav aria-label="Navegação principal" className="max-h-[55vh] space-y-1 overflow-y-auto pr-1">
             {([
-              ["inicio", "Visão geral", LayoutDashboard],
-              ["buscar", "Buscar empresas", Search],
-              ["hoje", "Tarefas de hoje", CalendarClock],
-              ["pipeline", "Pipeline", Columns3],
+              ["inicio", "Dashboard", LayoutDashboard],
+              ["buscar", "Buscar leads", Search],
+              ["hoje", "Hoje", CalendarClock],
+              ["pipeline", "CRM / Pipeline", Columns3],
+              ["mensagens", "Mensagens", MessageCircle],
+              ["atividades", "Atividades", Clock],
+              ["relatorios", "Relatórios", TrendingUp],
+              ["oportunidades", "Inteligência", Sparkles],
+              ["integracoes", "Integrações", Globe],
+              ["configuracoes", "Configurações", ShieldCheck],
               ["vendas", "Vendas", Wallet],
             ] as const).map(([id, label, Icon]) => (
               <button
@@ -2366,9 +2658,7 @@ export function LeadApp() {
             <Sparkles className="size-4" /> Criar site
           </button>
           <div className="flex items-center gap-3 rounded-2xl px-2 py-2">
-            <div className="flex size-9 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white">
-              {(userName || "LH").slice(0, 1).toUpperCase()}
-            </div>
+            {profilePhoto ? <img src={profilePhoto} alt="Foto de perfil" className="size-9 rounded-full object-cover ring-1 ring-white/30"/> : <div className="flex size-9 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white">{(userName || "LH").slice(0, 1).toUpperCase()}</div>}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{userName || "Seu painel"}</p>
               <p className="text-[11px] text-white/45">Conta ativa</p>
@@ -2391,17 +2681,23 @@ export function LeadApp() {
         <div className="hidden min-w-0 flex-1 lg:block">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Área de trabalho</p>
           <h1 className="mt-1 font-display text-2xl font-bold tracking-tight">
-            {tab === "inicio" ? "Visão geral" : tab === "buscar" ? "Buscar empresas" : tab === "hoje" ? "Tarefas de hoje" : tab === "pipeline" ? "Pipeline de vendas" : "Vendas"}
+            {TAB_LABELS[tab]}
           </h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <nav className="hidden items-center gap-1 rounded-2xl border border-border bg-surface-2 p-1 sm:flex lg:hidden">
+          <nav className="flex max-w-[50vw] items-center gap-1 overflow-x-auto rounded-2xl border border-border bg-surface-2 p-1 sm:flex lg:hidden">
             {(
               [
                 ["inicio", "Resumo"],
                 ["buscar", "Buscar"],
                 ["hoje", "Hoje"],
-                ["pipeline", "Pipeline"],
+                ["pipeline", "CRM"],
+                ["mensagens", "Mensagens"],
+                ["atividades", "Atividades"],
+                ["relatorios", "Relatórios"],
+                ["oportunidades", "Inteligência"],
+                ["integracoes", "Integrações"],
+                ["configuracoes", "Configurações"],
                 ["vendas", "Vendas"],
               ] as const
             ).map(([id, label]) => (
@@ -2522,8 +2818,9 @@ export function LeadApp() {
                 </button>
               </div>
             </div>
-            <div className="mt-7 grid grid-cols-2 gap-3 border-t border-white/15 pt-5 sm:grid-cols-4">
+            <div className="mt-7 grid grid-cols-2 gap-3 border-t border-white/15 pt-5 sm:grid-cols-5">
               {[
+                ["Empresas encontradas", totalFound],
                 ["Ativos", pipeline.filter((row) => row.status !== "fechado" && row.status !== "perdido").length],
                 ["Retornos", dueCount],
                 ["Contatos hoje", sendStats.todayCount],
@@ -2658,6 +2955,14 @@ export function LeadApp() {
                 </div>
               </div>
             </div>
+          </div>
+                  <div className={`mt-4 p-4 sm:p-5 ${card}`}>
+            <div className="mb-3 flex items-center justify-between gap-2"><h3 className="font-semibold">Atividades recentes</h3><button type="button" onClick={()=>setTab("atividades")} className="text-sm font-semibold text-primary">Ver histórico</button></div>
+            {activityItems.slice(0,5).length ? <div className="divide-y divide-border">{activityItems.slice(0,5).map((item)=><div key={item.id} className="flex justify-between gap-3 py-2 text-sm"><span className="truncate">{item.text} · {item.company}</span><time className="shrink-0 text-xs text-muted">{new Date(item.at).toLocaleDateString("pt-BR")}</time></div>)}</div> : <p className="text-sm text-muted">Suas buscas e atividades aparecerão aqui.</p>}
+          </div>
+          <div className={`mt-4 p-4 sm:p-5 ${card}`}>
+            <div className="flex flex-wrap items-center justify-between gap-2"><div><h3 className="font-semibold">Resumo das oportunidades</h3><p className="mt-1 text-sm text-muted">{opportunities.filter((item)=>item.score>=70).length} leads salvos com prioridade alta · {pipeline.filter((row)=>row.siteKind==="none").length} sem site identificado</p></div><button type="button" onClick={()=>setTab("oportunidades")} className="text-sm font-semibold text-primary">Abrir inteligência</button></div>
+            {opportunities.slice(0,3).length>0 && <div className="mt-3 grid gap-2 sm:grid-cols-3">{opportunities.slice(0,3).map(({row,score})=><div key={row.id} className="rounded-xl border border-border/60 bg-surface/55 px-3 py-2"><p className="truncate text-sm font-semibold">{row.name}</p><p className="text-xs text-muted">{row.city} · Prioridade {score}/100</p></div>)}</div>}
           </div>
         </section>
       )}
@@ -3535,7 +3840,179 @@ export function LeadApp() {
         </section>
       )}
 
-      {open && (
+<div>
+      {tab === "mensagens" && (
+        <section className="fade-up space-y-5">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Comunicação comercial</p>
+            <h2 className="mt-1 font-display text-2xl font-bold">Central de mensagens</h2>
+            <p className="mt-1 text-sm text-muted">Modelos, mensagens próprias e atalhos para WhatsApp.</p>
+          </div>
+          <div className={"grid gap-4 xl:grid-cols-2"}>
+            <form className={"space-y-3 p-5 " + card} onSubmit={(event) => {
+              event.preventDefault();
+              const name = messageName.trim(), text = messageText.trim();
+              if (!name || !text) { notify("Preencha o nome e o texto da mensagem."); return; }
+              const entry: CustomMessage = { id: editingMessageId || "msg-" + Date.now(), name, text, category: messageCategory };
+              const next = editingMessageId ? customMessages.map((item) => item.id === editingMessageId ? entry : item) : [entry, ...customMessages];
+              setCustomMessages(next); saveCustomMessages(next);
+              setMessageName(""); setMessageText(""); setEditingMessageId("");
+              notify(editingMessageId ? "Mensagem atualizada" : "Mensagem salva");
+            }}>
+              <h3 className="font-semibold">{editingMessageId ? "Editar mensagem" : "Criar mensagem"}</h3>
+              <label className="block text-sm">Nome<input value={messageName} onChange={(event) => setMessageName(event.target.value)} maxLength={100} placeholder="Ex.: Apresentação de site" className={field + " mt-1"} /></label>
+              <label className="block text-sm">Categoria<select value={messageCategory} onChange={(event) => setMessageCategory(event.target.value)} className={field + " mt-1"}>
+                {["Primeiro contato","Apresentação de sites","Proposta","Follow-up","Interessados","Sem resposta","Objeções"].map((item) => <option key={item}>{item}</option>)}
+              </select></label>
+              <label className="block text-sm">Texto<textarea value={messageText} onChange={(event) => setMessageText(event.target.value)} rows={5} maxLength={2000} placeholder="Use {nome}, {cidade} e {segmento}." className={field + " mt-1"} /></label>
+              <p className="text-xs text-muted">Personalização: {"{nome}"}, {"{cidade}"} e {"{segmento}"}.</p>
+              <button type="submit" className={btnPrimary}>{editingMessageId ? "Salvar alterações" : "Salvar mensagem"}</button>
+              {editingMessageId && <button type="button" onClick={() => { setEditingMessageId(""); setMessageName(""); setMessageText(""); }} className={btnGhost + " ml-2"}>Cancelar</button>}
+            </form>
+            <div className={"space-y-3 p-5 " + card}>
+              <h3 className="font-semibold">Modelos prontos</h3>
+              {[...FIRST_TEMPLATES.map((item) => ({...item, category:"Primeiro contato"})), ...FOLLOW_TEMPLATES.map((item) => ({...item, category:"Follow-up"})),
+                {id:"site-presentation",label:"Apresentação de site",category:"Apresentação de sites",text:"Oi {nome}! Vi que vocês trabalham com {segmento} em {cidade}. Posso te mostrar uma ideia de site profissional com as informações do negócio e contato direto pelo WhatsApp?"},
+                {id:"proposal-follow",label:"Envio de proposta",category:"Proposta",text:"Oi {nome}, conforme conversamos, preparei uma proposta para apresentar os serviços de {segmento} da empresa em {cidade}. Se quiser, posso explicar cada etapa por aqui."},
+                {id:"no-response",label:"Sem resposta",category:"Sem resposta",text:"Oi {nome}, tudo bem? Passando para saber se conseguiu ver minha mensagem sobre o site para o negócio de {segmento} em {cidade}. Se não for o momento, sem problema."},
+                ...OBJECOES.map((item,index)=>({id:"objection-"+index,label:item.titulo,category:"Objeções",text:item.resposta}))].map((item) => {
+                const target = pipeline.find((row) => row.id === messageLeadId);
+                const text = target ? fillTemplate(item.text, target.name, target.city, target.category) : item.text;
+                return <article key={item.id} className="rounded-2xl border border-border/70 bg-surface/65 p-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-primary">{item.category}</p>
+                  <h4 className="mt-1 font-semibold">{item.label}</h4>
+                  <p className="mt-2 line-clamp-3 text-sm text-muted">{text}</p>
+                  <div className="mt-3 flex gap-2">
+                    <button type="button" onClick={() => void navigator.clipboard?.writeText(text).then(() => notify("Mensagem copiada"))} className={btnGhost}><Copy className="size-4"/>Copiar</button>
+                    {target && <a href={waLink(target.phone,target.name,item.text,target.city,target.category)} target="_blank" rel="noreferrer" className={btnGhost}><MessageCircle className="size-4"/>WhatsApp</a>}
+                  </div>
+                </article>;
+              })}
+            </div>
+          </div>
+          <div className={"space-y-3 p-5 " + card}>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="font-semibold">Minhas mensagens</h3>
+              <select value={messageLeadId} onChange={(event) => setMessageLeadId(event.target.value)} className={field + " w-auto min-w-48"}>
+                <option value="">Sem lead selecionado</option>
+                {pipeline.map((row) => <option key={row.id} value={row.id}>{row.name} · {row.city}</option>)}
+              </select>
+            </div>
+            {customMessages.length === 0 ? <p className="text-sm text-muted">As mensagens que você criar aparecerão aqui.</p> : customMessages.map((item) => {
+              const target = pipeline.find((row) => row.id === messageLeadId);
+              const text = target ? fillTemplate(item.text, target.name, target.city, target.category) : item.text;
+              return <article key={item.id} className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-surface/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0"><p className="text-xs font-bold uppercase tracking-wide text-primary">{item.category}</p><h4 className="font-semibold">{item.name}</h4><p className="mt-1 line-clamp-2 text-sm text-muted">{text}</p></div>
+                <div className="flex flex-wrap gap-2"><button type="button" onClick={() => void navigator.clipboard?.writeText(text).then(() => notify("Mensagem copiada"))} className={btnGhost}><Copy className="size-4"/>Copiar</button>
+                  {target && <a href={waLink(target.phone,target.name,item.text,target.city)} target="_blank" rel="noreferrer" className={btnGhost}><MessageCircle className="size-4"/>WhatsApp</a>}
+                  <button type="button" onClick={() => { setEditingMessageId(item.id); setMessageName(item.name); setMessageText(item.text); setMessageCategory(item.category); window.scrollTo({top:0,behavior:"smooth"}); }} className={btnGhost}>Editar</button>
+                  <button type="button" onClick={() => { if(!window.confirm("Excluir esta mensagem?")) return; const next=customMessages.filter((entry)=>entry.id!==item.id); setCustomMessages(next); saveCustomMessages(next); notify("Mensagem excluída"); }} className={btnGhost + " text-danger"}><Trash2 className="size-4"/>Excluir</button>
+                </div>
+              </article>;
+            })}
+          </div>
+        </section>
+      )}
+
+      {tab === "atividades" && (
+        <section className="fade-up space-y-4">
+          <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Linha do tempo</p><h2 className="mt-1 font-display text-2xl font-bold">Histórico de atividades</h2><p className="mt-1 text-sm text-muted">Buscas, leads salvos, contatos e mudanças de etapa.</p></div>
+          <div className={"grid gap-3 p-4 sm:grid-cols-[1fr_auto] " + card}>
+            <input value={activityQuery} onChange={(event)=>setActivityQuery(event.target.value)} placeholder="Filtrar por empresa, cidade ou atividade" className={field}/>
+            <select value={activityRange} onChange={(event)=>setActivityRange(event.target.value as typeof activityRange)} className={field}><option value="todos">Todo o período</option><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option></select>
+          </div>
+          <div className={"divide-y divide-border p-4 sm:p-5 " + card}>
+            {activityItems.length === 0 ? <p className="py-8 text-center text-sm text-muted">Nenhuma atividade encontrada para esse filtro.</p> : activityItems.map((item) => <article key={item.id} className="flex gap-3 py-3 first:pt-0 last:pb-0">
+              <span className="mt-1 flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary"><Clock className="size-4"/></span>
+              <div className="min-w-0 flex-1"><p className="font-semibold">{item.text}</p><p className="truncate text-sm text-muted">{item.company}{item.city ? " · " + item.city : ""}</p></div>
+              <time className="shrink-0 text-xs text-muted">{new Date(item.at).toLocaleString("pt-BR")}</time>
+            </article>)}
+          </div>
+        </section>
+      )}
+
+      {tab === "relatorios" && (
+        <section className="fade-up space-y-5">
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Dados da sua conta</p><h2 className="mt-1 font-display text-2xl font-bold">Relatórios</h2><p className="mt-1 text-sm text-muted">Indicadores calculados com suas buscas registradas e leads no pipeline.</p></div>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => { exportCsv(pipeline); notify(pipeline.length + " leads exportados"); }} className={btnGhost}><Download className="size-4"/>Exportar leads</button>
+              <button type="button" onClick={() => exportSearchHistory(searchHistory)} className={btnGhost}><Download className="size-4"/>Exportar buscas</button>
+            </div></div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+            {[
+              ["Empresas encontradas", totalFound],["Leads salvos", pipeline.length],["Sem site", pipeline.filter((row)=>row.siteKind==="none").length],
+              ["Contatos realizados", contactsMade],["Propostas geradas", proposalsSent],["Clientes fechados", closed.length],["Conversão", salesWonRate + "%"],
+            ].map(([label,value]) => <div key={label} className={"p-4 " + card}><p className="text-sm text-muted">{label}</p><p className="mt-1 font-display text-2xl font-bold tabular-nums">{value}</p></div>)}
+          </div>
+          <div className={`p-5 ${card}`}><h3 className="mb-3 font-semibold">Empresas encontradas · últimos 7 dias</h3><div className="flex h-32 items-end gap-3">{searchDays.map((item)=>{const peak=Math.max(1,...searchDays.map((day)=>day.count));return <div key={item.key} className="flex flex-1 flex-col items-center gap-2"><span className="text-[10px] text-muted">{item.count}</span><div className="w-full rounded-t-xl bg-gradient-to-t from-primary to-sky-300" style={{height:Math.max(5,Math.round(item.count/peak*82))+"px"}}/><span className="text-xs capitalize text-muted">{item.label}</span></div>})}</div></div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className={"p-5 " + card}><h3 className="mb-4 font-semibold">Leads por cidade</h3>{reportCities.length ? reportCities.map((item)=>{const pct=pipeline.length?Math.round((item.count/pipeline.length)*100):0;return <div key={item.name} className="mb-3"><div className="mb-1 flex justify-between text-sm"><span>{item.name}</span><span className="text-muted">{item.count}</span></div><div className="h-2 overflow-hidden rounded-full bg-primary-soft"><div className="h-full rounded-full bg-primary" style={{width:pct + "%"}}/></div></div>}) : <p className="text-sm text-muted">Salve leads para formar este relatório.</p>}</div>
+            <div className={"p-5 " + card}><h3 className="mb-4 font-semibold">Leads por segmento</h3>{segmentStats.length ? segmentStats.map((item)=>{const pct=pipeline.length?Math.round((item.count/pipeline.length)*100):0;return <div key={item.name} className="mb-3"><div className="mb-1 flex justify-between text-sm"><span>{item.name}</span><span className="text-muted">{item.count}</span></div><div className="h-2 overflow-hidden rounded-full bg-primary-soft"><div className="h-full rounded-full bg-gradient-to-r from-primary to-sky-400" style={{width:pct + "%"}}/></div></div>}) : <p className="text-sm text-muted">Salve leads para formar este relatório.</p>}</div>
+          </div>
+          <div className={"p-5 " + card}><h3 className="mb-3 font-semibold">Vendas fechadas por mês</h3><div className="flex h-36 items-end gap-3">{months.map((item)=>{const peak=Math.max(1,...months.map((x)=>x.total));return <div key={item.key} className="flex flex-1 flex-col items-center gap-2"><span className="text-[10px] text-muted">{item.total?money(item.total):"—"}</span><div className="w-full rounded-t-xl bg-gradient-to-t from-primary to-sky-300" style={{height:Math.max(6,Math.round(item.total/peak*100)) + "px"}}/><span className="text-xs text-muted">{item.label}</span></div>})}</div></div>
+        </section>
+      )}
+
+      {tab === "oportunidades" && (
+        <section className="fade-up space-y-4">
+          <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Prioridade baseada em sinais reais</p><h2 className="mt-1 font-display text-2xl font-bold">Inteligência de leads</h2><p className="mt-1 text-sm text-muted">A nota considera avaliação, volume de avaliações, presença digital e telefone. Organiza a fila; não prevê intenção de compra.</p></div>
+          {opportunities.length === 0 ? <div className={"p-8 text-center " + card}><Sparkles className="mx-auto size-8 text-primary"/><p className="mt-3 font-semibold">Ainda não há leads suficientes</p><p className="mt-1 text-sm text-muted">Busque empresas e salve os resultados para ver oportunidades.</p><button type="button" onClick={()=>setTab("buscar")} className={btnPrimary + " mt-4"}>Buscar leads</button></div> :
+            <div className="grid gap-3 lg:grid-cols-2">{opportunities.map(({row,score})=>{const high=score>=70,medium=score>=45;return <article key={row.id} className={"p-4 " + card}>
+              <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="truncate font-semibold">{row.name}</h3><p className="text-sm text-muted">{row.category} · {row.city}</p></div><span className={"rounded-full px-3 py-1 text-xs font-bold " + (high?"bg-emerald-100 text-emerald-800":medium?"bg-amber-100 text-amber-800":"bg-surface-2 text-muted")}>{high?"Alta":medium?"Média":"Baixa"} · {score}/100</span></div>
+              <div className="mt-3 flex flex-wrap gap-2 text-xs"><span className="rounded-full bg-primary-soft px-2.5 py-1 text-primary">{row.siteKind==="none"?"Sem site":row.siteKind==="social"?"Só redes sociais":row.siteKind==="site"?"Site identificado":"Presença não verificada"}</span><span className="rounded-full bg-surface-2 px-2.5 py-1 text-muted">Nota {row.rating || "—"} · {row.reviews} avaliações</span><ObservationBadge observedAt={row.observedAt} showMissing/></div>
+              <div className="mt-4 flex gap-2"><a href={waLink(row.phone,row.name,message,row.city)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-whatsapp px-3 py-2 text-sm font-semibold text-white"><MessageCircle className="size-4"/>WhatsApp</a></div>
+            </article>;})}</div>}
+        </section>
+      )}
+
+      {tab === "integracoes" && (
+        <section className="fade-up space-y-4">
+          <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Conexões verificadas</p><h2 className="mt-1 font-display text-2xl font-bold">Integrações</h2><p className="mt-1 text-sm text-muted">O painel mostra o estado real; não marca serviços pendentes como conectados.</p></div>
+          {integrationsBusy ? <div className={"p-5 text-sm text-muted " + card}>Verificando o servidor…</div> : integrations ? <div className="grid gap-3 sm:grid-cols-2">
+            {([
+              ["Google Places API",integrations.googlePlacesConfigured],
+              ["Conta Google vinculada",integrations.googleAccountLinked],
+              ["Google Sheets",integrations.googleSheetsConnected],
+              ["Webhooks",integrations.webhookConfigured],
+            ] as const).map(([label,connected])=><div key={label} className={"flex items-center justify-between gap-3 p-4 " + card}><span className="font-semibold">{label}</span><span className={"rounded-full px-3 py-1 text-xs font-bold " + (connected?"bg-emerald-100 text-emerald-800":"bg-amber-100 text-amber-800")}>{connected?"Conectado":"Pendente"}</span></div>)}
+            <div className={"p-4 " + card}><p className="font-semibold">WhatsApp</p><p className="mt-1 text-sm text-muted">Links wa.me abrem no aplicativo do usuário. Não há envio automático pela API.</p><span className="mt-3 inline-flex rounded-full bg-primary-soft px-3 py-1 text-xs font-bold text-primary">Atalho disponível</span></div>
+            <div className={"p-4 " + card}><p className="font-semibold">Exportação de dados</p><p className="mt-1 text-sm text-muted">Baixe leads salvos como CSV.</p><button type="button" onClick={()=>exportCsv(pipeline)} className={btnGhost + " mt-3"}><Download className="size-4"/>Exportar CSV</button></div>
+          </div> : <div className={"p-5 " + card}><p className="text-sm text-muted">Atualize para verificar as conexões.</p><button type="button" onClick={()=>setIntegrationRefresh((value)=>value+1)} className={btnGhost + " mt-3"}>Verificar agora</button></div>}
+        </section>
+      )}
+
+      {tab === "configuracoes" && (
+        <section className="fade-up space-y-5">
+          <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Preferências da conta</p><h2 className="mt-1 font-display text-2xl font-bold">Configurações</h2><p className="mt-1 text-sm text-muted">Perfil, mensagens, pesquisas e preferências sincronizam quando a nuvem está disponível.</p></div>
+          <div className="grid gap-4 xl:grid-cols-2">
+            <div className={"space-y-4 p-5 " + card}><h3 className="font-semibold">Perfil</h3><div className="flex items-center gap-4">
+              {profilePhoto ? <img src={profilePhoto} alt="Foto de perfil" className="size-16 rounded-full object-cover ring-2 ring-primary/30"/> : <span className="flex size-16 items-center justify-center rounded-full bg-primary-soft font-display text-xl font-bold text-primary">{(userName||"LH").slice(0,1).toUpperCase()}</span>}
+              <label className={btnGhost + " cursor-pointer"}>{profileBusy?"Preparando…":"Alterar foto"}<input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(event)=>{void updateProfilePhoto(event.target.files?.[0]);event.target.value="";}}/></label>
+            </div>
+            <label className="block text-sm">Nome<input value={profileNameDraft} onChange={(event)=>setProfileNameDraft(event.target.value)} maxLength={100} className={field + " mt-1"}/></label><button type="button" onClick={saveProfile} className={btnPrimary}>Salvar perfil</button>
+            <div className="rounded-xl bg-surface-2 p-3 text-sm"><p className="font-semibold">Senha</p><p className="mt-1 text-muted">Este aplicativo usa chave de acesso, não senha. Para renovar, fale com o suporte.</p></div>
+            </div>
+            <div className={"space-y-4 p-5 " + card}><h3 className="font-semibold">Pesquisa e aparência</h3>
+              <label className="block text-sm">Cidade padrão<input value={city} onChange={(event)=>setCity(event.target.value)} placeholder="Cidade, UF" className={field + " mt-1"}/></label>
+              <label className="block text-sm">Segmento padrão<select value={niche} onChange={(event)=>setNiche(event.target.value)} className={field + " mt-1"}>{ALL_NICHES.map((item)=><option key={item} value={item}>{item}</option>)}</select></label>
+              <label className="block text-sm">Nota mínima<select value={minRating} onChange={(event)=>setMinRating(Number(event.target.value))} className={field + " mt-1"}>{[0,3,3.5,4,4.5].map((value)=><option key={value} value={value}>{value} estrelas</option>)}</select></label>
+              <label className="block text-sm">Mínimo de avaliações<input type="number" min={0} value={minReviews} onChange={(event)=>setMinReviews(Math.max(0,Number(event.target.value)||0))} className={field + " mt-1"}/></label>
+              <label className="block text-sm">Quantidade por busca<select value={quantity} onChange={(event)=>setQuantity(Number(event.target.value))} className={field + " mt-1"}>{QUANTITIES.map((value)=><option key={value} value={value}>{value} empresas</option>)}</select></label>
+              <label className="block text-sm">Bairro preferido<input value={neighborhood} onChange={(event)=>setNeighborhood(event.target.value)} placeholder="Opcional" className={field + " mt-1"}/></label>
+              <label className="block text-sm">Presença digital<select value={siteMode} onChange={(event)=>setSiteMode(event.target.value as typeof siteMode)} className={field + " mt-1"}><option value="sem">Somente sem site</option><option value="social">Sem site ou só redes sociais</option><option value="todas">Todas as empresas</option></select></label>
+              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={broad} onChange={(event)=>setBroad(event.target.checked)} className="accent-[var(--color-primary)]"/>Ampliar termos da busca</label>
+              <div className="flex flex-wrap gap-2"><button type="button" onClick={toggleTheme} className={btnGhost}>{theme==="dark"?<Sun className="size-4"/>:<Moon className="size-4"/>}{theme==="dark"?"Usar tema claro":"Usar tema escuro"}</button>
+                <button type="button" onClick={()=>void toggleNotifications()} className={btnGhost}>{notificationsEnabled?"Desativar lembretes":"Ativar lembretes"}</button></div>
+              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={onlyOpen} onChange={(event)=>setOnlyOpen(event.target.checked)} className="accent-[var(--color-primary)]"/>Mostrar somente empresas abertas</label>
+              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={mobileOnly} onChange={(event)=>setMobileOnly(event.target.checked)} className="accent-[var(--color-primary)]"/>Priorizar celular</label>
+            </div>
+          </div>
+          <div className={"flex flex-wrap items-center justify-between gap-3 p-5 " + card}><div><h3 className="font-semibold">Privacidade e conta</h3><p className="mt-1 text-sm text-muted">Exporte seus leads antes de sair. O acesso é protegido pela chave vinculada a este aparelho.</p></div><div className="flex gap-2"><button type="button" onClick={()=>exportCsv(pipeline)} className={btnGhost}><Download className="size-4"/>Exportar dados</button><button type="button" onClick={()=>void logoutAndSave()} className={btnGhost + " text-danger"}><LogOut className="size-4"/>Sair da conta</button></div></div>
+        </section>
+      )}
+    </div>
+
+            {open && (
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-fg/30 p-4 backdrop-blur-sm sm:items-center" onClick={() => setOpenId(null)}>
           <div className={`w-full max-w-md p-5 ${card}`} onClick={(event) => event.stopPropagation()}>
             <h3 className="font-display text-xl font-semibold">{open.name}</h3>
@@ -3619,6 +4096,7 @@ export function LeadApp() {
               type="button"
               onClick={() => {
                 if (!openProposal(open, userName)) notify("Libere pop-ups para abrir a proposta");
+                else setPipeline((rows) => rows.map((row) => row.id === open.id ? addHistory(row, "Proposta gerada em PDF") : row));
               }}
               className={`${btnGhost} mt-3 w-full py-2.5`}
             >
@@ -3736,6 +4214,7 @@ export function LeadApp() {
               }
               onProposal={(target) => {
                 if (!openProposal(target, userName)) notify("Libere pop-ups para abrir a proposta");
+                else setPipeline((rows) => rows.map((row) => row.id === target.id ? addHistory(row, "Proposta gerada em PDF") : row));
               }}
               onWon={(id) => {
                 setStatus(id, "fechado");

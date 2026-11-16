@@ -2,7 +2,7 @@ import { DEFAULT_FOLLOW_MSG, DEFAULT_MSG } from "./templates";
 
 export { DEFAULT_FOLLOW_MSG, DEFAULT_MSG };
 
-export type Status = "novo" | "contatado" | "proposta" | "fechado" | "perdido";
+export type Status = "novo" | "contatado" | "aguardando" | "interessado" | "proposta" | "fechado" | "perdido";
 
 export type SavedLead = {
   id: string;
@@ -167,7 +167,7 @@ export function saveTheme(value: Theme) {
 
 /** Apaga os dados guardados no navegador (ao sair), para o próximo usuário não ver leads de outro. */
 export function clearLocalData() {
-  for (const name of [PIPE, MSG, FOLLOW, TICKET, PREFS, GOAL, RECENT]) localStorage.removeItem(name);
+  for (const name of [PIPE, MSG, FOLLOW, TICKET, PREFS, GOAL, RECENT, "lh_search_activity", "lh_custom_messages", "lh_profile_photo"]) localStorage.removeItem(name);
 }
 
 const DAILY = "lh_daily_goal";
@@ -231,4 +231,45 @@ export function loadTourDone() {
 }
 export function saveTourDone() {
   localStorage.setItem(TOUR, "1");
+}
+
+
+export type SearchActivity = { id: string; at: string; city: string; niche: string; count: number; businesses?: string[] };
+export type CustomMessage = { id: string; name: string; text: string; category: string };
+
+const SEARCH_ACTIVITY = "lh_search_activity";
+const CUSTOM_MESSAGES = "lh_custom_messages";
+const PROFILE_PHOTO = "lh_profile_photo";
+const NOTIFICATIONS = "lh_notifications";
+
+export function loadSearchActivity(): SearchActivity[] {
+  try {
+    const list = JSON.parse(localStorage.getItem(SEARCH_ACTIVITY) || "[]") as SearchActivity[];
+    return Array.isArray(list) ? list.slice(-1000) : [];
+  } catch { return []; }
+}
+export function saveSearchActivity(list: SearchActivity[]) {
+  localStorage.setItem(SEARCH_ACTIVITY, JSON.stringify(list.slice(-1000)));
+}
+export function loadCustomMessages(): CustomMessage[] {
+  try {
+    const list = JSON.parse(localStorage.getItem(CUSTOM_MESSAGES) || "[]") as CustomMessage[];
+    return Array.isArray(list) ? list.slice(0, 100) : [];
+  } catch { return []; }
+}
+export function saveCustomMessages(list: CustomMessage[]) {
+  localStorage.setItem(CUSTOM_MESSAGES, JSON.stringify(list.slice(0, 100)));
+}
+export function loadProfilePhoto() {
+  try { return localStorage.getItem(PROFILE_PHOTO) || ""; } catch { return ""; }
+}
+export function saveProfilePhoto(value: string) {
+  if (value) localStorage.setItem(PROFILE_PHOTO, value);
+  else localStorage.removeItem(PROFILE_PHOTO);
+}
+export function loadNotificationsEnabled() {
+  try { return localStorage.getItem(NOTIFICATIONS) === "1"; } catch { return false; }
+}
+export function saveNotificationsEnabled(value: boolean) {
+  localStorage.setItem(NOTIFICATIONS, value ? "1" : "0");
 }
