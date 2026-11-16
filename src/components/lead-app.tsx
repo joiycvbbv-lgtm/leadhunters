@@ -2612,7 +2612,7 @@ export function LeadApp() {
       <aside className="fixed bottom-4 left-4 top-4 z-40 hidden w-[256px] flex-col rounded-[2rem] bg-gradient-to-b from-[#111a32]/90 via-[#17264b]/85 to-[#10172b]/90 p-5 text-white shadow-[0_24px_70px_-26px_rgba(10,20,48,.8)] backdrop-blur-2xl ring-1 ring-inset ring-white/10 lg:flex">
         <div className="flex items-center gap-3 px-1">
           <div className="flex size-11 items-center justify-center rounded-2xl bg-white/10 text-white ring-1 ring-white/15">
-            <Target className="size-5" />
+            <BrandMark className="size-5" />
           </div>
           <div>
             <p className="text-xs font-bold tracking-[0.22em] text-blue-200">LEADHUNTER</p>
@@ -2686,7 +2686,7 @@ export function LeadApp() {
       <header className={`sticky top-3 z-30 mb-6 flex flex-wrap items-center justify-between gap-3 rounded-[1.75rem] border border-white/70 bg-white/85 p-3 shadow-[0_16px_42px_-30px_rgba(15,23,42,.45)] backdrop-blur-xl dark:border-white/5 dark:bg-surface/85 sm:p-4 ${card}`}>
         <div className="flex items-center gap-3 lg:hidden">
           <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-b from-primary to-primary-deep text-primary-fg shadow-[0_8px_20px_-8px_rgba(79,70,229,0.45)]">
-            <Target className="size-5" />
+            <BrandMark className="size-5" />
           </div>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">LeadHunter</p>
