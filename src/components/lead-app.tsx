@@ -1680,8 +1680,6 @@ export function LeadApp() {
       .sort((x, y) => y.score - x.score)
       .slice(0, 30);
   }, [pipeline]);
-  const salesWonRate = pipeline.length ? Math.round((closed.length / pipeline.length) * 100) : 0;
-
   const months = useMemo(() => {
     const now = new Date();
     const list: { key: string; label: string; total: number }[] = [];
@@ -1732,6 +1730,7 @@ export function LeadApp() {
   }, [pipeline]);
 
   const closed = pipeline.filter((row) => row.status === "fechado");
+  const salesWonRate = pipeline.length ? Math.round((closed.length / pipeline.length) * 100) : 0;
   const negotiating = pipeline
     .filter((row) => row.status === "proposta")
     .reduce((sum, row) => sum + (row.value || ticket), 0);
