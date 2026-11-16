@@ -1182,6 +1182,19 @@ export function LeadApp() {
   const [profileBusy, setProfileBusy] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
+  const notify = useCallback((text: string, action?: { label: string; run: () => void }) => {
+    setToast(text);
+    setToastAction(action ?? null);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(
+      () => {
+        setToast("");
+        setToastAction(null);
+      },
+      action ? 6000 : 2200,
+    );
+  }, []);
+
   useEffect(() => {
     setPipeline(loadPipeline());
     setSearchHistory(loadSearchActivity());
@@ -1796,19 +1809,6 @@ export function LeadApp() {
 
   const pipelineRef = useRef(pipeline);
   pipelineRef.current = pipeline;
-
-  const notify = useCallback((text: string, action?: { label: string; run: () => void }) => {
-    setToast(text);
-    setToastAction(action ?? null);
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(
-      () => {
-        setToast("");
-        setToastAction(null);
-      },
-      action ? 6000 : 2200,
-    );
-  }, []);
 
   const keep = useCallback(
     (lead: Lead) => {
