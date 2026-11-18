@@ -56,6 +56,8 @@ export type AdminTrial = { id: number; name: string; whatsapp: string; createdAt
 
 export type AdminDay = { day: string; searches: number; sales: number; revenueCents: number };
 
+export type AdminActivity = { day: string; buyer: string; hint: string; searches: number };
+
 export type AdminExpiring = {
   id: number;
   hint: string;
@@ -70,6 +72,7 @@ export type AdminOverview = {
   orders: AdminOrder[];
   daily: AdminDay[];
   expiring: AdminExpiring[];
+  activity: AdminActivity[];
   trials: AdminTrial[];
   sites: AdminSite[];
   coupons: AdminCoupon[];
@@ -194,6 +197,15 @@ export const adminOverview = createServerFn({ method: "POST" })
         order by k.expires_at limit 100`,
     );
 
+    const activity = await sql.query<{ day: string; buyer: string; hint: string; searches: number }>(
+      `select to_char(u.day, 'YYYY-MM-DD') as day, k.buyer,
+              coalesce(k.key_plain, 'LH-…' || upper(left(k.key_hash, 6))) as hint,
+              u.count as searches
+         from search_usage u join access_keys k on k.id = u.key_id
+        where u.day >= (now() at time zone 'America/Sao_Paulo')::date - 29
+        order by u.day desc, u.count desc limit 300`,
+    );
+
     const trials = await sql.query<{ id: number; name: string; whatsapp: string; created_at: string }>(
       `select id, name, whatsapp,
               to_char(created_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as created_at
@@ -259,6 +271,7 @@ export const adminOverview = createServerFn({ method: "POST" })
         sales: Number(d.sales),
         revenueCents: Number(d.cents),
       })),
+      activity: activity.map((a) => ({ day: a.day, buyer: a.buyer || "Sem nome", hint: a.hint, searches: Number(a.searches) })),
       expiring: expiring.map((k) => ({
         id: k.id,
         hint: k.key_plain ? k.key_plain : `LH-…${k.key_hash.slice(0, 6).toUpperCase()}`,
