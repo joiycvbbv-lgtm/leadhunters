@@ -852,21 +852,75 @@ export function SiteStudio({
               {tooHeavy && <p className="text-xs font-medium text-danger">As fotos estão pesadas. Remova algumas para conseguir publicar.</p>}
             </section>
 
-            <section className={`space-y-3 p-4 ${card}`}>
-              <h3 className="font-semibold">4. Visual</h3>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {DESIGNS.map((design) => (
-                  <button
-                    key={design.id}
-                    type="button"
-                    onClick={() => patch({ design: design.id as DesignId })}
-                    className={`rounded-xl border p-3 text-left transition ${site.design === design.id ? "border-primary bg-primary-soft" : "border-border bg-surface hover:border-primary/50"}`}
-                  >
-                    <p className="text-sm font-semibold">{design.label}</p>
-                    <p className="text-xs text-muted">{design.desc}</p>
-                  </button>
-                ))}
+            <section className={`space-y-4 p-4 ${card}`}>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <h3 className="font-semibold">4. Modelos premium</h3>
+                  <p className="mt-1 text-xs text-muted">Escolha uma direção visual. A prévia ao lado muda na hora, antes de gerar ou publicar.</p>
+                </div>
+                <span className="rounded-full border border-primary/30 bg-primary-soft px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">4 estilos profissionais</span>
               </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {DESIGNS.map((design) => {
+                  const selected = site.design === design.id;
+                  const swatches: Record<DesignId, string[]> = {
+                    editorial: ["#f7f1e8", "#27231e", "#a66b45"],
+                    urbano: ["#111214", "#f4f0e8", "#d97736"],
+                    limpo: ["#ffffff", "#17243a", "#2784b8"],
+                    vitrine: ["#fff9ed", "#29213b", "#7653e8"],
+                  };
+                  const palette = swatches[design.id];
+                  const fit: Record<DesignId, string> = {
+                    editorial: "Gastronomia · beleza · marcas autorais",
+                    urbano: "Barbearia · hamburgueria · automotivo",
+                    limpo: "Clínicas · saúde · serviços",
+                    vitrine: "Lojas · sorveterias · produtos",
+                  };
+                  return (
+                    <button
+                      key={design.id}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => {
+                        patch({ design: design.id as DesignId });
+                        setPane("previa");
+                      }}
+                      className={`group overflow-hidden rounded-2xl border text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-lg ${selected ? "border-primary ring-2 ring-primary/20 shadow-md" : "border-border hover:border-primary/50"}`}
+                    >
+                      <div className="relative h-32 overflow-hidden p-3" style={{ background: palette[0], color: palette[1] }}>
+                        <div className="mx-auto h-full max-w-[210px] overflow-hidden rounded-lg border shadow-sm" style={{ background: palette[0], borderColor: palette[1] + "22" }}>
+                          <div className="flex h-5 items-center justify-between border-b px-2" style={{ borderColor: palette[1] + "20" }}>
+                            <span className="h-1 w-10 rounded-full" style={{ background: palette[1] }} />
+                            <span className="flex gap-1"><i className="size-1 rounded-full" style={{ background: palette[2] }} /><i className="size-1 rounded-full" style={{ background: palette[1] + "55" }} /></span>
+                          </div>
+                          <div className={`grid h-[calc(100%-20px)] gap-2 p-2 ${design.id === "urbano" ? "grid-cols-1" : "grid-cols-[1.15fr_.85fr]"}`}>
+                            <div className="flex flex-col justify-center gap-1.5">
+                              <span className="h-1 w-8 rounded-full" style={{ background: palette[2] }} />
+                              <span className="h-2 w-full rounded-sm" style={{ background: palette[1] }} />
+                              <span className="h-2 w-4/5 rounded-sm" style={{ background: palette[1] + "88" }} />
+                              <span className="mt-1 h-3 w-12 rounded-sm" style={{ background: palette[2] }} />
+                            </div>
+                            <div className="rounded-md" style={{ background: design.id === "urbano" ? palette[2] + "55" : palette[2] + "25" }} />
+                          </div>
+                        </div>
+                        {selected && <span className="absolute right-3 top-3 flex size-6 items-center justify-center rounded-full bg-primary text-primary-fg"><Check className="size-4" /></span>}
+                      </div>
+                      <div className="space-y-1.5 p-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-bold">{design.label}</p>
+                          {selected ? <span className="text-[10px] font-bold uppercase tracking-wide text-primary">Selecionado</span> : <span className="text-[10px] font-semibold text-muted">Premium</span>}
+                        </div>
+                        <p className="text-[11px] leading-relaxed text-muted">{fit[design.id]}</p>
+                        <p className="text-xs text-muted">{design.desc}</p>
+                        <span className="inline-flex items-center gap-1 pt-1 text-xs font-bold text-primary">Ver este modelo <ExternalLink className="size-3" /></span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="rounded-xl border border-border bg-surface-2 px-3 py-2 text-xs text-muted">
+                Dica: selecione um modelo e confira a prévia em tamanho de celular ou computador no painel ao lado. A escolha não publica nada.
+              </p>
               <div className="flex flex-wrap items-center gap-4 text-sm">
                 <label className="flex items-center gap-2">
                   <span className="font-semibold">Cor principal</span>
