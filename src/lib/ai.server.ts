@@ -6,11 +6,13 @@ export class AiError extends Error {
   }
 }
 
-const ACTIVE_MODELS = new Set(["gemini-3.8-flash", "gemini-3.6-flash"]);
+// Flash-Lite is optimized for low-latency tasks; keep Flash models available
+// as explicit overrides through GEMINI_MODEL.
+const ACTIVE_MODELS = new Set(["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.6-flash"]);
 
 function selectedModel() {
   const requested = process.env.GEMINI_MODEL?.trim();
-  return requested && ACTIVE_MODELS.has(requested) ? requested : "gemini-3.8-flash";
+  return requested && ACTIVE_MODELS.has(requested) ? requested : "gemini-3.5-flash-lite";
 }
 
 /** Chama o Gemini pela API do Google; a chave fica somente no servidor. */
@@ -62,7 +64,7 @@ export function extractJson<T>(text: string): T | null {
 }
 
 export const AI_MESSAGES: Record<string, string> = {
-  IA_NAO_CONFIGURADA: "A IA precisa da variável GEMINI_API_KEY nas configurações da Vercel. O Gemini 3.8 Flash já vem selecionado por padrão.",
+  IA_NAO_CONFIGURADA: "A IA precisa da variável GEMINI_API_KEY nas configurações da Vercel. O Gemini 3.5 Flash-Lite está selecionado por padrão para respostas mais rápidas.",
   IA_CHAVE_INVALIDA: "A chave do Google configurada no site foi recusada. O dono precisa conferir a GEMINI_API_KEY ou a GOOGLE_API_KEY.",
   IA_OCUPADA: "A IA está ocupada agora. Tente de novo em alguns segundos.",
   IA_DEMOROU: "A IA demorou demais para responder. Tente de novo, ou use o prompt rápido.",
