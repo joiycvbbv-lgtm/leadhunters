@@ -2028,6 +2028,13 @@ export function LeadApp() {
       message,
       followMessage,
       goal,
+      dailyGoal,
+      recent,
+      searchHistory,
+      customMessages,
+      preferences: { city, niche, quantity, minRating, neighborhood, minReviews, mobileOnly, onlyOpen, broad, siteMode },
+      theme,
+      userName,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -2098,7 +2105,70 @@ export function LeadApp() {
       });
       if (!valid.length && data.pipeline.length) throw new Error("sem leads válidos");
       setPipeline((current) => mergeLeads(current, valid));
-      notify(`Backup restaurado: ${valid.length} leads válidos${data.pipeline.length > valid.length ? `, ${data.pipeline.length - valid.length} ignorados` : ""}`);
+
+      if (Number.isFinite(Number((data as { ticket?: unknown }).ticket))) {
+        const restoredTicket = Math.max(0, Math.min(100000000, Number((data as { ticket?: unknown }).ticket)));
+        setTicket(restoredTicket);
+        saveTicket(restoredTicket);
+      }
+      const backup = data as {
+        message?: unknown; followMessage?: unknown; goal?: unknown; dailyGoal?: unknown;
+        recent?: unknown; searchHistory?: unknown; customMessages?: unknown; theme?: unknown;
+        userName?: unknown; preferences?: Record<string, unknown>;
+      };
+      if (typeof backup.message === "string") { setMessage(backup.message.slice(0, 5000)); saveMsg(backup.message.slice(0, 5000)); }
+      if (typeof backup.followMessage === "string") { setFollowMessage(backup.followMessage.slice(0, 5000)); saveFollowMsg(backup.followMessage.slice(0, 5000)); }
+      if (Number.isFinite(Number(backup.goal))) { const value = Math.max(0, Math.min(1000000, Number(backup.goal))); setGoal(value); saveGoal(value); }
+      if (Number.isFinite(Number(backup.dailyGoal))) { const value = Math.max(1, Math.min(10000, Number(backup.dailyGoal))); setDailyGoal(value); saveDailyGoal(value); }
+      if (Array.isArray(backup.recent)) {
+        const rows = backup.recent.slice(0, 6).flatMap((item) => {
+          if (!item || typeof item !== "object") return [];
+          const row = item as { city?: unknown; niche?: unknown };
+          return typeof row.city === "string" && typeof row.niche === "string"
+            ? [{ city: row.city.slice(0, 120), niche: row.niche.slice(0, 80) }]
+            : [];
+        });
+        setRecent(rows); saveRecent(rows);
+      }
+      if (Array.isArray(backup.searchHistory)) {
+        const rows = backup.searchHistory.slice(-1000).flatMap((item) => {
+          if (!item || typeof item !== "object") return [];
+          const row = item as Partial<SearchActivity>;
+          return typeof row.id === "string" && typeof row.at === "string" && typeof row.city === "string" && typeof row.niche === "string"
+            ? [{ id: row.id.slice(0, 120), at: row.at.slice(0, 40), city: row.city.slice(0, 120), niche: row.niche.slice(0, 80), count: Math.max(0, Math.floor(Number(row.count) || 0)), businesses: Array.isArray(row.businesses) ? row.businesses.filter((name): name is string => typeof name === "string").slice(0, 25).map((name) => name.slice(0, 160)) : [] }]
+            : [];
+        });
+        setSearchHistory(rows); saveSearchActivity(rows);
+      }
+      if (Array.isArray(backup.customMessages)) {
+        const rows = backup.customMessages.slice(0, 100).flatMap((item) => {
+          if (!item || typeof item !== "object") return [];
+          const row = item as Partial<CustomMessage>;
+          return typeof row.id === "string" && typeof row.name === "string" && typeof row.text === "string" && typeof row.category === "string"
+            ? [{ id: row.id.slice(0, 120), name: row.name.slice(0, 100), text: row.text.slice(0, 5000), category: row.category.slice(0, 100) }]
+            : [];
+        });
+        setCustomMessages(rows); saveCustomMessages(rows);
+      }
+      if (backup.theme === "light" || backup.theme === "dark") { setTheme(backup.theme); saveTheme(backup.theme); }
+      if (typeof backup.userName === "string") { const value = backup.userName.trim().slice(0, 100); setUserName(value); setProfileNameDraft(value); saveUserName(value); }
+      if (backup.preferences && typeof backup.preferences === "object") {
+        const prefs = backup.preferences;
+        const restored = {
+          city: typeof prefs.city === "string" ? prefs.city.slice(0, 120) : CITIES[0],
+          niche: typeof prefs.niche === "string" ? prefs.niche.slice(0, 80) : "restaurante",
+          quantity: Math.max(1, Math.min(60, Math.floor(Number(prefs.quantity) || 10))),
+          minRating: Math.max(0, Math.min(5, Number(prefs.minRating) || 0)),
+          neighborhood: typeof prefs.neighborhood === "string" ? prefs.neighborhood.slice(0, 120) : "",
+          minReviews: Math.max(0, Math.min(100000, Math.floor(Number(prefs.minReviews) || 0))),
+          mobileOnly: Boolean(prefs.mobileOnly), onlyOpen: Boolean(prefs.onlyOpen), broad: Boolean(prefs.broad),
+          siteMode: prefs.siteMode === "sem" || prefs.siteMode === "todas" ? prefs.siteMode : "social" as const,
+        };
+        setCity(restored.city); setNiche(restored.niche); setQuantity(restored.quantity); setMinRating(restored.minRating);
+        setNeighborhood(restored.neighborhood); setMinReviews(restored.minReviews); setMobileOnly(restored.mobileOnly);
+        setOnlyOpen(restored.onlyOpen); setBroad(restored.broad); setSiteMode(restored.siteMode); savePrefs(restored);
+      }
+      notify(`Backup restaurado: ${valid.length} leads válidos e dados complementares recuperados${data.pipeline.length > valid.length ? `, ${data.pipeline.length - valid.length} leads ignorados` : ""}`);
     } catch {
       notify("Backup inválido. Use um arquivo exportado pelo LeadHunter com até 10 MB.");
     }
