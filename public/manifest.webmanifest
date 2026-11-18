@@ -10,12 +10,5 @@
   "orientation": "any",
   "background_color": "#100b27",
   "theme_color": "#100b27",
-  "icons": [
-    {
-      "src": "/peixoto-icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    }
-  ]
+  "icons": [{"src": "/peixoto-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}]
 }
