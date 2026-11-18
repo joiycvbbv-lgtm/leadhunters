@@ -553,8 +553,8 @@ export function SiteStudio({
               Prompt para IA
             </button>
           </div>
-          <button type="button" onClick={() => void writeWithAi(true)} disabled={loading || Boolean(aiBusy)} className={`h-10 px-3 text-xs sm:px-4 sm:text-sm ${btnPrimary}`}>
-            {aiBusy === "copy" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />} <span className="hidden sm:inline">Criar site com IA</span><span className="sm:hidden">IA</span>
+          <button type="button" onClick={() => void writeWithAi(true)} disabled={loading || Boolean(aiBusy) || !sitePrompt.trim()} className={`h-10 px-3 text-xs sm:px-4 sm:text-sm ${btnPrimary}`}>
+            {aiBusy === "copy" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />} <span className="hidden sm:inline">Criar site</span><span className="sm:hidden">Criar</span>
           </button>
           <div className="flex gap-1 lg:hidden">
             <button type="button" onClick={() => setPane("editar")} className={chip(pane === "editar")}>
