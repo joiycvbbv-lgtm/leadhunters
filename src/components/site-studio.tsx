@@ -1056,26 +1056,67 @@ export function SiteStudio({
           </div>
 
           <div className={`lg:sticky lg:top-20 lg:h-[calc(100vh-6rem)] ${pane === "editar" ? "hidden lg:block" : ""}`}>
-            <div className={`flex h-[78vh] flex-col overflow-hidden lg:h-full ${card}`}>
-              <div className="flex items-center justify-between gap-2 border-b border-border p-2">
-                <p className="px-2 text-sm font-semibold">Prévia ao vivo</p>
-                <div className="flex gap-1">
-                  <button type="button" aria-label="Celular" onClick={() => setDevice("mobile")} className={chip(device === "mobile")}>
-                    <Smartphone className="size-4" />
-                  </button>
-                  <button type="button" aria-label="Computador" onClick={() => setDevice("desktop")} className={chip(device === "desktop")}>
-                    <Monitor className="size-4" />
-                  </button>
+            <div className={`flex h-[78vh] min-h-[560px] flex-col overflow-hidden ${card} lg:h-full`}>
+              <div className="space-y-3 border-b border-border p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-bold">Prévia responsiva</p>
+                    <p className="text-[11px] text-muted">Visualize antes de publicar. As alterações aparecem automaticamente.</p>
+                  </div>
+                  <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[10px] font-bold text-primary">AO VIVO</span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex gap-1 rounded-xl bg-surface-2 p-1">
+                    <button type="button" onClick={() => setDevice("mobile")} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition ${device === "mobile" ? "bg-surface text-primary shadow-sm" : "text-muted hover:text-fg"}`}>
+                      <Smartphone className="size-4" /> Celular
+                    </button>
+                    <button type="button" onClick={() => setDevice("desktop")} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition ${device === "desktop" ? "bg-surface text-primary shadow-sm" : "text-muted hover:text-fg"}`}>
+                      <Monitor className="size-4" /> Computador
+                    </button>
+                  </div>
+                  <span className="text-[10px] font-medium tabular-nums text-muted">
+                    {device === "mobile" ? "390 × 844 px" : "Largura adaptável"}
+                  </span>
                 </div>
               </div>
-              <div className="flex flex-1 justify-center overflow-auto bg-surface-2 p-3">
-                <iframe
-                  title="Prévia do site"
-                  srcDoc={previewHtml}
-                  sandbox="allow-scripts allow-popups"
-                  className="h-full min-h-[480px] rounded-xl border border-border bg-white"
-                  style={{ width: device === "mobile" ? 390 : "100%" }}
-                />
+              <div className="flex min-h-0 flex-1 items-start justify-center overflow-auto bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-surface-2 to-surface-2 p-3 sm:p-5">
+                {device === "mobile" ? (
+                  <div className="w-[min(100%,414px)] shrink-0 rounded-[2.6rem] border-[7px] border-[#17191f] bg-[#17191f] p-[5px] shadow-[0_24px_70px_-24px_rgba(0,0,0,0.65)]">
+                    <div className="relative overflow-hidden rounded-[2.05rem] bg-white">
+                      <div className="pointer-events-none absolute left-1/2 top-2 z-10 h-5 w-24 -translate-x-1/2 rounded-full bg-black/90" />
+                      <iframe
+                        title="Prévia do site em celular"
+                        srcDoc={previewHtml}
+                        sandbox="allow-scripts allow-popups"
+                        className="block h-[min(72vh,844px)] min-h-[540px] w-full border-0 bg-white"
+                        style={{ width: "100%" }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full min-w-[300px] overflow-hidden rounded-xl border border-border bg-[#17191f] p-1.5 shadow-[0_24px_70px_-24px_rgba(0,0,0,0.45)]">
+                    <div className="flex h-8 items-center gap-1.5 rounded-t-lg bg-[#252832] px-3">
+                      <span className="size-2 rounded-full bg-[#f87171]" />
+                      <span className="size-2 rounded-full bg-[#fbbf24]" />
+                      <span className="size-2 rounded-full bg-[#4ade80]" />
+                      <div className="ml-3 flex h-5 min-w-0 flex-1 items-center rounded-md bg-[#17191f] px-3 text-[10px] text-white/50">
+                        <span className="truncate">{slug ? `${slug}.leadhunter.site` : `${slugify(name || "seu-site")}.seu-dominio.com.br`}</span>
+                      </div>
+                    </div>
+                    <iframe
+                      title="Prévia do site em computador"
+                      srcDoc={previewHtml}
+                      sandbox="allow-scripts allow-popups"
+                      className="block h-[min(72vh,900px)] min-h-[540px] w-full border-0 bg-white"
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-3 py-2">
+                <p className="text-[11px] text-muted">Confira textos, fotos, botões e rolagem nas duas telas.</p>
+                <button type="button" onClick={() => setPane("editar")} className="text-xs font-semibold text-primary hover:underline lg:hidden">
+                  Voltar para edição
+                </button>
               </div>
             </div>
           </div>
