@@ -343,6 +343,7 @@ export function AdminApp() {
           ["Clientes e testes", "#admin-trials"],
           ["Renovações", "#admin-expiring"],
           ["Marketing", "#admin-marketing"],
+          ["Usuários", "#admin-users"],
         ].map(([label, href]) => (
           <a key={href} href={href} className="rounded-xl px-3 py-2 text-xs font-semibold text-muted transition hover:bg-primary-soft hover:text-primary">
             {label}
@@ -758,6 +759,68 @@ export function AdminApp() {
           As 50 keys antigas guardam só o código criptografado, por isso aparecem como “LH-…”. Keys novas mostram o texto
           completo.
         </p>
+      </section>
+
+      <section id="admin-users" className={`scroll-mt-24 p-4 ${card}`}>
+        <div className="mb-3">
+          <h2 className="font-semibold">Gerenciamento de usuários e permissões</h2>
+          <p className="mt-1 text-xs text-muted">Cada usuário corresponde a uma licença (key). Ajuste os limites de uso ou bloqueie o acesso.</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px] text-left text-sm">
+            <thead className="text-xs text-muted"><tr>
+              <th className="py-2 pr-3">Usuário / licença</th><th className="pr-3">Permissões de uso</th><th className="pr-3">Uso hoje</th><th className="pr-3">Status</th><th>Acesso</th>
+            </tr></thead>
+            <tbody className="divide-y divide-border">
+              {data.keys.map((k) => (
+                <tr key={k.id}>
+                  <td className="py-3 pr-3">
+                    <p className="font-semibold">{k.buyer || "Sem nome"}</p>
+                    <p className="font-mono text-[11px] text-muted">{maskKey(k.hint)}</p>
+                  </td>
+                  <td className="pr-3">
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs text-muted">Buscas/dia</label>
+                      <input aria-label={`Limite diário de ${k.buyer}`} type="number" min={1} max={1000} defaultValue={k.dailyLimit}
+                        onBlur={(e) => { const value = Number(e.target.value); if (value >= 1 && value <= 1000 && value !== k.dailyLimit) void patch(k.id, { dailyLimit: value }); }}
+                        className="w-20 rounded-lg border border-border bg-surface-2 px-2 py-1 text-xs" />
+                    </div>
+                    <div className="mt-1 flex items-center gap-2">
+                      <label className="text-xs text-muted">Aparelhos</label>
+                      <input aria-label={`Limite de aparelhos de ${k.buyer}`} type="number" min={1} max={10} defaultValue={k.maxDevices}
+                        onBlur={(e) => { const value = Number(e.target.value); if (value >= 1 && value <= 10 && value !== k.maxDevices) void patch(k.id, { maxDevices: value }); }}
+                        className="w-20 rounded-lg border border-border bg-surface-2 px-2 py-1 text-xs" />
+                    </div>
+                  </td>
+                  <td className="pr-3 tabular-nums">{k.usedToday}/{k.dailyLimit}</td>
+                  <td className="pr-3"><span className={`rounded-full px-2 py-1 text-xs font-semibold ${k.status === "ativa" ? "bg-emerald-500/10 text-emerald-600" : "bg-danger/10 text-danger"}`}>{k.status === "ativa" ? "Ativo" : "Bloqueado"}</span></td>
+                  <td>
+                    {k.status === "ativa" ? (
+                      <button type="button" onClick={() => { if (window.confirm(`Bloquear o acesso de ${k.buyer || "este usuário"}?`)) void patch(k.id, { status: "revogada" }); }} className={`${btnGhost} text-danger`}>
+                        <Ban className="size-3" /> Bloquear
+                      </button>
+                    ) : (
+                      <button type="button" onClick={() => void patch(k.id, { status: "ativa" })} className={btnGhost}>Desbloquear</button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="mt-6 border-t border-border pt-4">
+          <h3 className="font-semibold">Histórico de atividades — últimos 30 dias</h3>
+          <p className="mt-1 text-xs text-muted">Registro de volume de buscas por licença e por dia (não é um log de cada clique ou ação).</p>
+          <div className="mt-2 max-h-72 overflow-auto">
+            <table className="w-full min-w-[500px] text-left text-sm">
+              <thead className="sticky top-0 bg-surface text-xs text-muted"><tr><th className="py-2 pr-3">Data</th><th className="pr-3">Usuário</th><th className="pr-3">Licença</th><th>Buscas</th></tr></thead>
+              <tbody className="divide-y divide-border">
+                {data.activity.map((item, index) => <tr key={`${item.day}-${item.hint}-${index}`}><td className="py-2 pr-3">{new Date(item.day + "T12:00:00").toLocaleDateString("pt-BR")}</td><td className="pr-3">{item.buyer}</td><td className="pr-3 font-mono text-xs">{maskKey(item.hint)}</td><td className="font-semibold tabular-nums">{item.searches}</td></tr>)}
+              </tbody>
+            </table>
+            {data.activity.length === 0 && <p className="py-5 text-center text-xs text-muted">Ainda não há buscas registradas nesse período.</p>}
+          </div>
+        </div>
       </section>
 
       <section id="admin-orders" className={`scroll-mt-24 p-4 ${card}`}>
