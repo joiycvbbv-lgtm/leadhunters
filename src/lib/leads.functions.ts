@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 
-// Recomendado: definir GOOGLE_PLACES_KEY nas variáveis de ambiente da Vercel
-// e apagar o valor de reserva abaixo (a chave nunca vai para o navegador).
+// A chave do Google Places deve existir somente nas variáveis de ambiente
+// do servidor. Nunca mantenha uma chave de API no código-fonte.
 function getPlacesKey() {
-  return process.env.GOOGLE_PLACES_KEY || "AIzaSyArYtHwPLYnMwDF9ctcEThDDzPHYrVFQjg";
+  return process.env.GOOGLE_PLACES_KEY?.trim() || "";
 }
 
 export type Lead = {
@@ -209,6 +209,13 @@ export const searchPlaces = createServerFn({ method: "POST" })
     return { city, niche, neighborhood, minReviews, mobileOnly, openOnly, broad, siteMode, minRating, quantity, accessKey, deviceId };
   })
   .handler(async ({ data }): Promise<SearchResult> => {
+    const placesKey = getPlacesKey();
+    if (!placesKey) {
+      return {
+        ok: false,
+        error: "A busca ainda não está configurada. O administrador precisa adicionar GOOGLE_PLACES_KEY nas variáveis de ambiente.",
+      };
+    }
     const { checkAccess, consumeSearch, refundSearch } = await import("./keys.server");
     const access = await checkAccess(data.accessKey, data.deviceId, false);
     if (!access.ok) return { ok: false, error: access.code };
@@ -246,7 +253,7 @@ export const searchPlaces = createServerFn({ method: "POST" })
     try {
       for (let page = 0; page < 3 && leads.length < data.quantity; page += 1) {
         if (page > 0) await new Promise((resolve) => setTimeout(resolve, 1800));
-        const pageResult = await fetchPage(query, getPlacesKey(), pageToken);
+        const pageResult = await fetchPage(query, placesKey, pageToken);
         if (!pageResult.ok) {
           await refundSearch(access.keyId);
           return pageResult;
@@ -259,7 +266,7 @@ export const searchPlaces = createServerFn({ method: "POST" })
           const variants = data.niche
             ? [`${data.niche} ${area}`, `${data.niche} perto de ${area}`, `melhores ${data.niche} ${area}`]
             : [`comércio ${area}`, `serviços ${area}`];
-          const extra = await Promise.all(variants.map((variant) => fetchPage(variant, getPlacesKey())));
+          const extra = await Promise.all(variants.map((variant) => fetchPage(variant, placesKey)));
           extra.forEach((result, position) => {
             if (!result.ok) return;
             scanned += result.places.length;
