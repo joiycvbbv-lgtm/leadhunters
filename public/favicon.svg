@@ -1,18 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="LeadHunter">
   <defs>
-    <linearGradient id="brand" x1="8" y1="5" x2="56" y2="59" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#8B9BFF"/>
-      <stop offset="1" stop-color="#48C7E8"/>
+    <linearGradient id="surface" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#263b68"/>
+      <stop offset="1" stop-color="#101a32"/>
     </linearGradient>
-    <linearGradient id="bg" x1="4" y1="3" x2="60" y2="61" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#202D55"/>
-      <stop offset="1" stop-color="#10172B"/>
+    <linearGradient id="mark" x1="15" y1="12" x2="49" y2="52" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#a9c8ff"/>
+      <stop offset="1" stop-color="#58a8ff"/>
     </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="18" fill="url(#bg)"/>
-  <circle cx="28" cy="28" r="17" fill="none" stroke="url(#brand)" stroke-width="4.5"/>
-  <circle cx="28" cy="28" r="7.5" fill="none" stroke="#fff" stroke-opacity=".95" stroke-width="3.5"/>
-  <circle cx="28" cy="28" r="2.8" fill="url(#brand)"/>
-  <path d="m40.5 40.5 12 12" stroke="url(#brand)" stroke-width="6" stroke-linecap="round"/>
-  <path d="M28 5v5M5 28h5" stroke="#fff" stroke-opacity=".65" stroke-width="2.5" stroke-linecap="round"/>
+  <rect width="64" height="64" rx="18" fill="url(#surface)"/>
+  <path d="M18 14v36h25" fill="none" stroke="url(#mark)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M28 37 39 26l8 7 7-9" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="54" cy="24" r="3.5" fill="#79c4ff"/>
 </svg>
