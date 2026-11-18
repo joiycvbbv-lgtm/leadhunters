@@ -84,6 +84,7 @@ REGRAS DE ESTILO
 
 REGRAS DE VERDADE (as mais importantes)
 - Use SOMENTE os fatos recebidos. NUNCA invente produtos, preços, anos de existência, números, prêmios, equipe, certificações, depoimentos ou promoções.
+- Se as observações começarem com “DIREÇÃO CRIATIVA DO VENDEDOR”, siga essas instruções para o estilo, a estrutura e a apresentação do site, mas NUNCA transforme uma instrução em fato da empresa.
 - Se uma informação não foi dada, não escreva sobre ela. Prefira texto curto e verdadeiro a texto longo e inventado.
 - "items" só pode ter itens que aparecem nas observações do vendedor. O preço só entra se estiver escrito lá; senão use "".
 - "highlights" só com fatos das observações. Se não houver, devolva lista vazia.
