@@ -266,3 +266,87 @@ html[data-theme="dark"] nav.fixed {
     transform: none;
   }
 }
+
+
+/* Mobile polish: layouts stay readable and touch-friendly on narrow screens. */
+* {
+  min-width: 0;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: 5rem;
+}
+body {
+  overflow-x: clip;
+}
+img, svg, video, canvas {
+  max-width: 100%;
+}
+@media (max-width: 720px) {
+  body {
+    background-attachment: scroll;
+  }
+  main, [role="main"] {
+    width: 100%;
+    max-width: 100%;
+  }
+  .glass-panel {
+    -webkit-backdrop-filter: blur(18px) saturate(1.35);
+    backdrop-filter: blur(18px) saturate(1.35);
+  }
+  .glass-panel:hover {
+    transform: none;
+  }
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    min-height: 44px;
+    font-size: 16px;
+  }
+  button:not(:disabled), [role="button"]:not(:disabled) {
+    min-height: 40px;
+  }
+  table {
+    min-width: 620px;
+  }
+  .overflow-x-auto {
+    max-width: 100%;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  nav.fixed {
+    padding-bottom: max(.5rem, env(safe-area-inset-bottom));
+    padding-left: max(.65rem, env(safe-area-inset-left));
+    padding-right: max(.65rem, env(safe-area-inset-right));
+  }
+  [role="dialog"], [data-radix-dialog-content] {
+    width: min( calc(100vw - 1rem), 36rem );
+    max-width: calc(100vw - 1rem);
+    max-height: calc(100dvh - 1rem);
+    overflow-y: auto;
+    border-radius: 1.25rem;
+  }
+  .lead-card {
+    contain-intrinsic-size: 0 190px;
+  }
+}
+@media (max-width: 420px) {
+  .glass-panel {
+    border-radius: 1rem;
+  }
+  nav.fixed {
+    gap: .15rem;
+  }
+  nav.fixed button,
+  nav.fixed a {
+    min-width: 0;
+    padding-left: .45rem;
+    padding-right: .45rem;
+    font-size: .68rem;
+  }
+}
+@supports (padding: max(0px)) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
