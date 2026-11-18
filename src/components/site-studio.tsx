@@ -299,7 +299,7 @@ export function SiteStudio({
       category: data.category,
       city: data.city,
       address: data.address,
-      notes: [notes, sitePrompt.trim() ? `DIREÇÃO CRIATIVA DO VENDEDOR (instruções, não fatos): ${sitePrompt.trim()}` : ""].filter(Boolean).join("\n\n").slice(0, 1500),
+      notes: [sitePrompt.trim() ? `DIREÇÃO CRIATIVA DO VENDEDOR (instruções, não fatos): ${sitePrompt.trim()}` : "", notes].filter(Boolean).join("\n\n").slice(0, 1500),
       hasHours: data.hours.length > 0,
       tone,
     };
