@@ -1,0 +1,21 @@
+{
+  "id": "/",
+  "name": "Peixoto Leads",
+  "short_name": "Peixoto Leads",
+  "description": "Prospecção inteligente e gestão de leads locais.",
+  "lang": "pt-BR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#100b27",
+  "theme_color": "#100b27",
+  "icons": [
+    {
+      "src": "/peixoto-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
