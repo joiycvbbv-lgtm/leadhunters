@@ -266,3 +266,158 @@ html[data-theme="dark"] nav.fixed {
     transform: none;
   }
 }
+
+
+/* Peixoto Leads — ajuste de experiência em telas pequenas */
+@media (max-width: 639px) {
+  html, body {
+    width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+    background-attachment: scroll;
+  }
+
+  body {
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior-x: none;
+  }
+
+  /* O menu inferior já cobre as áreas principais; evita duplicar os 11 atalhos
+     em uma faixa estreita dentro do cabeçalho. */
+  header.sticky nav {
+    display: none !important;
+  }
+
+  header.sticky {
+    top: max(8px, env(safe-area-inset-top)) !important;
+    margin-bottom: 1rem !important;
+    padding: 0.7rem !important;
+    gap: 0.65rem !important;
+    border-radius: 1.2rem !important;
+    align-items: center !important;
+  }
+
+  header.sticky > div:first-child {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  header.sticky > div:last-child {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.4rem;
+  }
+
+  header.sticky > div:last-child > button,
+  header.sticky > div:last-child > a {
+    min-height: 42px;
+  }
+
+  /* Conteúdo principal usa a largura real do telefone e reserva espaço
+     para a barra inferior e para a área segura do Android/iOS. */
+  .mx-auto.min-h-screen {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: calc(6.25rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .lead-card {
+    min-width: 0;
+    padding: 0.9rem !important;
+    border-radius: 1.1rem;
+  }
+
+  .lead-card h3,
+  .lead-card p,
+  .lead-card span {
+    overflow-wrap: anywhere;
+  }
+
+  /* Cartões e indicadores se reorganizam sem criar rolagem horizontal. */
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  }
+
+  .glass-panel {
+    -webkit-backdrop-filter: blur(18px) saturate(1.35);
+    backdrop-filter: blur(18px) saturate(1.35);
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    min-height: 44px;
+    max-width: 100%;
+    font-size: 16px;
+  }
+
+  button,
+  [role="button"],
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  nav.fixed {
+    min-height: 60px;
+    padding-top: 0.35rem;
+    padding-bottom: max(0.35rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  nav.fixed button {
+    min-width: 0;
+    min-height: 48px;
+    padding-left: 0.2rem;
+    padding-right: 0.2rem;
+    touch-action: manipulation;
+  }
+
+  /* Tabelas administrativas continuam acessíveis sem alargar a página. */
+  table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .overflow-x-auto {
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+
+  /* Diálogos e painéis não podem ultrapassar a viewport. */
+  [role="dialog"] {
+    max-width: calc(100vw - 1.25rem);
+    max-height: calc(100dvh - 1.5rem);
+    overflow-y: auto;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  header.sticky {
+    align-items: flex-start;
+  }
+
+  header.sticky nav {
+    order: 3;
+    width: 100%;
+    max-width: 100%;
+    scrollbar-width: thin;
+  }
+
+  header.sticky > div:last-child {
+    max-width: 100%;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  a {
+    touch-action: manipulation;
+  }
+}
