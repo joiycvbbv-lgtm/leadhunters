@@ -172,6 +172,7 @@ async function fetchPage(query: string, apiKey: string, pageToken?: string) {
       "X-Goog-FieldMask": FIELD_MASK,
     },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(15_000),
   });
 
   const payload = (await response.json().catch(() => null)) as {
@@ -193,15 +194,16 @@ async function fetchPage(query: string, apiKey: string, pageToken?: string) {
 
 export const searchPlaces = createServerFn({ method: "POST" })
   .validator((data: Input) => {
-    const city = (data.city || "").trim();
-    const niche = (data.niche || "").trim().slice(0, 60);
+    const city = String(data.city || "").trim().slice(0, 120);
+    const niche = String(data.niche || "").trim().slice(0, 60);
     const neighborhood = String(data.neighborhood || "").trim().slice(0, 60);
     const minReviews = Math.max(0, Math.min(1000, Math.round(Number(data.minReviews) || 0)));
     const mobileOnly = Boolean(data.mobileOnly);
     const openOnly = Boolean(data.openOnly);
     const broad = Boolean(data.broad);
     const siteMode = data.siteMode === "todas" ? "todas" : data.siteMode === "sem" ? "sem" : "social";
-    const minRating = Number(data.minRating) || 0;
+    const requestedRating = Number(data.minRating);
+    const minRating = Number.isFinite(requestedRating) ? Math.max(0, Math.min(5, requestedRating)) : 0;
     const quantity = Math.min(60, Math.max(1, Math.round(Number(data.quantity) || 10)));
     const accessKey = String(data.accessKey || "");
     const deviceId = String(data.deviceId || "");
