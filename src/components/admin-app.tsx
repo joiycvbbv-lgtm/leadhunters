@@ -311,7 +311,7 @@ export function AdminApp() {
     <div className="admin-shell mx-auto min-h-screen max-w-6xl space-y-5 px-4 pb-16 pt-5 sm:px-6">
       <header className={`admin-header flex flex-wrap items-center justify-between gap-3 p-4 ${card}`}>
         <h1 className="flex items-center gap-2 font-display text-xl font-semibold">
-          <KeyRound className="size-5 text-primary" /> Admin LeadHunter
+          <KeyRound className="size-5 text-primary" /> Admin Peixoto Leads
         </h1>
         <div className="flex gap-2">
           <button type="button" onClick={() => void load(token)} className={btnGhost}>
@@ -531,7 +531,7 @@ export function AdminApp() {
                   rel="noreferrer"
                   href={waLink(
                     t.whatsapp,
-                    `Oi${t.name ? ` ${t.name.split(" ")[0]}` : ""}! Vi que você testou o LeadHunter. Ficou com alguma dúvida? Para liberar o acesso completo é só escolher um plano: ${window.location.origin}/comprar`,
+                    `Oi${t.name ? ` ${t.name.split(" ")[0]}` : ""}! Vi que você testou o Peixoto Leads. Ficou com alguma dúvida? Para liberar o acesso completo é só escolher um plano: ${window.location.origin}/comprar`,
                   )}
                 >
                   <MessageCircle className="size-3.5" /> Chamar no WhatsApp
@@ -561,7 +561,7 @@ export function AdminApp() {
                     rel="noreferrer"
                     href={waLink(
                       k.whatsapp,
-                      `Oi${k.buyer ? ` ${k.buyer.split(" ")[0]}` : ""}! Sua key do LeadHunter vence em ${new Date(k.expiresAt).toLocaleDateString("pt-BR")}. Para renovar é só pagar pelo link: ${window.location.origin}/comprar`,
+                      `Oi${k.buyer ? ` ${k.buyer.split(" ")[0]}` : ""}! Sua key do Peixoto Leads vence em ${new Date(k.expiresAt).toLocaleDateString("pt-BR")}. Para renovar é só pagar pelo link: ${window.location.origin}/comprar`,
                     )}
                   >
                     <MessageCircle className="size-3.5" /> Avisar no WhatsApp
