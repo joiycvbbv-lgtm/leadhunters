@@ -158,6 +158,8 @@ export function AdminApp() {
       setToken(result.token);
       setPassword("");
       await load(result.token);
+    } catch {
+      setLoginError("Não consegui conectar ao painel. Confira a internet e tente novamente.");
     } finally {
       setBusy(false);
     }
@@ -291,6 +293,7 @@ export function AdminApp() {
           </div>
           <input
             type="password"
+            required
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="Senha do admin"
