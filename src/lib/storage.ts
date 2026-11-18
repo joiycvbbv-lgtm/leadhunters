@@ -167,7 +167,30 @@ export function saveTheme(value: Theme) {
 
 /** Apaga os dados guardados no navegador (ao sair), para o próximo usuário não ver leads de outro. */
 export function clearLocalData() {
-  for (const name of [PIPE, MSG, FOLLOW, TICKET, PREFS, GOAL, RECENT, "lh_search_activity", "lh_custom_messages", "lh_profile_photo"]) localStorage.removeItem(name);
+  // Remove também dados de perfil e preferências da conta anterior para
+  // evitar que outra pessoa veja informações ao entrar no mesmo aparelho.
+  for (const name of [
+    PIPE,
+    MSG,
+    FOLLOW,
+    TICKET,
+    PREFS,
+    GOAL,
+    DAILY,
+    RECENT,
+    USER,
+    NOTIFICATIONS,
+    ANN,
+    "lh_search_activity",
+    "lh_custom_messages",
+    "lh_profile_photo",
+  ]) {
+    try {
+      localStorage.removeItem(name);
+    } catch {
+      // O navegador pode bloquear o armazenamento; o logout deve continuar.
+    }
+  }
 }
 
 const DAILY = "lh_daily_goal";
