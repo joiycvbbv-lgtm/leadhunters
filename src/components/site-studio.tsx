@@ -245,6 +245,7 @@ export function SiteStudio({
   const [pFormat, setPFormat] = useState<PromptFormat>("unico");
   const [pDetail, setPDetail] = useState<"completo" | "curto">("completo");
   const [brief, setBrief] = useState("");
+  const [sitePrompt, setSitePrompt] = useState("");
 
   useEffect(() => {
     try {
@@ -298,7 +299,7 @@ export function SiteStudio({
       category: data.category,
       city: data.city,
       address: data.address,
-      notes,
+      notes: [notes, sitePrompt.trim() ? `DIREÇÃO CRIATIVA DO VENDEDOR (instruções, não fatos): ${sitePrompt.trim()}` : ""].filter(Boolean).join("\n\n").slice(0, 1500),
       hasHours: data.hours.length > 0,
       tone,
     };
@@ -317,24 +318,47 @@ export function SiteStudio({
       }
       setUndo({ tagline: site.tagline, about: site.about, hl: hlText, items: itemsText, design: site.design, color: site.color });
       const c = res.copy;
-      patch({
+      const generatedSite: SiteData = {
+        ...data,
         tagline: c.tagline || site.tagline,
         about: c.about || site.about,
         design: c.design || site.design,
         color: c.color || site.color,
+        highlights: c.highlights.length ? c.highlights : data.highlights,
+        items: c.items.length ? c.items : data.items,
+      };
+      patch({
+        tagline: generatedSite.tagline,
+        about: generatedSite.about,
+        design: generatedSite.design,
+        color: generatedSite.color,
+        highlights: generatedSite.highlights,
+        items: generatedSite.items,
       });
       if (c.highlights.length) setHlText(c.highlights.join("\n"));
       if (c.items.length) setItemsText(itemsToText(c.items));
       setAiWarnings([...c.warnings, ...(createSite && site.photos.length === 0 ? ["Adicione fotos reais autorizadas do estabelecimento antes de publicar; o rascunho não inventa imagens."] : [])]);
-      setAiInfo(`${res.usage.used} de ${res.usage.limit} gerações de IA usadas hoje`);
+      setAiInfo(String(res.usage.used) + " de " + String(res.usage.limit) + " gerações de IA usadas hoje");
       if (createSite) {
         setView("site");
         setPane("previa");
-        notify(
-          site.photos.length > 0
-            ? "Rascunho criado. Revise a prévia antes de publicar."
-            : "Rascunho criado. Adicione fotos reais autorizadas do cliente antes de publicar.",
-        );
+        if (!isTest) {
+          const saved = await publishSite({
+            data: { key: accessKey, deviceId, slug, leadRef: lead.id, site: generatedSite, kind: "previa", indexable: false },
+          });
+          if (!saved.ok) {
+            if (ACCESS_ERRORS.includes(saved.error)) onAccessError(saved.error);
+            setError(saved.error);
+            notify("O site foi gerado na prévia, mas não consegui salvar o link.");
+          } else {
+            setSlug(saved.slug);
+            setMode("previa");
+            setIndexable(false);
+            notify("Site criado e prévia publicada automaticamente!");
+          }
+        } else {
+          notify("Site criado na prévia. A key de teste não permite publicar o link.");
+        }
       } else {
         notify("Textos e identidade visual prontos. Revise antes de publicar.");
       }
@@ -656,6 +680,28 @@ export function SiteStudio({
             )}
 
             {view === "site" && (<>
+            <section className="space-y-3 p-4 glass-panel rounded-[1.6rem]">
+              <div className="flex items-center gap-2">
+                <Sparkles className="size-5 text-primary" />
+                <h3 className="font-semibold">Criador automático por prompt</h3>
+              </div>
+              <p className="text-sm text-muted">Descreva o site que você quer. O LeadHunter usa os dados já encontrados do negócio, cria os textos e a identidade visual, monta a prévia e salva o link automaticamente.</p>
+              <textarea
+                value={sitePrompt}
+                onChange={(event) => setSitePrompt(event.target.value.slice(0, 1200))}
+                rows={4}
+                maxLength={1200}
+                placeholder="Ex.: Crie um site moderno e elegante para uma sorveteria, com cores alegres, destaque para os sabores, seção de localização e botão grande para pedir pelo WhatsApp. Não invente preços."
+                className={field}
+              />
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs text-muted">{sitePrompt.length}/1200 caracteres · Uma única geração de IA</span>
+                <button type="button" onClick={() => void writeWithAi(true)} disabled={loading || Boolean(aiBusy) || !sitePrompt.trim()} className={btnPrimary}>
+                  {aiBusy === "copy" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+                  {aiBusy === "copy" ? "Criando seu site..." : "Criar site automaticamente"}
+                </button>
+              </div>
+            </section>
             <section className={`space-y-3 p-4 ${card}`}>
               <h3 className="font-semibold">1. Dados da empresa</h3>
               <div className="grid gap-3 sm:grid-cols-2">
