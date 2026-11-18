@@ -282,10 +282,23 @@ html[data-theme="dark"] nav.fixed {
     overscroll-behavior-x: none;
   }
 
-  /* O menu inferior já cobre as áreas principais; evita duplicar os 11 atalhos
-     em uma faixa estreita dentro do cabeçalho. */
+  /* Mantém os 11 atalhos acessíveis: a navegação vira uma faixa horizontal
+     de largura total, enquanto o menu inferior oferece os cinco atalhos rápidos. */
   header.sticky nav {
-    display: none !important;
+    display: flex !important;
+    order: -1;
+    width: 100%;
+    max-width: 100% !important;
+    flex: 1 1 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+
+  header.sticky nav button {
+    flex: 0 0 auto;
+    min-height: 40px;
+    white-space: nowrap;
   }
 
   header.sticky {
