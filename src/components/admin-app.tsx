@@ -71,7 +71,7 @@ function waLink(phone: string, text: string) {
 function MiniBars({ title, values, labels, format }: { title: string; values: number[]; labels: string[]; format?: (n: number) => string }) {
   const peak = Math.max(1, ...values);
   return (
-    <div className={`p-4 ${card}`}>
+    <div className={`admin-chart p-4 ${card}`}>
       <h3 className="mb-3 text-sm font-semibold">{title}</h3>
       <div className="flex h-28 items-end gap-1">
         {values.map((value, index) => (
@@ -308,8 +308,8 @@ export function AdminApp() {
 
   const s = data.stats;
   return (
-    <div className="mx-auto min-h-screen max-w-6xl space-y-5 px-4 pb-16 pt-5 sm:px-6">
-      <header className={`flex flex-wrap items-center justify-between gap-3 p-4 ${card}`}>
+    <div className="admin-shell mx-auto min-h-screen max-w-6xl space-y-5 px-4 pb-16 pt-5 sm:px-6">
+      <header className={`admin-header flex flex-wrap items-center justify-between gap-3 p-4 ${card}`}>
         <h1 className="flex items-center gap-2 font-display text-xl font-semibold">
           <KeyRound className="size-5 text-primary" /> Admin LeadHunter
         </h1>
@@ -334,7 +334,7 @@ export function AdminApp() {
         </div>
       </header>
 
-      <nav aria-label="Navegação administrativa" className={`sticky top-3 z-20 flex flex-wrap gap-2 rounded-2xl border border-border/70 bg-surface/80 p-2 shadow-lg backdrop-blur-2xl`}>
+      <nav aria-label="Navegação administrativa" className={`admin-nav sticky top-3 z-20 flex flex-wrap gap-2 rounded-2xl border border-border/70 bg-surface/80 p-2 shadow-lg backdrop-blur-2xl`}>
         {[
           ["Visão geral", "#admin-overview"],
           ["Licenças", "#admin-keys"],
@@ -362,14 +362,14 @@ export function AdminApp() {
             ["Receita", brl(s.revenueCents)],
           ] as const
         ).map(([label, value]) => (
-          <div key={label} className={`p-3.5 ${card}`}>
+          <div key={label} className={`admin-stat-card p-3.5 ${card}`}>
             <p className="text-xs text-muted">{label}</p>
             <p className="font-display text-xl font-semibold">{value}</p>
           </div>
         ))}
       </div>
 
-      <section className="grid gap-3 sm:grid-cols-3">
+      <section className="admin-charts grid gap-3 sm:grid-cols-3">
         <MiniBars
           title="Buscas por dia (14 dias)"
           values={data.daily.map((d) => d.searches)}
