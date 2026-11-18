@@ -606,7 +606,12 @@ function chip(active: boolean) {
 
 function exportCsv(rows: SavedLead[]) {
   const head = ["Nome", "Telefone", "Cidade", "Status", "Valor", "Retorno", "Notas", "Endereço", "Maps", "Consulta Google"];
-  const esc = (value: string | number) => `"${String(value ?? "").replaceAll('"', '""').replaceAll("\n", " ")}"`;
+  // Neutraliza fórmulas para impedir CSV Injection ao abrir no Excel/Sheets.
+  const esc = (value: string | number) => {
+    let text = String(value ?? "").replace(/[\r\n]+/g, " ");
+    if (/^[\s]*[=+@\-]/.test(text) || /^[\t\r]/.test(text)) text = "'" + text;
+    return `"${text.replaceAll('"', '""')}"`;
+  };
   const lines = rows.map((r) =>
     [
       r.name,
@@ -635,7 +640,11 @@ function exportCsv(rows: SavedLead[]) {
 }
 
 function exportSearchHistory(rows: SearchActivity[]) {
-  const escape = (value: string | number) => '"' + String(value ?? "").replaceAll('"', '""').replaceAll("\n", " ") + '"';
+  const escape = (value: string | number) => {
+    let text = String(value ?? "").replace(/[\r\n]+/g, " ");
+    if (/^[\s]*[=+@\-]/.test(text) || /^[\t\r]/.test(text)) text = "'" + text;
+    return '"' + text.replaceAll('"', '""') + '"';
+  };
   const lines = [
     ["Data", "Cidade", "Segmento", "Empresas encontradas"].map(escape).join(";"),
     ...rows.map((row) => [new Date(row.at).toLocaleString("pt-BR"), row.city, row.niche, row.count].map(escape).join(";")),
@@ -2032,15 +2041,66 @@ export function LeadApp() {
 
   async function restoreBackup(file: File) {
     try {
-      const data = JSON.parse(await file.text()) as { pipeline?: SavedLead[] };
-      if (!Array.isArray(data?.pipeline)) throw new Error("formato");
-      const valid = data.pipeline.filter(
-        (row) => row && typeof row.id === "string" && typeof row.name === "string" && typeof row.phone === "string",
-      );
+      if (file.size > 10 * 1024 * 1024) throw new Error("tamanho");
+      const data = JSON.parse(await file.text()) as { app?: string; version?: number; pipeline?: unknown[] };
+      if (data?.app !== "leadhunter" || !Array.isArray(data.pipeline) || data.pipeline.length > 5000) {
+        throw new Error("formato");
+      }
+      const statuses: Status[] = ["novo", "contatado", "aguardando", "interessado", "proposta", "fechado", "perdido"];
+      const safeUrl = (value: unknown) => {
+        if (typeof value !== "string") return null;
+        try {
+          const url = new URL(value);
+          return url.protocol === "https:" ? url.toString() : null;
+        } catch {
+          return null;
+        }
+      };
+      const valid = data.pipeline.flatMap((item, index): SavedLead[] => {
+        if (!item || typeof item !== "object") return [];
+        const row = item as Partial<SavedLead>;
+        if (typeof row.name !== "string" || typeof row.phone !== "string") return [];
+        const name = row.name.trim().slice(0, 160);
+        const phone = row.phone.replace(/\D/g, "").slice(0, 20);
+        if (name.length < 2 || phone.length < 8) return [];
+        const status = statuses.includes(row.status as Status) ? row.status as Status : "novo";
+        const history = Array.isArray(row.history)
+          ? row.history.slice(-100).flatMap((entry) =>
+              entry && typeof entry.at === "string" && typeof entry.text === "string"
+                ? [{ at: entry.at.slice(0, 40), text: entry.text.slice(0, 500) }]
+                : [],
+            )
+          : [];
+        return [{
+          id: typeof row.id === "string" && row.id.length <= 120 ? row.id : `restore-${Date.now()}-${index}`,
+          name,
+          category: typeof row.category === "string" ? row.category.slice(0, 120) : "",
+          phone,
+          rating: Number.isFinite(Number(row.rating)) ? Math.max(0, Math.min(5, Number(row.rating))) : 0,
+          reviews: Number.isFinite(Number(row.reviews)) ? Math.max(0, Math.floor(Number(row.reviews))) : 0,
+          address: typeof row.address === "string" ? row.address.slice(0, 300) : "",
+          mapsUrl: safeUrl(row.mapsUrl),
+          city: typeof row.city === "string" ? row.city.slice(0, 120) : "",
+          status,
+          notes: typeof row.notes === "string" ? row.notes.slice(0, 3000) : "",
+          value: Number.isFinite(Number(row.value)) ? Math.max(0, Number(row.value)) : 0,
+          addedAt: typeof row.addedAt === "string" ? row.addedAt.slice(0, 40) : new Date().toISOString(),
+          followUp: typeof row.followUp === "string" ? row.followUp.slice(0, 10) : undefined,
+          lastContact: typeof row.lastContact === "string" ? row.lastContact.slice(0, 40) : undefined,
+          closedAt: typeof row.closedAt === "string" ? row.closedAt.slice(0, 40) : undefined,
+          history,
+          temp: row.temp === "quente" || row.temp === "morno" || row.temp === "frio" ? row.temp : undefined,
+          step: Number.isFinite(Number(row.step)) ? Math.max(0, Math.min(20, Math.floor(Number(row.step)))) : undefined,
+          website: safeUrl(row.website),
+          siteKind: row.siteKind === "site" || row.siteKind === "social" || row.siteKind === "none" ? row.siteKind : undefined,
+          observedAt: typeof row.observedAt === "string" ? row.observedAt.slice(0, 40) : undefined,
+        }];
+      });
+      if (!valid.length && data.pipeline.length) throw new Error("sem leads válidos");
       setPipeline((current) => mergeLeads(current, valid));
-      notify(`Backup restaurado: ${valid.length} leads lidos`);
+      notify(`Backup restaurado: ${valid.length} leads válidos${data.pipeline.length > valid.length ? `, ${data.pipeline.length - valid.length} ignorados` : ""}`);
     } catch {
-      notify("Arquivo de backup inválido");
+      notify("Backup inválido. Use um arquivo exportado pelo LeadHunter com até 10 MB.");
     }
   }
 
