@@ -350,9 +350,11 @@ html[data-theme="dark"] nav.fixed {
     overflow-wrap: anywhere;
   }
 
-  /* Cartões e indicadores se reorganizam sem criar rolagem horizontal. */
-  .grid {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  /* Cartões individuais podem encolher sem forçar a largura da página. */
+  .lead-card,
+  .admin-stat-card,
+  .admin-chart {
+    min-width: 0;
   }
 
   .glass-panel {
