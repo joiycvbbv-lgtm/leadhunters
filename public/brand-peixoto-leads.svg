@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 120" role="img" aria-labelledby="title">
+  <title id="title">Peixoto Leads</title>
+  <defs>
+    <linearGradient id="p" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c084fc"/><stop offset="1" stop-color="#7c3aed"/></linearGradient>
+  </defs>
+  <g transform="translate(4 4)">
+    <rect width="108" height="108" rx="29" fill="#120d2b"/>
+    <path d="M20 83V60h13v23H20Zm21 0V44h13v39H41Zm21 0V28h13v55H62Z" fill="url(#p)"/>
+    <path d="M24 71c16-22 31-28 48-28 9 0 17-4 25-13" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+    <path d="m88 27 12-1-3 12" fill="none" stroke="url(#p)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="136" y="56" fill="#f8fafc" font-family="Arial,Helvetica,sans-serif" font-size="43" font-weight="700" letter-spacing="-1.5">Peixoto</text>
+  <text x="138" y="96" fill="#a855f7" font-family="Arial,Helvetica,sans-serif" font-size="34" font-weight="700" letter-spacing="2">LEADS</text>
+</svg>
