@@ -434,3 +434,150 @@ html[data-theme="dark"] nav.fixed {
     touch-action: manipulation;
   }
 }
+
+
+/* Refinamento visual do painel e do espaço de trabalho. */
+.admin-shell {
+  padding-bottom: max(2rem, env(safe-area-inset-bottom, 0px));
+}
+.admin-header,
+.admin-nav {
+  -webkit-backdrop-filter: blur(24px) saturate(1.45);
+  backdrop-filter: blur(24px) saturate(1.45);
+}
+.admin-stat-card {
+  min-width: 0;
+  border-radius: 1.15rem;
+  background:
+    radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--color-primary) 8%, transparent), transparent 68%),
+    var(--color-surface);
+  box-shadow: var(--shadow-card);
+  transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+.admin-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--color-primary) 24%, var(--color-border));
+}
+.admin-chart {
+  min-width: 0;
+  border-radius: 1.2rem;
+}
+.admin-nav a {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.lead-card {
+  border-radius: 1.2rem;
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+.lead-card:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 25%, var(--color-border));
+  box-shadow: var(--shadow-card);
+}
+html[data-theme="dark"] .admin-stat-card {
+  background:
+    radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 68%),
+    var(--color-surface);
+}
+
+@media (max-width: 639px) {
+  .admin-shell {
+    padding-left: .75rem;
+    padding-right: .75rem;
+    padding-top: .75rem;
+    gap: .9rem;
+  }
+  .admin-header {
+    position: relative;
+    align-items: stretch;
+    padding: .85rem;
+    border-radius: 1.2rem;
+  }
+  .admin-header h1 {
+    width: 100%;
+    font-size: 1rem;
+  }
+  .admin-header > div {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: .5rem;
+  }
+  .admin-header > div button {
+    min-height: 42px;
+    padding: .55rem .65rem;
+    font-size: .72rem;
+    white-space: normal;
+  }
+  .admin-nav {
+    top: .5rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+    padding: .5rem;
+  }
+  .admin-nav a {
+    flex: 0 0 auto;
+    min-height: 42px;
+    padding: .65rem .8rem;
+  }
+  #admin-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .6rem;
+  }
+  .admin-stat-card {
+    padding: .85rem;
+  }
+  .admin-stat-card p:last-child {
+    overflow-wrap: anywhere;
+    font-size: clamp(1rem, 5vw, 1.3rem);
+  }
+  .admin-charts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .admin-chart {
+    padding: .9rem;
+  }
+  .admin-shell section,
+  .admin-shell > section {
+    min-width: 0;
+    border-radius: 1.1rem;
+  }
+  .admin-shell input,
+  .admin-shell select,
+  .admin-shell textarea {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .admin-shell .overflow-x-auto {
+    border-radius: .85rem;
+    border: 1px solid var(--color-border);
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .admin-shell {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+  .admin-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  .admin-nav a {
+    flex: 0 0 auto;
+  }
+  #admin-overview {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin-stat-card:hover {
+    box-shadow: 0 18px 42px -26px color-mix(in srgb, var(--color-primary) 32%, transparent);
+  }
+}
