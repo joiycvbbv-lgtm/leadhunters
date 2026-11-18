@@ -449,21 +449,7 @@ function formatKey(raw: string) {
 }
 
 function BrandMark({ className = "size-6" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <defs>
-        <linearGradient id="leadHunterMark" x1="7" y1="5" x2="41" y2="43" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#8B9BFF" />
-          <stop offset="1" stopColor="#48C7E8" />
-        </linearGradient>
-      </defs>
-      <circle cx="22" cy="22" r="15.5" stroke="url(#leadHunterMark)" strokeWidth="4.2" />
-      <circle cx="22" cy="22" r="7.2" stroke="currentColor" strokeOpacity=".92" strokeWidth="3.2" />
-      <circle cx="22" cy="22" r="2.4" fill="url(#leadHunterMark)" />
-      <path d="M33.5 33.5 42 42" stroke="url(#leadHunterMark)" strokeWidth="5" strokeLinecap="round" />
-      <path d="M22 2.8v4.1M2.8 22h4.1" stroke="currentColor" strokeOpacity=".58" strokeWidth="2.4" strokeLinecap="round" />
-    </svg>
-  );
+  return <img src="/peixoto-icon.svg" alt="" aria-hidden="true" className={className} />;
 }
 
 const card = "glass-panel rounded-[1.6rem]";
@@ -1525,7 +1511,7 @@ export function LeadApp() {
     if (due > 0) {
       notify(`Você tem ${due} retorno(s) para hoje`, { label: "Ver", run: () => setTab("hoje") });
       if (notificationsEnabled && typeof Notification !== "undefined" && Notification.permission === "granted") {
-        new Notification("Retornos do LeadHunter", { body: `Você tem ${due} retorno(s) agendado(s).` });
+        new Notification("Retornos do Peixoto Leads", { body: `Você tem ${due} retorno(s) agendado(s).` });
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2280,7 +2266,7 @@ export function LeadApp() {
     setNotificationsEnabledState(next);
     saveNotificationsEnabled(next);
     if (next && typeof Notification !== "undefined" && Notification.permission === "granted" && dueCount > 0) {
-      new Notification("Retornos do LeadHunter", { body: "Você tem " + dueCount + " retorno(s) agendado(s)." });
+      new Notification("Retornos do Peixoto Leads", { body: "Você tem " + dueCount + " retorno(s) agendado(s)." });
     }
     notify(next ? "Lembretes ativados" : "Lembretes desativados");
   }
@@ -2346,7 +2332,7 @@ export function LeadApp() {
                 <BrandMark className="size-6" />
               </div>
               <div>
-                <p className="text-sm font-extrabold uppercase tracking-[0.16em] text-white">LeadHunter</p>
+                <p className="text-sm font-extrabold uppercase tracking-[0.16em] text-white">Peixoto Leads</p>
                 <p className="text-xs font-medium text-white/60">Prospecção local</p>
               </div>
             </div>
@@ -2400,7 +2386,7 @@ export function LeadApp() {
                 <BrandMark className="size-5" />
               </div>
               <div>
-                <p className="text-sm font-extrabold uppercase tracking-[0.14em] text-primary">LeadHunter</p>
+                <p className="text-sm font-extrabold uppercase tracking-[0.14em] text-primary">Peixoto Leads</p>
                 <p className="text-xs text-muted">Prospecção local</p>
               </div>
             </div>
@@ -2615,7 +2601,7 @@ export function LeadApp() {
             <BrandMark className="size-5" />
           </div>
           <div>
-            <p className="text-xs font-bold tracking-[0.22em] text-blue-200">LEADHUNTER</p>
+            <p className="text-xs font-bold tracking-[0.22em] text-blue-200">PEIXOTO LEADS</p>
             <p className="mt-0.5 text-xs text-white/55">Prospecção inteligente</p>
           </div>
         </div>
@@ -2689,7 +2675,7 @@ export function LeadApp() {
             <BrandMark className="size-5" />
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">LeadHunter</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Peixoto Leads</p>
             <h1 className="font-display text-lg font-semibold leading-tight">
               {userName ? `Olá, ${userName.split(" ")[0]}` : "Empresas sem site"}
             </h1>
