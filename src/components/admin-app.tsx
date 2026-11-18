@@ -47,7 +47,12 @@ function when(iso: string | null) {
 }
 
 function downloadCsv(name: string, head: string[], rows: (string | number)[][]) {
-  const esc = (value: string | number) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+  // Evita que valores importados como nome/observação virem fórmulas no Excel.
+  const esc = (value: string | number) => {
+    let text = String(value ?? "").replace(/[\r\n]+/g, " ");
+    if (/^[\s]*[=+@\-]/.test(text) || /^[\t\r]/.test(text)) text = "'" + text;
+    return `"${text.replaceAll('"', '""')}"`;
+  };
   const body = [head, ...rows].map((row) => row.map(esc).join(";")).join("\r\n");
   const blob = new Blob(["\ufeff" + body], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -101,6 +106,7 @@ export function AdminApp() {
   const [token, setToken] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [actionNotice, setActionNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [data, setData] = useState<AdminOverview | null>(null);
   const [search, setSearch] = useState("");
@@ -167,6 +173,7 @@ export function AdminApp() {
 
   async function create() {
     setBusy(true);
+    setActionNotice("");
     try {
       const result = await adminCreateKeys({
         data: {
@@ -182,16 +189,31 @@ export function AdminApp() {
       });
       if (result.ok) {
         setFresh(result.keys);
+        setActionNotice(`${result.keys.length} licença(s) criada(s) com sucesso.`);
         await load(token);
+      } else {
+        setActionNotice("Não foi possível criar as licenças. Confira sua sessão e os dados.");
       }
+    } catch {
+      setActionNotice("Falha de conexão ao criar licenças. Tente novamente.");
     } finally {
       setBusy(false);
     }
   }
 
   async function patch(id: number, change: AdminPatch) {
-    await adminUpdateKey({ data: { token, id, patch: change } });
-    await load(token);
+    setActionNotice("");
+    try {
+      const result = await adminUpdateKey({ data: { token, id, patch: change } });
+      if (!result.ok) {
+        setActionNotice("Não foi possível atualizar essa licença. Atualize o painel e tente novamente.");
+        return;
+      }
+      setActionNotice("Licença atualizada.");
+      await load(token);
+    } catch {
+      setActionNotice("Falha de conexão ao atualizar a licença.");
+    }
   }
 
   useEffect(() => {
@@ -336,6 +358,11 @@ export function AdminApp() {
           </button>
         </div>
       </header>
+      {actionNotice && (
+        <p role="status" className="rounded-xl border border-primary/20 bg-primary-soft px-4 py-3 text-sm font-medium text-primary">
+          {actionNotice}
+        </p>
+      )}
 
       <nav aria-label="Navegação administrativa" className={`sticky top-3 z-20 flex flex-wrap gap-2 rounded-2xl border border-border/70 bg-surface/80 p-2 shadow-lg backdrop-blur-2xl`}>
         {[
