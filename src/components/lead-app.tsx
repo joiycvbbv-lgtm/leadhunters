@@ -59,6 +59,7 @@ import { linkGoogle } from "@/lib/google.functions";
 import {
   FIRST_TEMPLATES,
   FOLLOW_TEMPLATES,
+  INTERNATIONAL_TEMPLATES,
   bestContactTime,
   suggestTemplate,
 } from "@/lib/templates";
@@ -1845,6 +1846,8 @@ export function LeadApp() {
   }, [results, openOnly, deferredResQuery, sort, hideSaved, pipeline]);
 
   const suggested = useMemo(() => suggestTemplate(niche), [niche]);
+  const outreachLanguage = countryCode === "ES" || countryCode === "MX" ? "es" : countryCode === "PT" ? "pt" : countryCode === "BR" ? "pt" : "en";
+  const outreachTemplates = outreachLanguage === "pt" ? FIRST_TEMPLATES : INTERNATIONAL_TEMPLATES[outreachLanguage] || INTERNATIONAL_TEMPLATES.en;
   const openCount = useMemo(() => results.filter((lead) => lead.openNow === true).length, [results]);
   const savedKeys = useMemo(() => {
     const set = new Set<string>();
@@ -3962,7 +3965,7 @@ export function LeadApp() {
                   aria-label="Modelo da primeira mensagem"
                   value=""
                   onChange={(event) => {
-                    const t = FIRST_TEMPLATES.find((item) => item.id === event.target.value);
+                    const t = outreachTemplates.find((item) => item.id === event.target.value) || FIRST_TEMPLATES.find((item) => item.id === event.target.value);
                     if (!t) return;
                     setMessage(t.text);
                     saveMsg(t.text);
@@ -3970,7 +3973,7 @@ export function LeadApp() {
                   className="rounded-lg border border-border bg-surface-2 px-2 py-1 text-xs"
                 >
                   <option value="">Usar modelo…</option>
-                  {FIRST_TEMPLATES.map((item) => (
+                  {outreachTemplates.map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.label}
                     </option>
