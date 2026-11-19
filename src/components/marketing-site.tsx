@@ -89,7 +89,7 @@ export function MarketingSite() {
     <section aria-label="Recursos do LeadHunter" className="relative border-y border-white/10 bg-white/[.025] backdrop-blur-xl">
       <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-center gap-x-8 gap-y-4 px-5 py-7 lg:justify-between lg:px-10">
         <p className="w-full text-center text-[9px] font-extrabold uppercase tracking-[.2em] text-slate-600 lg:w-auto lg:text-left">Tudo em um só fluxo</p>
-        {[[Search,"Pesquisa por cidade"],[Target,"Filtros por segmento"],[Users,"Leads organizados"],[MessageCircle,"Atalho para contato"],[Clock3,"Histórico e retornos"]].map(([Icon,label])=><span key={label} className="inline-flex items-center gap-2 text-[11px] font-bold text-slate-400"><Icon size={15} className="text-indigo-300"/>{label}</span>)}
+        {[{Icon:Search,label:"Pesquisa por cidade"},{Icon:Target,label:"Filtros por segmento"},{Icon:Users,label:"Leads organizados"},{Icon:MessageCircle,label:"Atalho para contato"},{Icon:Clock3,label:"Histórico e retornos"}].map(({Icon,label})=><span key={label} className="inline-flex items-center gap-2 text-[11px] font-bold text-slate-400"><Icon size={15} className="text-indigo-300"/>{label}</span>)}
       </div>
     </section>
 
