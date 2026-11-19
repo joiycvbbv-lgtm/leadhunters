@@ -193,6 +193,89 @@ const CITIES = [
   "Campina Grande, PB",
   "Vila Velha, ES",
   "Serra, ES",
+  // Mais cidades para ampliar a prospecção regional e nacional.
+  "Alfenas, MG",
+  "Barbacena, MG",
+  "Conselheiro Lafaiete, MG",
+  "Coronel Fabriciano, MG",
+  "Itabira, MG",
+  "Itajubá, MG",
+  "Lavras, MG",
+  "Manhuaçu, MG",
+  "Muriae, MG",
+  "Nova Lima, MG",
+  "Ouro Preto, MG",
+  "Patos de Minas, MG",
+  "Passos, MG",
+  "Patrocínio, MG",
+  "São João del-Rei, MG",
+  "Timóteo, MG",
+  "Três Corações, MG",
+  "Araguari, MG",
+  "Araçatuba, SP",
+  "Atibaia, SP",
+  "Barretos, SP",
+  "Bragança Paulista, SP",
+  "Franca, SP",
+  "Indaiatuba, SP",
+  "Itapetininga, SP",
+  "Limeira, SP",
+  "Marília, SP",
+  "Presidente Prudente, SP",
+  "Rio Claro, SP",
+  "Taubaté, SP",
+  "Americana, SP",
+  "Cabo Frio, RJ",
+  "Macaé, RJ",
+  "Volta Redonda, RJ",
+  "Angra dos Reis, RJ",
+  "Alagoinhas, BA",
+  "Ilhéus, BA",
+  "Itabuna, BA",
+  "Juazeiro, BA",
+  "Barreiras, BA",
+  "Camaçari, BA",
+  "Arcoverde, PE",
+  "Garanhuns, PE",
+  "Petrolina, PE",
+  "Sobral, CE",
+  "Crato, CE",
+  "Parnaíba, PI",
+  "Arapiraca, AL",
+  "Carpina, PE",
+  "Dourados, MS",
+  "Três Lagoas, MS",
+  "Rondonópolis, MT",
+  "Sinop, MT",
+  "Ji-Paraná, RO",
+  "Criciúma, SC",
+  "Chapecó, SC",
+  "Itajaí, SC",
+  "Jaraguá do Sul, SC",
+  "Lages, SC",
+  "Passo Fundo, RS",
+  "Santa Maria, RS",
+  "Novo Hamburgo, RS",
+  "Gravataí, RS",
+  "Pato Branco, PR",
+  "Foz do Iguaçu, PR",
+  "Guarapuava, PR",
+  "Paranaguá, PR",
+  "Toledo, PR",
+  "Rio Verde, GO",
+  "Catalão, GO",
+  "Luziânia, GO",
+  "Dourados, MS",
+  "Imperatriz, MA",
+  "Bacabal, MA",
+  "Açailândia, MA",
+  "Gurupi, TO",
+  "Araguaína, TO",
+  "Santana, AP",
+  "Parintins, AM",
+  "Santarém, PA",
+  "Marabá, PA",
+  "Castanhal, PA",
 ];
 
 const QUANTITIES = [5, 10, 15, 20, 30, 40, 50, 60];
@@ -561,11 +644,13 @@ function accessMessage(code: string) {
 
 /** Nota de 0 a 100: empresa bem avaliada, com movimento, aberta agora e com celular tende a responder melhor. */
 function leadScore(lead: Lead) {
-  const rating = (Math.min(lead.rating, 5) / 5) * 40;
-  const reviews = Math.min(Math.log10(lead.reviews + 1) / Math.log10(500), 1) * 30;
-  const open = lead.openNow === true ? 20 : lead.openNow === null ? 8 : 0;
+  // Prioriza o que mais importa para vender criação de sites: ausência de site próprio.
+  const websiteOpportunity = lead.siteKind === "none" ? 25 : lead.siteKind === "social" ? 15 : 0;
+  const rating = (Math.min(lead.rating, 5) / 5) * 30;
+  const reviews = Math.min(Math.log10(lead.reviews + 1) / Math.log10(500), 1) * 20;
+  const open = lead.openNow === true ? 15 : lead.openNow === null ? 7 : 0;
   const mobile = lead.phone.length === 11 && lead.phone[2] === "9" ? 10 : 3;
-  return Math.round(rating + reviews + open + mobile);
+  return Math.min(100, Math.round(websiteOpportunity + rating + reviews + open + mobile));
 }
 
 function mergeLeads(local: SavedLead[], cloud: SavedLead[]) {
@@ -581,7 +666,7 @@ function PriorityBadge({ lead }: { lead: Lead }) {
   const mid = score >= 45;
   return (
     <span
-      title={`Prioridade ${score}/100: soma nota, número de avaliações, se está aberta agora e se o telefone é celular.`}
+      title={`Potencial comercial ${score}/100: considera ausência de site, avaliações, funcionamento e telefone.`}
       className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${
         high
           ? "bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-200"
@@ -591,7 +676,7 @@ function PriorityBadge({ lead }: { lead: Lead }) {
       }`}
     >
       <Flame className="size-3.5" />
-      {high ? "Prioridade alta" : mid ? "Prioridade média" : "Prioridade baixa"} · {score}
+      {high ? "Oportunidade alta" : mid ? "Oportunidade média" : "Oportunidade baixa"} · {score}
     </span>
   );
 }
