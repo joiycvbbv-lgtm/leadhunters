@@ -350,3 +350,82 @@ img, svg, video, canvas {
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+
+
+/* Correção do cabeçalho no celular: marca, atalhos e navegação em linhas próprias. */
+@media (max-width: 720px) {
+  header.sticky {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: .75rem;
+    top: .5rem;
+    margin-bottom: 1rem;
+    padding: .85rem;
+    border-radius: 1.25rem;
+  }
+
+  header.sticky > div:first-child {
+    width: 100%;
+    min-height: 2.75rem;
+  }
+
+  header.sticky > div:nth-child(3) {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: .45rem;
+  }
+
+  header.sticky > div:nth-child(3) > nav {
+    order: 2;
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    flex: 1 1 100%;
+    gap: .35rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  header.sticky > div:nth-child(3) > nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  header.sticky > div:nth-child(3) > nav > button {
+    flex: 0 0 auto;
+    min-height: 2.5rem;
+    padding: .55rem .8rem;
+    white-space: nowrap;
+    font-size: .78rem;
+  }
+
+  header.sticky > div:nth-child(3) > button,
+  header.sticky > div:nth-child(3) > span {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 420px) {
+  header.sticky {
+    gap: .65rem;
+    padding: .75rem;
+  }
+
+  header.sticky > div:nth-child(3) {
+    gap: .35rem;
+  }
+
+  header.sticky > div:nth-child(3) > nav > button {
+    padding-inline: .7rem;
+    font-size: .74rem;
+  }
+}
