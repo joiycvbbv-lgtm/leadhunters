@@ -1,85 +1,182 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, ArrowUpRight, BarChart3, Check, CheckCircle2, ChevronDown, LayoutDashboard, MapPin, MessageCircle, MousePointer2, Search, Sparkles, Target, Zap } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BarChart3, Check, ChevronDown, MapPin, MessageCircle, Search, Target } from "lucide-react";
 import { PLANS, brl } from "@/lib/plans";
 
 const features = [
-  { icon: Search, title: "Encontre empresas", text: "Pesquise negócios por cidade e segmento para descobrir novas oportunidades." },
-  { icon: Target, title: "Organize seus leads", text: "Salve contatos, acompanhe etapas e saiba quem precisa de retorno." },
-  { icon: MessageCircle, title: "Abordagem mais rápida", text: "Prepare mensagens para iniciar conversas pelo WhatsApp com contexto." },
-  { icon: BarChart3, title: "Acompanhe suas vendas", text: "Visualize seu funil, atividades e evolução da prospecção em um só lugar." },
+  { number: "01", icon: Search, title: "Ache empresas pelo perfil", text: "Escolha a cidade e o segmento. A busca ajuda a montar uma lista inicial de negócios para abordar." },
+  { number: "02", icon: Target, title: "Não perca o fio da conversa", text: "Guarde os contatos importantes e registre em que ponto está cada negociação." },
+  { number: "03", icon: MessageCircle, title: "Passe da pesquisa para a ação", text: "Abra o contato pelo WhatsApp e acompanhe os próximos passos sem espalhar tudo em planilhas." },
+  { number: "04", icon: BarChart3, title: "Veja o que merece atenção", text: "Tenha uma visão simples dos contatos novos, das conversas em andamento e dos retornos pendentes." },
 ];
+
 const steps = [
-  ["01", "Escolha o mercado", "Defina a cidade e o segmento de empresas que deseja prospectar."],
-  ["02", "Encontre oportunidades", "Pesquise negócios e organize os contatos que fazem sentido para sua oferta."],
-  ["03", "Converse e acompanhe", "Faça o primeiro contato, registre respostas e acompanhe cada oportunidade."],
+  ["01", "Defina onde procurar", "Informe a cidade e o tipo de negócio que você quer encontrar."],
+  ["02", "Revise os resultados", "Confira as informações disponíveis e salve apenas os contatos que fazem sentido."],
+  ["03", "Faça o acompanhamento", "Entre em contato, registre o andamento e volte aos leads na hora certa."],
+];
+
+const faqs = [
+  ["O LeadHunter encontra qualquer empresa?", "Não. Os resultados dependem da cobertura e das informações públicas disponíveis nas fontes conectadas. Alguns negócios podem aparecer sem telefone ou outros dados."],
+  ["Preciso instalar o programa?", "Não. O LeadHunter funciona pelo navegador e pode ser acessado pelo computador ou celular."],
+  ["O pagamento já está ativo?", "A página de compra está preparada, mas a cobrança só deve ser considerada ativa depois que as contas e credenciais dos provedores forem configuradas e testadas."],
+  ["Como recebo minha licença?", "A licença é liberada depois da confirmação do pagamento pelo provedor. A página de retorno da compra, sozinha, não confirma uma cobrança."],
 ];
 
 export function MarketingSite() {
   return (
-    <main className="min-h-screen overflow-hidden bg-[#080d1b] text-white selection:bg-indigo-400/30">
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#080d1b]/80 backdrop-blur-2xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+    <main className="min-h-screen bg-[#f4f2ec] text-[#20251f] selection:bg-[#c9d7c4] selection:text-[#20251f]">
+      <header className="relative z-20 border-b border-[#20251f]/10 bg-[#f4f2ec]">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 lg:px-10">
           <Link to="/" className="flex items-center gap-3" aria-label="LeadHunter início">
-            <span className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-indigo-400 to-cyan-400 text-[#07101f] shadow-lg shadow-indigo-500/20"><Target className="size-5" /></span>
-            <span className="font-display text-lg font-bold tracking-tight">Lead<span className="text-cyan-300">Hunter</span></span>
+            <span className="grid size-10 place-items-center rounded-full bg-[#243d31] text-[#f4f2ec]"><Target className="size-[19px]" strokeWidth={1.8} /></span>
+            <span className="font-display text-[19px] font-semibold tracking-[-.06em]">lead<span className="font-normal text-[#71816d]">hunter</span></span>
           </Link>
-          <nav className="hidden items-center gap-8 text-sm text-slate-300 md:flex">
-            <a href="#recursos" className="transition hover:text-white">Recursos</a><a href="#como-funciona" className="transition hover:text-white">Como funciona</a><a href="#planos" className="transition hover:text-white">Planos</a><a href="#faq" className="transition hover:text-white">Dúvidas</a>
+          <nav className="hidden items-center gap-9 text-[13px] font-medium text-[#596158] md:flex">
+            <a href="#produto" className="hover:text-[#243d31]">O produto</a>
+            <a href="#funciona" className="hover:text-[#243d31]">Como funciona</a>
+            <a href="#planos" className="hover:text-[#243d31]">Planos</a>
+            <a href="#duvidas" className="hover:text-[#243d31]">Dúvidas</a>
           </nav>
-          <div className="flex items-center gap-2"><Link to="/app" className="hidden rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-white/10 sm:inline-flex">Entrar</Link><Link to="/comprar" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-950 shadow-lg shadow-white/10 transition hover:-translate-y-0.5 hover:bg-cyan-100">Começar agora <ArrowUpRight className="size-4" /></Link></div>
+          <div className="flex items-center gap-2 sm:gap-5">
+            <Link to="/app" className="hidden text-[13px] font-semibold text-[#39453b] hover:text-[#71816d] sm:inline-flex">Entrar</Link>
+            <Link to="/comprar" className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#243d31] px-5 text-[13px] font-semibold text-white transition hover:bg-[#365642]">Conhecer planos <ArrowUpRight className="size-4" /></Link>
+          </div>
         </div>
       </header>
 
-      <section className="relative isolate">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_55%_45%_at_72%_16%,rgba(79,70,229,.28),transparent),radial-gradient(ellipse_45%_40%_at_8%_48%,rgba(6,182,212,.13),transparent)]" />
-        <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 pb-24 pt-20 lg:grid-cols-[1.02fr_.98fr] lg:px-8 lg:pb-32 lg:pt-28">
-          <div className="relative z-10">
-            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/[.08] px-3.5 py-2 text-xs font-semibold tracking-wide text-cyan-200"><Sparkles className="size-3.5" /> PROSPECÇÃO MAIS ORGANIZADA</div>
-            <h1 className="max-w-3xl font-display text-4xl font-bold leading-[1.1] tracking-[-.045em] sm:text-5xl lg:text-6xl">Menos tempo procurando. <span className="bg-gradient-to-r from-cyan-300 via-indigo-300 to-violet-300 bg-clip-text text-transparent">Mais tempo vendendo.</span></h1>
-            <p className="mt-7 max-w-xl text-base leading-8 text-slate-300 sm:text-lg">Encontre empresas, organize seus contatos e acompanhe oportunidades comerciais em um só lugar com o LeadHunter.</p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row"><Link to="/comprar" className="inline-flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-blue-500 px-7 text-base font-bold shadow-xl shadow-indigo-600/25 transition hover:-translate-y-1 hover:shadow-indigo-500/40">Ver planos e começar <ArrowRight className="size-5" /></Link><a href="#recursos" className="inline-flex min-h-14 items-center justify-center rounded-2xl border border-white/15 bg-white/[.04] px-7 text-base font-semibold text-white transition hover:bg-white/10">Conhecer recursos</a></div>
-            <div className="mt-9 flex flex-wrap gap-x-6 gap-y-3 text-xs text-slate-400"><span className="inline-flex items-center gap-2"><CheckCircle2 className="size-4 text-emerald-300" /> CRM integrado</span><span className="inline-flex items-center gap-2"><CheckCircle2 className="size-4 text-emerald-300" /> Busca por cidade e nicho</span><span className="inline-flex items-center gap-2"><CheckCircle2 className="size-4 text-emerald-300" /> Gestão de oportunidades</span></div>
+      <section className="mx-auto max-w-7xl px-5 pb-16 pt-10 sm:pb-20 sm:pt-14 lg:px-10 lg:pb-24 lg:pt-16">
+        <div className="grid items-center gap-10 lg:grid-cols-[.88fr_1.12fr] lg:gap-14">
+          <div className="max-w-xl">
+            <p className="mb-7 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[.22em] text-[#71816d]"><span className="h-px w-8 bg-[#71816d]" /> Prospecção sem complicação</p>
+            <h1 className="font-display text-[clamp(2.8rem,6vw,5.4rem)] font-semibold leading-[.99] tracking-[-.075em] text-[#20251f]">Encontre bons contatos. <span className="text-[#71816d]">Cuide do resto.</span></h1>
+            <p className="mt-7 max-w-md text-[15px] leading-7 text-[#656b61] sm:text-base">O LeadHunter reúne busca de empresas e organização de contatos para deixar sua rotina comercial mais clara — da primeira pesquisa ao retorno.</p>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <Link to="/app" className="inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-[#d1a15b] px-7 text-sm font-bold text-[#20251f] transition hover:bg-[#dfb575]">Acessar o aplicativo <ArrowRight className="size-4" /></Link>
+              <a href="#produto" className="inline-flex min-h-14 items-center justify-center rounded-full border border-[#20251f]/20 px-7 text-sm font-semibold text-[#39453b] transition hover:border-[#243d31] hover:bg-white/50">Conhecer o produto</a>
+            </div>
+            <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3 border-t border-[#20251f]/10 pt-5 text-xs text-[#687066]">
+              <span className="flex items-center gap-2"><Search className="size-4 text-[#71816d]" /> Busca por cidade</span>
+              <span className="flex items-center gap-2"><Target className="size-4 text-[#71816d]" /> Gestão de contatos</span>
+              <span className="flex items-center gap-2"><MessageCircle className="size-4 text-[#71816d]" /> Atalho para WhatsApp</span>
+            </div>
           </div>
-
-          <div className="relative mx-auto w-full max-w-[600px]">
-            <div className="absolute -inset-8 rounded-[3rem] bg-indigo-500/20 blur-3xl" />
-            <div className="relative overflow-hidden rounded-[1.7rem] border border-white/15 bg-[#111a2d]/95 p-3 shadow-[0_35px_100px_-35px_rgba(79,70,229,.65)] backdrop-blur-xl sm:p-4">
-              <div className="flex items-center justify-between border-b border-white/10 px-3 pb-4 pt-2"><div className="flex items-center gap-2"><span className="size-2.5 rounded-full bg-rose-400"/><span className="size-2.5 rounded-full bg-amber-300"/><span className="size-2.5 rounded-full bg-emerald-400"/></div><span className="text-[10px] font-semibold tracking-[.2em] text-slate-500">LEADHUNTER · PAINEL</span><span className="size-2 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399]"/></div>
-              <div className="grid grid-cols-[54px_1fr] gap-3 pt-4 sm:grid-cols-[66px_1fr]">
-                <aside className="flex flex-col items-center gap-4 rounded-xl bg-white/[.035] py-4"><span className="grid size-8 place-items-center rounded-lg bg-indigo-500"><LayoutDashboard className="size-4"/></span><Search className="size-4 text-slate-500"/><MapPin className="size-4 text-slate-500"/><MessageCircle className="size-4 text-slate-500"/><BarChart3 className="size-4 text-slate-500"/></aside>
-                <div className="min-w-0 space-y-4 pb-2 pr-1">
-                  <div><p className="text-[10px] text-slate-500">VISÃO GERAL</p><h3 className="mt-1 text-lg font-bold sm:text-xl">Sua prospecção</h3><p className="mt-1 text-xs text-slate-400">Organize o próximo passo de cada oportunidade.</p></div>
-                  <div className="grid grid-cols-3 gap-2">{[["Leads salvos","128","text-cyan-300"],["Em contato","42","text-indigo-300"],["Oportunidades","18","text-emerald-300"]].map(([label,value,color])=><div key={label} className="rounded-xl border border-white/10 bg-white/[.045] p-2.5 sm:p-3"><p className="truncate text-[9px] text-slate-500 sm:text-[10px]">{label}</p><p className={"mt-2 text-xl font-bold "+color}>{value}</p></div>)}</div>
-                  <div className="rounded-xl border border-white/10 bg-white/[.035] p-3"><div className="mb-3 flex items-center justify-between"><span className="text-xs font-semibold">Atividade recente</span><span className="text-[9px] text-slate-500">EXEMPLO VISUAL</span></div>{["Clínica Bem Estar","Oficina Central","Studio Forma"].map((name,i)=><div key={name} className="flex items-center gap-3 border-t border-white/[.07] py-3 first:border-0"><span className={"grid size-8 shrink-0 place-items-center rounded-lg text-xs font-bold "+(i===0?"bg-cyan-400/15 text-cyan-200":i===1?"bg-violet-400/15 text-violet-200":"bg-emerald-400/15 text-emerald-200")}>{name.charAt(0)}</span><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold">{name}</p><p className="text-[10px] text-slate-500">Contato organizado no CRM</p></div><span className="rounded-full bg-emerald-400/10 px-2 py-1 text-[9px] text-emerald-200">{i===0?"Interessado":i===1?"Novo":"Retorno"}</span></div>)}</div>
-                  <div className="flex items-center justify-between rounded-xl border border-indigo-300/20 bg-indigo-400/[.08] p-3"><div><p className="text-xs font-semibold">Próxima oportunidade</p><p className="mt-1 text-[10px] text-slate-400">Continue de onde você parou.</p></div><MousePointer2 className="size-5 text-indigo-200"/></div>
-                </div>
+          <div className="relative">
+            <div className="relative aspect-[1.14/1] overflow-hidden rounded-[2px] bg-[#d8d8cb] sm:aspect-[1.25/1]">
+              <img src="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1600&q=85" alt="Equipe pequena trabalhando em uma mesa com notebook e anotações" className="h-full w-full object-cover object-center" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#14251d]/55 via-transparent to-transparent" />
+              <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between gap-4 text-white sm:bottom-8 sm:left-8 sm:right-8">
+                <div><p className="text-[10px] font-semibold uppercase tracking-[.2em] text-white/75">Sua rotina comercial</p><p className="mt-2 max-w-xs font-display text-2xl font-medium leading-tight tracking-[-.04em] sm:text-3xl">Mais organização em cada etapa.</p></div>
+                <span className="hidden size-12 shrink-0 items-center justify-center rounded-full border border-white/50 sm:flex"><ArrowUpRight className="size-5" /></span>
               </div>
             </div>
-            <div className="absolute -bottom-6 -left-5 hidden rounded-2xl border border-white/15 bg-[#18243b]/95 p-4 shadow-xl backdrop-blur-xl sm:block"><div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-emerald-400/15 text-emerald-300"><Zap className="size-4"/></span><div><p className="text-xs font-bold">Fluxo de prospecção</p><p className="mt-1 text-[10px] text-slate-400">Busca · Organização · Contato</p></div></div></div>
+            <div className="absolute -bottom-5 left-4 max-w-[235px] border border-[#20251f]/10 bg-[#fbfaf6] p-4 shadow-[0_14px_40px_-24px_rgba(20,30,20,.35)] sm:-left-7 sm:bottom-8 sm:max-w-[245px]">
+              <p className="text-[10px] font-bold uppercase tracking-[.17em] text-[#71816d]">Do primeiro contato ao retorno</p>
+              <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-[#39453b]"><span className="size-2 rounded-full bg-[#d1a15b]" /> Pesquisar</div>
+              <div className="ml-[3px] h-3 border-l border-dashed border-[#9aa493]" />
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#39453b]"><span className="size-2 rounded-full bg-[#71816d]" /> Organizar</div>
+              <div className="ml-[3px] h-3 border-l border-dashed border-[#9aa493]" />
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#39453b]"><span className="size-2 rounded-full bg-[#243d31]" /> Acompanhar</div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="border-y border-white/[.07] bg-white/[.025]"><div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-5 py-8 text-center sm:grid-cols-4 lg:px-8">{[["BUSCA","por cidade e segmento"],["CRM","para acompanhar contatos"],["WHATSAPP","atalho para conversar"],["RELATÓRIOS","visão da sua operação"]].map(([a,b])=><div key={a}><p className="font-display text-sm font-bold tracking-wider text-cyan-200">{a}</p><p className="mt-1 text-xs text-slate-400">{b}</p></div>)}</div></section>
+      <div className="border-y border-[#20251f]/10 bg-[#e9e8df]">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-y-5 px-5 py-7 sm:grid-cols-4 lg:px-10">
+          {[["PESQUISA", "Cidade e segmento"], ["CONTATOS", "Informações reunidas"], ["ACOMPANHAMENTO", "Etapas organizadas"], ["ROTINA", "Tudo no mesmo lugar"]].map(([title,desc]) => <div key={title} className="border-l border-[#20251f]/15 pl-4 first:border-0 first:pl-0 sm:first:border-l sm:first:pl-4"><p className="text-[10px] font-bold tracking-[.15em] text-[#71816d]">{title}</p><p className="mt-1 text-[13px] text-[#4f584e]">{desc}</p></div>)}
+        </div>
+      </div>
 
-      <section id="recursos" className="mx-auto max-w-7xl px-5 py-24 lg:px-8 lg:py-28">
-        <div className="mx-auto max-w-2xl text-center"><p className="text-xs font-bold tracking-[.25em] text-cyan-300">TUDO EM UM SÓ LUGAR</p><h2 className="mt-4 font-display text-3xl font-bold tracking-tight sm:text-4xl">Ferramentas para sua rotina comercial</h2><p className="mt-4 leading-7 text-slate-400">Da descoberta do negócio até o acompanhamento da conversa, mantenha seu processo organizado.</p></div>
-        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{features.map(({icon:Icon,title,text},i)=><article key={title} className="group rounded-2xl border border-white/10 bg-white/[.035] p-6 transition hover:-translate-y-1 hover:border-indigo-300/30 hover:bg-white/[.06]"><span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500/20 to-cyan-400/10 text-cyan-200 ring-1 ring-white/10"><Icon className="size-5"/></span><h3 className="mt-6 font-display text-lg font-bold">{title}</h3><p className="mt-3 text-sm leading-6 text-slate-400">{text}</p><span className="mt-6 block text-xs font-semibold text-indigo-300">RECURSO 0{i+1}</span></article>)}</div>
+      <section id="produto" className="mx-auto max-w-7xl px-5 py-20 sm:py-24 lg:px-10 lg:py-28">
+        <div className="grid gap-10 lg:grid-cols-[.72fr_1.28fr] lg:gap-20">
+          <div className="max-w-sm">
+            <p className="text-[11px] font-bold uppercase tracking-[.22em] text-[#71816d]">O que você encontra</p>
+            <h2 className="mt-5 font-display text-4xl font-semibold leading-[1.06] tracking-[-.06em] sm:text-5xl">Menos abas abertas. Mais clareza.</h2>
+            <p className="mt-5 text-sm leading-7 text-[#656b61]">Ferramentas diretas para apoiar a prospecção, sem transformar seu dia em uma operação complicada.</p>
+            <Link to="/app" className="mt-8 inline-flex items-center gap-2 border-b border-[#243d31] pb-1 text-sm font-bold text-[#243d31]">Ver o painel <ArrowUpRight className="size-4" /></Link>
+          </div>
+          <div className="grid gap-x-10 sm:grid-cols-2">
+            {features.map(({ number, icon: Icon, title, text }) => <article key={number} className="border-t border-[#20251f]/20 py-7">
+              <div className="flex items-center justify-between"><span className="text-xs font-semibold tracking-widest text-[#9a9d91]">{number}</span><Icon className="size-5 text-[#71816d]" strokeWidth={1.6} /></div>
+              <h3 className="mt-7 font-display text-xl font-semibold tracking-[-.04em]">{title}</h3>
+              <p className="mt-3 max-w-sm text-sm leading-6 text-[#656b61]">{text}</p>
+            </article>)}
+          </div>
+        </div>
       </section>
 
-      <section id="como-funciona" className="border-y border-white/[.07] bg-[#0d1425] py-24"><div className="mx-auto max-w-7xl px-5 lg:px-8"><div className="grid gap-12 lg:grid-cols-[.8fr_1.2fr]"><div><p className="text-xs font-bold tracking-[.25em] text-cyan-300">SIMPLES DE COMEÇAR</p><h2 className="mt-4 font-display text-3xl font-bold leading-tight sm:text-4xl">Um processo claro para encontrar novos clientes.</h2><p className="mt-5 leading-7 text-slate-400">Use o LeadHunter como apoio para organizar sua prospecção e dar continuidade às oportunidades que encontrar.</p><Link to="/app" className="mt-8 inline-flex items-center gap-2 font-semibold text-cyan-200 hover:text-white">Acessar aplicativo <ArrowRight className="size-4"/></Link></div><div className="space-y-4">{steps.map(([num,title,text])=><div key={num} className="flex gap-5 rounded-2xl border border-white/10 bg-white/[.035] p-5 sm:p-6"><span className="font-display text-2xl font-bold text-indigo-300">{num}</span><div><h3 className="font-display text-lg font-bold">{title}</h3><p className="mt-2 text-sm leading-6 text-slate-400">{text}</p></div></div>)}</div></div></div></section>
-
-      <section id="planos" className="mx-auto max-w-7xl px-5 py-24 lg:px-8 lg:py-28">
-        <div className="mx-auto max-w-2xl text-center"><p className="text-xs font-bold tracking-[.25em] text-cyan-300">PLANOS</p><h2 className="mt-4 font-display text-3xl font-bold sm:text-4xl">Escolha como quer crescer</h2><p className="mt-4 text-sm leading-7 text-slate-400">Comece com o plano que combina com seu ritmo. Consulte os detalhes e finalize a compra com segurança.</p></div>
-        <div className="mt-14 grid gap-5 lg:grid-cols-3">{PLANS.map((plan)=><article key={plan.id} className={"relative flex flex-col rounded-3xl border p-7 "+(plan.highlight?"border-indigo-300/50 bg-gradient-to-b from-indigo-500/15 to-[#11182a] shadow-[0_25px_70px_-35px_rgba(99,102,241,.55)]":"border-white/10 bg-white/[.035]")}>{plan.highlight&&<span className="absolute -top-3 left-7 rounded-full bg-indigo-400 px-3 py-1 text-[10px] font-black tracking-wider text-[#0b1020]">MAIS ESCOLHIDO</span>}<p className="text-sm font-semibold text-slate-300">{plan.name}</p><h3 className="mt-3 font-display text-4xl font-bold">{brl(plan.priceCents)}<span className="ml-1 text-sm font-medium text-slate-400">{plan.days===null?"/ único":"/ "+plan.days+" dias"}</span></h3><p className="mt-3 min-h-10 text-sm text-slate-400">{plan.tagline}</p><div className="my-6 h-px bg-white/10"/><ul className="mb-8 flex-1 space-y-3 text-sm text-slate-300"><li className="flex gap-2"><Check className="size-4 shrink-0 text-emerald-300"/> Busca de até {plan.dailyLimit} leads por dia</li><li className="flex gap-2"><Check className="size-4 shrink-0 text-emerald-300"/> CRM e organização de contatos</li><li className="flex gap-2"><Check className="size-4 shrink-0 text-emerald-300"/> Histórico de prospecção</li><li className="flex gap-2"><Check className="size-4 shrink-0 text-emerald-300"/> Suporte e atualizações do app</li></ul><Link to="/comprar" className={"inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:-translate-y-0.5 "+(plan.highlight?"bg-indigo-400 text-[#0b1020] hover:bg-cyan-300":"bg-white text-slate-950 hover:bg-cyan-100")}>Escolher plano <ArrowRight className="size-4"/></Link></article>)}</div>
-        <p className="mt-5 text-center text-xs text-slate-500">Valores e limites exibidos conforme a configuração atual do aplicativo. Pagamentos reais dependem da ativação das contas dos provedores.</p>
+      <section id="funciona" className="bg-[#243d31] py-20 text-[#f4f2ec] sm:py-24">
+        <div className="mx-auto grid max-w-7xl gap-12 px-5 lg:grid-cols-[.8fr_1.2fr] lg:gap-24 lg:px-10">
+          <div className="max-w-md">
+            <p className="text-[11px] font-bold uppercase tracking-[.22em] text-[#c6d0bd]">Como funciona</p>
+            <h2 className="mt-5 font-display text-4xl font-semibold leading-[1.05] tracking-[-.06em] sm:text-5xl">Um caminho simples para começar.</h2>
+            <p className="mt-5 text-sm leading-7 text-white/65">Você escolhe quem quer encontrar. O LeadHunter ajuda a organizar a pesquisa e acompanhar o trabalho depois dela.</p>
+            <Link to="/app" className="mt-8 inline-flex min-h-12 items-center gap-3 rounded-full bg-[#d1a15b] px-6 text-sm font-bold text-[#20251f] hover:bg-[#dfb575]">Abrir LeadHunter <ArrowRight className="size-4" /></Link>
+          </div>
+          <div className="divide-y divide-white/20 border-y border-white/20">
+            {steps.map(([number,title,desc]) => <div key={number} className="grid gap-3 py-7 sm:grid-cols-[70px_1fr] sm:gap-5">
+              <span className="font-display text-2xl font-medium text-[#d1a15b]">{number}</span>
+              <div><h3 className="font-display text-xl font-semibold tracking-[-.035em]">{title}</h3><p className="mt-2 max-w-lg text-sm leading-6 text-white/65">{desc}</p></div>
+            </div>)}
+          </div>
+        </div>
       </section>
 
-      <section className="px-5 pb-24 lg:px-8"><div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 overflow-hidden rounded-[2rem] border border-indigo-300/20 bg-[radial-gradient(ellipse_at_80%_0%,rgba(99,102,241,.3),transparent_50%),linear-gradient(120deg,#151f3a,#11182a)] p-8 sm:p-12 lg:flex-row lg:items-center"><div className="max-w-2xl"><p className="text-xs font-bold tracking-[.2em] text-cyan-200">PRONTO PARA ORGANIZAR SUA PROSPECÇÃO?</p><h2 className="mt-4 font-display text-3xl font-bold sm:text-4xl">Sua próxima oportunidade pode estar a uma busca de distância.</h2><p className="mt-4 text-sm leading-7 text-slate-300">Conheça os planos e comece a estruturar sua rotina comercial com o LeadHunter.</p></div><Link to="/comprar" className="inline-flex min-h-14 shrink-0 items-center gap-3 rounded-2xl bg-white px-7 font-bold text-slate-950 transition hover:-translate-y-1 hover:bg-cyan-100">Ver planos <ArrowUpRight className="size-5"/></Link></div></section>
+      <section id="planos" className="mx-auto max-w-7xl px-5 py-20 sm:py-24 lg:px-10 lg:py-28">
+        <div className="flex flex-col justify-between gap-5 border-b border-[#20251f]/15 pb-8 sm:flex-row sm:items-end">
+          <div><p className="text-[11px] font-bold uppercase tracking-[.22em] text-[#71816d]">Planos</p><h2 className="mt-4 font-display text-4xl font-semibold tracking-[-.06em] sm:text-5xl">Escolha o seu ritmo.</h2></div>
+          <p className="max-w-sm text-sm leading-6 text-[#656b61]">Consulte os limites e recursos de cada opção antes de finalizar a compra.</p>
+        </div>
+        <div className="mt-10 grid gap-4 lg:grid-cols-3">
+          {PLANS.map((plan) => <article key={plan.id} className={`flex flex-col border p-7 ${plan.highlight ? "border-[#243d31] bg-[#e8ebe2]" : "border-[#20251f]/15 bg-[#fbfaf6]"}`}>
+            {plan.highlight && <span className="mb-5 w-fit bg-[#243d31] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.15em] text-white">Em destaque</span>}
+            <p className="text-sm font-semibold text-[#596158]">{plan.name}</p>
+            <h3 className="mt-4 font-display text-4xl font-semibold tracking-[-.06em]">{brl(plan.priceCents)}<span className="ml-1 text-xs font-medium tracking-normal text-[#777e73]">{plan.days === null ? "pagamento único" : `/ ${plan.days} dias`}</span></h3>
+            <p className="mt-3 min-h-10 text-sm leading-6 text-[#687066]">{plan.tagline}</p>
+            <div className="my-6 h-px bg-[#20251f]/15" />
+            <ul className="mb-8 flex-1 space-y-3 text-sm text-[#4f584e]">
+              <li className="flex gap-2"><Check className="size-4 shrink-0 text-[#71816d]" /> Até {plan.dailyLimit} leads por dia</li>
+              <li className="flex gap-2"><Check className="size-4 shrink-0 text-[#71816d]" /> CRM e organização de contatos</li>
+              <li className="flex gap-2"><Check className="size-4 shrink-0 text-[#71816d]" /> Histórico de prospecção</li>
+              <li className="flex gap-2"><Check className="size-4 shrink-0 text-[#71816d]" /> Suporte e atualizações do app</li>
+            </ul>
+            <Link to="/comprar" className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-5 text-sm font-bold transition ${plan.highlight ? "bg-[#243d31] text-white hover:bg-[#365642]" : "border border-[#243d31]/30 text-[#243d31] hover:bg-[#e8ebe2]"}`}>Escolher plano <ArrowRight className="size-4" /></Link>
+          </article>)}
+        </div>
+        <p className="mt-5 text-xs leading-5 text-[#858a80]">Valores e limites conforme a configuração atual do aplicativo. A cobrança real depende da ativação e dos testes das contas de pagamento.</p>
+      </section>
 
-      <section id="faq" className="mx-auto max-w-4xl px-5 pb-24"><div className="text-center"><p className="text-xs font-bold tracking-[.25em] text-cyan-300">DÚVIDAS FREQUENTES</p><h2 className="mt-4 font-display text-3xl font-bold">Antes de começar</h2></div><div className="mt-10 divide-y divide-white/10 rounded-2xl border border-white/10 bg-white/[.025] px-6">{[["O LeadHunter encontra qualquer empresa?","A busca depende das fontes de dados conectadas, da cobertura disponível e dos termos utilizados. Nem toda empresa terá telefone ou site público."],["Preciso instalar alguma coisa?","O LeadHunter funciona pelo navegador. Você pode acessar pelo computador ou celular."],["O pagamento já está funcionando?","A página de compra está integrada à estrutura do aplicativo. A cobrança real só fica disponível depois que as contas e credenciais dos provedores forem configuradas e testadas."],["A licença é liberada automaticamente?","O sistema foi preparado para liberar a licença após a confirmação do pagamento pelo provedor, nunca apenas por voltar à página de sucesso."]].map(([q,a])=><details key={q} className="group py-5"><summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-slate-200">{q}<ChevronDown className="size-4 shrink-0 text-cyan-200 transition group-open:rotate-180"/></summary><p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">{a}</p></details>)}</div></section>
+      <section className="px-5 pb-20 lg:px-10 lg:pb-24">
+        <div className="mx-auto grid max-w-7xl overflow-hidden bg-[#e6e5db] md:grid-cols-[1fr_.8fr]">
+          <div className="p-8 sm:p-12 lg:p-16">
+            <p className="text-[11px] font-bold uppercase tracking-[.22em] text-[#71816d]">Comece por aqui</p>
+            <h2 className="mt-5 max-w-xl font-display text-4xl font-semibold leading-[1.05] tracking-[-.06em] sm:text-5xl">Sua próxima lista de contatos começa com uma busca.</h2>
+            <p className="mt-5 max-w-md text-sm leading-7 text-[#656b61]">Entre no painel, escolha um segmento e veja como o LeadHunter pode se encaixar no seu processo.</p>
+            <Link to="/app" className="mt-8 inline-flex min-h-14 items-center gap-3 rounded-full bg-[#243d31] px-7 text-sm font-bold text-white hover:bg-[#365642]">Ir para o painel <ArrowUpRight className="size-4" /></Link>
+          </div>
+          <div className="relative hidden min-h-[340px] md:block">
+            <img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1200&q=85" alt="Profissionais conversando e trabalhando juntos em uma mesa" className="absolute inset-0 h-full w-full object-cover" />
+          </div>
+        </div>
+      </section>
 
-      <footer className="border-t border-white/10 bg-[#060a14]"><div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-9 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between lg:px-8"><Link to="/" className="flex items-center gap-2 font-display font-bold text-white"><span className="grid size-8 place-items-center rounded-lg bg-indigo-500 text-white"><Target className="size-4"/></span>LeadHunter</Link><p>Prospecção inteligente para organizar oportunidades comerciais.</p><div className="flex gap-5"><Link to="/comprar" className="hover:text-white">Planos</Link><Link to="/app" className="hover:text-white">Entrar</Link></div></div></footer>
+      <section id="duvidas" className="mx-auto max-w-4xl px-5 pb-24 lg:px-10">
+        <div className="border-b border-[#20251f]/15 pb-7"><p className="text-[11px] font-bold uppercase tracking-[.22em] text-[#71816d]">Dúvidas frequentes</p><h2 className="mt-4 font-display text-3xl font-semibold tracking-[-.05em] sm:text-4xl">O que você precisa saber.</h2></div>
+        <div className="divide-y divide-[#20251f]/15">
+          {faqs.map(([question,answer]) => <details key={question} className="group py-5">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-[#30382f]">{question}<ChevronDown className="size-4 shrink-0 text-[#71816d] transition group-open:rotate-180" /></summary>
+            <p className="mt-3 max-w-3xl pr-8 text-sm leading-6 text-[#687066]">{answer}</p>
+          </details>)}
+        </div>
+      </section>
+
+      <footer className="border-t border-[#20251f]/15 bg-[#e9e8df]">
+        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 sm:flex-row sm:items-center sm:justify-between lg:px-10">
+          <Link to="/" className="flex items-center gap-3 font-display text-lg font-semibold tracking-[-.06em]"><span className="grid size-9 place-items-center rounded-full bg-[#243d31] text-[#f4f2ec]"><Target className="size-4" /></span>lead<span className="-ml-3 font-normal text-[#71816d]">hunter</span></Link>
+          <p className="text-xs text-[#777e73]">Uma ferramenta para organizar sua prospecção comercial.</p>
+          <div className="flex gap-6 text-xs font-semibold text-[#596158]"><Link to="/comprar" className="hover:text-[#243d31]">Planos</Link><Link to="/app" className="hover:text-[#243d31]">Entrar</Link></div>
+        </div>
+      </footer>
     </main>
   );
 }
