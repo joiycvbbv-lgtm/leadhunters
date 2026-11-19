@@ -554,9 +554,9 @@ const card = "app-card rounded-2xl";
 const field =
   "w-full rounded-2xl border border-border bg-surface-2 px-4 py-3 text-sm text-fg outline-none placeholder:text-muted/70 focus:border-primary focus:ring-4 focus:ring-primary/10";
 const btnPrimary =
-  "inline-flex items-center justify-center gap-2 rounded-xl bg-[#3448a5] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-[#293b91] active:bg-[#23347f] disabled:opacity-60";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-indigo-300/20 bg-gradient-to-r from-[#5557e9] to-[#6875f5] px-6 py-3 text-sm font-semibold text-white shadow-[0_8px_22px_-12px_rgba(85,87,233,.65)] transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_12px_26px_-12px_rgba(85,87,233,.75)] active:translate-y-0 disabled:pointer-events-none disabled:opacity-55";
 const btnGhost =
-  "rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm font-semibold text-fg transition-colors duration-150 hover:border-primary/40 hover:bg-primary-soft hover:text-primary";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#d9deeb] bg-white px-5 py-2.5 text-sm font-semibold text-[#34405a] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#aeb8df] hover:bg-[#f7f8ff] hover:shadow-md active:translate-y-0 disabled:pointer-events-none disabled:opacity-55";
 
 type FollowState = "atrasado" | "hoje" | "futuro" | null;
 
