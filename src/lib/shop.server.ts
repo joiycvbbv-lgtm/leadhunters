@@ -236,6 +236,30 @@ export async function fulfillOrder(orderId: string) {
   return fresh ?? null;
 }
 
+/** Confirma Stripe somente após validar a sessão e o valor armazenados no servidor. */
+export async function fulfillStripeOrder(input: {
+  orderId: string;
+  sessionId: string;
+  amountTotal: number;
+  currency: string;
+  paymentStatus: string;
+}) {
+  const sql = await getSql();
+  const rows = await sql.query<OrderRow>(
+    "select * from orders where id = $1 and stripe_session_id = $2",
+    [input.orderId, input.sessionId],
+  );
+  const order = rows[0];
+  if (!order) return false;
+  if (order.status === "pago") return true;
+  if (order.status !== "pendente") return false;
+  if (input.paymentStatus !== "paid" || input.currency.toLowerCase() !== "brl") return false;
+  if (input.amountTotal !== order.amount_cents) return false;
+  await markPaid(order);
+  await ensureKey(order.id);
+  return true;
+}
+
 export type CouponResult =
   | { ok: true; code: string; finalCents: number; discountCents: number; label: string }
   | { ok: false; error: string };
