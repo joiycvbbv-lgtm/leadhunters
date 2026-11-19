@@ -3,7 +3,7 @@ import { BadgeCheck, Check, Copy, KeyRound, Loader2, MapPin, MessageCircle, QrCo
 import { checkCoupon, createPix, createStripeCheckout, getOrder, type OrderView } from "@/lib/shop.functions";
 import { PLANS, SUPPORT_WHATSAPP, brl } from "@/lib/plans";
 
-const card = "rounded-2xl border border-border bg-surface shadow-card";
+const card = "glass-panel rounded-2xl";
 const field =
   "w-full rounded-xl border border-border bg-surface-2 px-3.5 py-3 text-fg outline-none placeholder:text-muted/70 focus:border-primary";
 const btnPrimary =

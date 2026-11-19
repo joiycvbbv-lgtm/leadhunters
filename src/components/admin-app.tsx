@@ -32,7 +32,7 @@ import {
 } from "@/lib/admin.functions";
 import { brl } from "@/lib/plans";
 
-const card = "rounded-2xl border border-border bg-surface shadow-card";
+const card = "glass-panel rounded-2xl";
 const field =
   "w-full rounded-xl border border-border bg-surface-2 px-3 py-2.5 text-sm text-fg outline-none placeholder:text-muted/70 focus:border-primary";
 const btnPrimary =
