@@ -34,10 +34,10 @@ export function MarketingSite() {
     </div>
 
     <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0b1020]/75 backdrop-blur-2xl">
-      <div className="mx-auto flex max-w-[1280px] items-center justify-between px-5 py-3.5 lg:px-10">
-        <Link to="/" className="flex items-center gap-3"><Mark/><span className="text-[19px] font-extrabold tracking-[-.07em]">lead<span className="font-medium text-indigo-300">hunter</span></span></Link>
+      <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-3.5 lg:px-10">
+        <Link to="/" className="flex min-w-0 shrink items-center gap-2 sm:gap-3"><Mark/><span className="truncate text-[17px] font-extrabold tracking-[-.07em] sm:text-[19px]">lead<span className="font-medium text-indigo-300">hunter</span></span></Link>
         <nav className="hidden items-center gap-8 text-[13px] font-semibold text-slate-400 md:flex"><a className="transition hover:text-white" href="#recursos">Recursos</a><a className="transition hover:text-white" href="#como-funciona">Como funciona</a><a className="transition hover:text-white" href="#planos">Planos</a><a className="transition hover:text-white" href="#duvidas">Dúvidas</a></nav>
-        <div className="flex items-center gap-3"><Link to="/app" className="hidden px-3 py-3 text-[13px] font-bold text-slate-300 transition hover:text-white sm:inline-flex">Entrar</Link><Link to="/app" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-indigo-300/30 bg-indigo-500 px-4 text-[13px] font-extrabold text-white shadow-[0_8px_28px_-12px_rgba(99,102,241,.8)] transition hover:-translate-y-0.5 hover:bg-indigo-400">Abrir aplicativo <ArrowUpRight size={15}/></Link></div>
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3"><Link to="/app" className="hidden px-3 py-3 text-[13px] font-bold text-slate-300 transition hover:text-white sm:inline-flex">Entrar</Link><Link to="/app" aria-label="Entrar no LeadHunter" className="inline-flex min-h-10 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-indigo-300/30 bg-indigo-500 px-3 text-[12px] font-extrabold text-white shadow-[0_8px_28px_-12px_rgba(99,102,241,.8)] transition hover:-translate-y-0.5 hover:bg-indigo-400 sm:min-h-11 sm:gap-2 sm:px-4 sm:text-[13px]"><span className="sm:hidden">Entrar</span><span className="hidden sm:inline">Abrir aplicativo</span><ArrowUpRight size={15}/></Link></div>
       </div>
     </header>
 
