@@ -429,3 +429,112 @@ img, svg, video, canvas {
     font-size: .74rem;
   }
 }
+
+
+/* Final mobile layout: use the bottom bar as the only primary navigation on phones. */
+@media (max-width: 720px) {
+  header.sticky {
+    position: sticky;
+    top: max(.4rem, env(safe-area-inset-top));
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .7rem;
+    margin-bottom: 1rem;
+    padding: .8rem;
+    border-radius: 1.35rem;
+  }
+
+  header.sticky > div:first-child {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: .7rem;
+  }
+
+  /* The bottom navigation already contains the main destinations.
+     Hiding the duplicate horizontal menu prevents the text collision seen on phones. */
+  header.sticky > div:last-child > nav {
+    display: none !important;
+  }
+
+  header.sticky > div:last-child {
+    display: flex;
+    width: 100%;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: .4rem;
+  }
+
+  header.sticky > div:last-child > button,
+  header.sticky > div:last-child > span {
+    flex: 0 0 auto;
+  }
+
+  header.sticky > div:last-child > button {
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    justify-content: center;
+    padding-inline: .65rem;
+  }
+
+  header.sticky > div:last-child > button:last-child {
+    font-size: 0;
+    gap: 0;
+  }
+
+  header.sticky > div:last-child > button:last-child svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .fade-up {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .fade-up > section,
+  .fade-up > div {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  nav.fixed {
+    min-height: 4.25rem;
+    align-items: stretch;
+    padding-top: .35rem;
+  }
+
+  nav.fixed button {
+    min-height: 3.7rem;
+    justify-content: center;
+    gap: .2rem;
+    line-height: 1.15;
+  }
+}
+
+@media (max-width: 420px) {
+  header.sticky {
+    padding: .7rem;
+    border-radius: 1.15rem;
+  }
+
+  header.sticky > div:first-child h1 {
+    font-size: 1.05rem;
+  }
+
+  header.sticky > div:last-child {
+    gap: .3rem;
+  }
+
+  header.sticky > div:last-child > button {
+    min-width: 2.35rem;
+    min-height: 2.35rem;
+    padding-inline: .55rem;
+  }
+
+  nav.fixed button {
+    font-size: .68rem;
+  }
+}
