@@ -4271,7 +4271,7 @@ export function LeadApp() {
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={mobileOnly} onChange={(event)=>setMobileOnly(event.target.checked)} className="accent-[var(--color-primary)]"/>Priorizar celular</label>
             </div>
           </div>
-          <div className={"flex flex-wrap items-center justify-between gap-3 p-5 " + card}><div><h3 className="font-semibold">Privacidade e conta</h3><p className="mt-1 text-sm text-muted">Exporte seus leads antes de sair. O acesso é protegido pela chave vinculada a este aparelho.</p></div><div className="flex gap-2"><button type="button" onClick={()=>exportCsv(pipeline)} className={btnGhost}><Download className="size-4"/>Exportar dados</button><button type="button" onClick={()=>void logoutAndSave()} className={btnGhost + " text-danger"}><LogOut className="size-4"/>Sair da conta</button></div></div>
+          <div className={"flex flex-col gap-4 p-5 " + card}><div><h3 className="font-semibold">Privacidade e conta</h3><p className="mt-1 text-sm text-muted">Exporte seus leads antes de sair. O acesso é protegido pela chave vinculada a este aparelho.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={()=>exportCsv(pipeline)} className={btnGhost}><Download className="size-4"/>Exportar dados</button><a href="/privacidade" className={btnGhost}>Política de privacidade</a><a href="/termos" className={btnGhost}>Termos de uso</a><a href="/suporte" className={btnGhost}>Central de ajuda</a><button type="button" onClick={()=>void logoutAndSave()} className={btnGhost + " text-danger"}><LogOut className="size-4"/>Sair da conta</button></div></div>
         </section>
       )}
     </div>
