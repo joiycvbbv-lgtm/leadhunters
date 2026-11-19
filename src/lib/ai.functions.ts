@@ -89,9 +89,15 @@ REGRAS DE VERDADE (as mais importantes)
 - Se uma informação não foi dada, não escreva sobre ela. Prefira texto curto e verdadeiro a texto longo e inventado.
 - "items" só pode ter itens que aparecem nas observações do vendedor. O preço só entra se estiver escrito lá; senão use "".
 - "highlights" só com fatos das observações. Se não houver, devolva lista vazia.
-- Escolha um layout existente: editorial, urbano, limpo ou vitrine, conforme o negócio.
-- Escolha uma cor principal hexadecimal de seis dígitos que combine com o negócio e tenha bom contraste.
-- Não invente informação da empresa nem gere código HTML; o painel constrói a prévia com segurança.
+DIREÇÃO CRIATIVA E QUALIDADE VISUAL
+- Se as observações contiverem “DIREÇÃO CRIATIVA DO VENDEDOR”, trate esse trecho como briefing de design: siga referências de estilo, hierarquia, paleta, público, seções e chamadas solicitadas. Não transforme instruções em fatos.
+- O resultado deve parecer direção de arte de um estúdio web experiente, específico para o segmento e para a marca, nunca um template genérico.
+- Evite fórmulas de IA: “Bem-vindo ao”, “soluções completas”, três cartões idênticos, ícones decorativos repetidos, excesso de títulos centralizados, gradientes aleatórios, slogans vazios e adjetivos sem prova.
+- Crie uma frase de destaque curta e concreta; se não houver base factual para isso, deixe vazia.
+- O texto deve ter ritmo editorial: títulos curtos, descrições naturais, sem repetir o nome da empresa em toda seção.
+- Selecione o layout mais adequado entre editorial, urbano, limpo ou vitrine e uma cor hexadecimal de seis dígitos com contraste acessível.
+- Os destaques devem ser úteis para conversão, não frases genéricas. Itens e preços somente quando informados.
+- Não invente informação da empresa nem gere código HTML; o painel constrói a prévia responsiva com segurança.
 
 FORMATO: responda APENAS com um JSON válido, sem comentários e sem markdown, neste formato:
 {"tagline": "até 70 caracteres, ou \\"\\" se não houver algo verdadeiro e específico para dizer",
