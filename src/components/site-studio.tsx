@@ -223,7 +223,6 @@ export function SiteStudio({
   const [aiBusy, setAiBusy] = useState("");
   const [aiInfo, setAiInfo] = useState("");
   const [aiWarnings, setAiWarnings] = useState<string[]>([]);
-  const [undo, setUndo] = useState<{ tagline: string; about: string; hl: string; items: string; design: DesignId; color: string } | null>(null);
   const [sitePrompt, setSitePrompt] = useState("");
 
   useEffect(() => {
@@ -290,7 +289,6 @@ export function SiteStudio({
         else setError(res.error);
         return;
       }
-      setUndo({ tagline: site.tagline, about: site.about, hl: hlText, items: itemsText, design: site.design, color: site.color });
       const c = res.copy;
       const generatedSite: SiteData = {
         ...data,
@@ -541,7 +539,7 @@ export function SiteStudio({
               </div>
             </section>
             <section className={`space-y-3 p-4 ${card}`}>
-              <h3 className="font-semibold">Dados da empresa</h3>
+              <h3 className="font-semibold">Dados da empresa <span className="ml-1 text-xs font-normal text-muted">· confira antes de gerar</span></h3>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block text-sm">
                   <span className="mb-1 block font-semibold">Nome</span>
@@ -606,7 +604,7 @@ export function SiteStudio({
                 <Sparkles className="size-5 text-primary" /> Criação de site com IA
               </h3>
               <p className="text-xs text-muted">
-                A IA prepara os textos, escolhe uma identidade visual e preenche o rascunho. Ela usa apenas as informações confirmadas abaixo; confira tudo na prévia antes de publicar.
+                Opcional: informe detalhes reais do negócio que ainda não aparecem no cadastro. A IA usa isso junto com o seu prompt principal.
               </p>
               <label className="block text-sm">
                 <span className="mb-1 block font-semibold">O que a empresa vende ou faz, diferenciais, preços</span>
@@ -618,42 +616,18 @@ export function SiteStudio({
                   className={field}
                 />
               </label>
-              <div className="flex flex-wrap items-end gap-3">
-                <label className="block text-sm">
-                  <span className="mb-1 block font-semibold">Tom</span>
-                  <select value={tone} onChange={(e) => setTone(e.target.value as typeof tone)} className={field}>
-                    <option value="direto">Direto e simples</option>
-                    <option value="acolhedor">Acolhedor</option>
-                    <option value="premium">Sóbrio e refinado</option>
-                  </select>
-                </label>
-                <button type="button" onClick={() => void writeWithAi(true)} disabled={Boolean(aiBusy)} className={`h-12 px-5 ${btnPrimary}`}>
-                  {aiBusy === "copy" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />} Criar site com IA
-                </button>
-                <button type="button" onClick={() => void writeWithAi()} disabled={Boolean(aiBusy)} className={`h-12 px-5 ${btnGhost}`}>
-                  Só revisar os textos
-                </button>
-                {undo && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      patch({ tagline: undo.tagline, about: undo.about, design: undo.design, color: undo.color });
-                      setHlText(undo.hl);
-                      setItemsText(undo.items);
-                      setUndo(null);
-                    }}
-                    className={btnGhost}
-                  >
-                    Desfazer
-                  </button>
-                )}
-              </div>
+              <label className="block text-sm">
+                <span className="mb-1 block font-semibold">Tom de voz</span>
+                <select value={tone} onChange={(e) => setTone(e.target.value as typeof tone)} className={field}>
+                  <option value="direto">Direto e simples</option>
+                  <option value="acolhedor">Acolhedor</option>
+                  <option value="premium">Sóbrio e refinado</option>
+                </select>
+              </label>
               {aiInfo && <p className="text-xs text-muted">{aiInfo}</p>}
               {aiWarnings.length > 0 && (
                 <ul className="list-disc space-y-1 rounded-lg bg-amber-50 py-2 pl-7 pr-3 text-xs text-amber-900 dark:bg-amber-500/15 dark:text-amber-100">
-                  {aiWarnings.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
+                  {aiWarnings.map((item) => <li key={item}>{item}</li>)}
                 </ul>
               )}
             </section>
