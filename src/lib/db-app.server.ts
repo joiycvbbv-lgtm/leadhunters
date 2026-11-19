@@ -85,6 +85,9 @@ const EXTRAS = [
      created_at timestamptz not null default now()
    )`,
   "alter table orders add column if not exists coupon text not null default ''",
+  "alter table orders add column if not exists provider text not null default 'mercadopago'",
+  "alter table orders add column if not exists stripe_session_id text",
+  "create unique index if not exists orders_stripe_session_idx on orders (stripe_session_id) where stripe_session_id is not null",
   "create unique index if not exists trials_whatsapp_idx on trials (whatsapp)",
   "create index if not exists trials_device_idx on trials (device_id)",
 ];
