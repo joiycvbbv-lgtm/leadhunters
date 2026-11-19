@@ -41,30 +41,57 @@ export function MarketingSite() {
       </div>
     </header>
 
-    <section className="relative">
-      <div className="relative mx-auto grid max-w-[1280px] items-center gap-14 px-5 pb-20 pt-16 sm:pt-24 lg:grid-cols-[.88fr_1.12fr] lg:px-10 lg:pb-28 lg:pt-28">
-        <div className="relative z-10 max-w-[570px]">
-          <p className="mb-7 inline-flex items-center gap-2 rounded-full border border-indigo-300/20 bg-indigo-400/[.08] px-3.5 py-2 text-[10px] font-extrabold uppercase tracking-[.16em] text-indigo-200"><Sparkles size={13}/> Prospecção com mais clareza</p>
-          <h1 className="text-[clamp(3.15rem,6.5vw,6.25rem)] font-extrabold leading-[.96] tracking-[-.075em] text-white">Encontre seus próximos <span className="bg-gradient-to-r from-indigo-300 via-violet-300 to-sky-300 bg-clip-text text-transparent">clientes.</span></h1>
-          <p className="mt-7 max-w-[460px] text-[15px] leading-[1.9] text-slate-400">Pesquise empresas por região, organize oportunidades e transforme dados disponíveis em conversas comerciais — tudo em um só painel.</p>
-          <div className="mt-9 flex flex-col gap-3 min-[430px]:flex-row"><Link to="/app" className="inline-flex min-h-[54px] items-center justify-center gap-3 rounded-xl bg-indigo-500 px-6 text-sm font-extrabold text-white shadow-[0_12px_34px_-14px_rgba(99,102,241,.85)] transition hover:-translate-y-0.5 hover:bg-indigo-400">Começar agora <ArrowRight size={17}/></Link><a href="#recursos" className="inline-flex min-h-[54px] items-center justify-center rounded-xl border border-white/15 bg-white/[.045] px-6 text-sm font-bold text-slate-200 backdrop-blur-xl transition hover:border-white/25 hover:bg-white/[.09]">Conhecer recursos</a></div>
-          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-[11px] font-semibold text-slate-500"><span className="inline-flex items-center gap-2"><ShieldCheck size={14} className="text-indigo-300"/> Dados para você avaliar</span><span className="inline-flex items-center gap-2"><Zap size={14} className="text-sky-300"/> Fluxo simples e direto</span></div>
-        </div>
+    <section className="relative isolate">
+      <div className="mx-auto max-w-[1280px] px-5 pb-14 pt-16 sm:pt-24 lg:px-10 lg:pb-20 lg:pt-28">
+        <div className="grid items-center gap-14 lg:grid-cols-[.92fr_1.08fr] lg:gap-10">
+          <div className="relative z-10 max-w-[590px]">
+            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-indigo-300/25 bg-indigo-400/[.09] px-3.5 py-2 text-[10px] font-extrabold uppercase tracking-[.16em] text-indigo-200 shadow-[inset_0_1px_0_rgba(255,255,255,.12)]">
+              <span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-indigo-300 opacity-50"/><span className="relative inline-flex size-2 rounded-full bg-indigo-300"/></span>
+              Plataforma de prospecção comercial
+            </div>
+            <h1 className="max-w-[620px] text-[clamp(3.2rem,6.5vw,6.3rem)] font-extrabold leading-[.94] tracking-[-.078em] text-white">
+              Menos procura. <span className="bg-gradient-to-r from-indigo-300 via-violet-300 to-sky-300 bg-clip-text text-transparent">Mais oportunidades.</span>
+            </h1>
+            <p className="mt-7 max-w-[470px] text-[15px] leading-[1.9] text-slate-400 sm:text-base">
+              Encontre empresas por cidade e segmento, organize seus contatos e acompanhe cada oportunidade em um só lugar.
+            </p>
+            <div className="mt-9 flex flex-col gap-3 min-[430px]:flex-row">
+              <Link to="/app" className="inline-flex min-h-[54px] items-center justify-center gap-3 rounded-xl bg-indigo-500 px-6 text-sm font-extrabold text-white shadow-[0_12px_34px_-14px_rgba(99,102,241,.85)] transition hover:-translate-y-0.5 hover:bg-indigo-400">Explorar LeadHunter <ArrowRight size={17}/></Link>
+              <a href="#planos" className="inline-flex min-h-[54px] items-center justify-center rounded-xl border border-white/15 bg-white/[.045] px-6 text-sm font-bold text-slate-200 backdrop-blur-xl transition hover:border-white/25 hover:bg-white/[.09]">Ver planos e recursos</a>
+            </div>
+            <div className="mt-9 flex flex-wrap gap-x-6 gap-y-3 text-[11px] font-semibold text-slate-500">
+              <span className="inline-flex items-center gap-2"><ShieldCheck size={14} className="text-indigo-300"/> Você escolhe quem abordar</span>
+              <span className="inline-flex items-center gap-2"><Zap size={14} className="text-sky-300"/> Pesquisa e organização no mesmo painel</span>
+            </div>
+          </div>
 
-        <div className="relative mx-auto w-full max-w-[650px] lg:ml-auto">
-          <div className="absolute -inset-5 rounded-[2rem] bg-gradient-to-br from-indigo-500/20 via-violet-500/10 to-sky-500/15 blur-2xl"/>
-          <div className={`relative overflow-hidden rounded-[26px] ${glass}`}>
-            <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 sm:px-6"><div className="flex items-center gap-3"><Mark/><div><p className="text-[13px] font-extrabold text-white">LeadHunter</p><p className="mt-0.5 text-[10px] text-slate-500">Visão geral da prospecção</p></div></div><span className="rounded-full border border-indigo-300/20 bg-indigo-400/10 px-3 py-1.5 text-[9px] font-extrabold tracking-[.12em] text-indigo-200">PRÉVIA DO APP</span></div>
-            <div className="grid grid-cols-3 gap-2.5 p-4 sm:gap-3 sm:p-5">{[["PESQUISAS","12","+3 nesta semana"],["CONTATOS","48","lista de demonstração"],["RETORNOS","06","para acompanhar"]].map(([label,value,note],i)=><div key={label} className="rounded-2xl border border-white/10 bg-white/[.055] p-3 sm:p-4"><p className="text-[9px] font-extrabold tracking-[.13em] text-slate-500">{label}</p><p className="mt-2 text-2xl font-extrabold tracking-[-.06em] text-white">{value}</p><p className={`mt-1 text-[9px] ${i===0?"text-indigo-300":"text-slate-500"}`}>{note}</p></div>)}</div>
-            <div className="flex items-center justify-between px-4 pb-3 sm:px-5"><div><p className="text-[12px] font-extrabold text-white">Empresas encontradas</p><p className="mt-1 text-[10px] text-slate-500">Exemplo ilustrativo de resultados</p></div><span className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[.045] px-2.5 py-2 text-[9px] font-bold text-slate-300"><MapPin size={11} className="text-indigo-300"/> Minas Gerais</span></div>
-            <div className="space-y-2 px-4 pb-4 sm:px-5 sm:pb-5">{demoLeads.map((lead,i)=><div key={lead.name} className="flex items-center gap-3 rounded-2xl border border-white/[.09] bg-[#111a30]/70 px-3 py-3 transition hover:border-indigo-300/25 hover:bg-white/[.07]"><span className={`grid size-10 shrink-0 place-items-center rounded-xl border text-[10px] font-extrabold ${i===0?"border-amber-300/20 bg-amber-300/10 text-amber-200":i===1?"border-indigo-300/20 bg-indigo-300/10 text-indigo-200":"border-sky-300/20 bg-sky-300/10 text-sky-200"}`}>{lead.initials}</span><div className="min-w-0 flex-1"><p className="truncate text-[11px] font-extrabold text-slate-100">{lead.name}</p><p className="mt-1 truncate text-[9px] text-slate-500">{lead.category} · {lead.city}</p></div><span className="hidden rounded-full border border-white/10 bg-white/[.04] px-2.5 py-1 text-[9px] font-bold text-slate-400 sm:inline-flex">{lead.state}</span><ArrowUpRight size={14} className="text-slate-500"/></div>)}</div>
-            <div className="flex items-center gap-2 border-t border-white/10 bg-white/[.025] px-5 py-3 text-[9px] text-slate-500"><span className="size-1.5 rounded-full bg-indigo-300"/> Interface demonstrativa · empresas e números fictícios</div>
+          <div className="relative mx-auto w-full max-w-[680px] lg:ml-auto">
+            <div aria-hidden className="absolute -inset-7 rounded-[3rem] bg-gradient-to-br from-indigo-500/25 via-violet-500/10 to-sky-500/20 blur-3xl"/>
+            <div aria-hidden className="absolute -right-6 top-12 size-28 rounded-full border border-indigo-300/15 bg-indigo-400/[.04] blur-[1px]"/>
+            <div className={`relative overflow-hidden rounded-[28px] ${glass}`}>
+              <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 sm:px-6">
+                <div className="flex items-center gap-3"><Mark/><div><p className="text-[13px] font-extrabold text-white">Visão geral</p><p className="mt-0.5 text-[10px] text-slate-500">Seu espaço de prospecção</p></div></div>
+                <span className="rounded-full border border-indigo-300/20 bg-indigo-400/10 px-3 py-1.5 text-[9px] font-extrabold tracking-[.12em] text-indigo-200">PRÉVIA DO PRODUTO</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2.5 p-4 sm:gap-3 sm:p-5">
+                {[["BUSCAS","12","pesquisas realizadas"],["SALVOS","48","empresas na lista"],["RETORNOS","06","para acompanhar"]].map(([label,value,note],i)=><div key={label} className="rounded-2xl border border-white/10 bg-white/[.055] p-3 sm:p-4"><p className="text-[9px] font-extrabold tracking-[.13em] text-slate-500">{label}</p><p className="mt-2 text-2xl font-extrabold tracking-[-.06em] text-white">{value}</p><p className={`mt-1 text-[9px] ${i===0?"text-indigo-300":"text-slate-500"}`}>{note}</p></div>)}
+              </div>
+              <div className="flex items-center justify-between px-4 pb-3 sm:px-5"><div><p className="text-[12px] font-extrabold text-white">Resultados da pesquisa</p><p className="mt-1 text-[10px] text-slate-500">Exemplo ilustrativo de empresas</p></div><span className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[.045] px-2.5 py-2 text-[9px] font-bold text-slate-300"><MapPin size={11} className="text-indigo-300"/> Minas Gerais</span></div>
+              <div className="space-y-2 px-4 pb-4 sm:px-5 sm:pb-5">{demoLeads.map((lead,i)=><div key={lead.name} className="flex items-center gap-3 rounded-2xl border border-white/[.09] bg-[#111a30]/70 px-3 py-3 transition hover:border-indigo-300/25 hover:bg-white/[.07]"><span className={`grid size-10 shrink-0 place-items-center rounded-xl border text-[10px] font-extrabold ${i===0?"border-amber-300/20 bg-amber-300/10 text-amber-200":i===1?"border-indigo-300/20 bg-indigo-300/10 text-indigo-200":"border-sky-300/20 bg-sky-300/10 text-sky-200"}`}>{lead.initials}</span><div className="min-w-0 flex-1"><p className="truncate text-[11px] font-extrabold text-slate-100">{lead.name}</p><p className="mt-1 truncate text-[9px] text-slate-500">{lead.category} · {lead.city}</p></div><span className="hidden rounded-full border border-white/10 bg-white/[.04] px-2.5 py-1 text-[9px] font-bold text-slate-400 sm:inline-flex">{lead.state}</span><ArrowUpRight size={14} className="text-slate-500"/></div>)}</div>
+              <div className="flex items-center gap-2 border-t border-white/10 bg-white/[.025] px-5 py-3 text-[9px] text-slate-500"><span className="size-1.5 rounded-full bg-indigo-300"/> Dados e números fictícios para demonstração visual</div>
+            </div>
+            <div className={`absolute -bottom-7 -left-3 hidden items-center gap-3 rounded-2xl px-4 py-3 sm:flex ${glass}`}><span className="grid size-9 place-items-center rounded-xl border border-emerald-300/20 bg-emerald-300/10 text-emerald-200"><Check size={17}/></span><div><p className="text-[10px] font-extrabold text-white">Fluxo organizado</p><p className="mt-1 text-[9px] text-slate-500">Da busca ao acompanhamento</p></div></div>
           </div>
         </div>
       </div>
     </section>
 
-    <div className="relative border-y border-white/10 bg-white/[.025] backdrop-blur-xl"><div className="mx-auto grid max-w-[1280px] grid-cols-2 gap-y-5 px-5 py-6 sm:grid-cols-4 lg:px-10">{[["01","BUSCAR","Por cidade e segmento"],["02","AVALIAR","Revise os resultados"],["03","CONTATAR","Inicie a conversa"],["04","ACOMPANHAR","Registre os retornos"]].map(([n,t,d])=><div key={n} className="flex gap-3 border-l border-white/10 pl-4 first:border-0 first:pl-0 sm:first:border-l sm:first:pl-4"><span className="text-[10px] font-extrabold text-indigo-300">{n}</span><div><p className="text-[10px] font-extrabold tracking-[.13em] text-slate-300">{t}</p><p className="mt-1 text-[11px] text-slate-500">{d}</p></div></div>)}</div></div>
+    <section aria-label="Recursos do LeadHunter" className="relative border-y border-white/10 bg-white/[.025] backdrop-blur-xl">
+      <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-center gap-x-8 gap-y-4 px-5 py-7 lg:justify-between lg:px-10">
+        <p className="w-full text-center text-[9px] font-extrabold uppercase tracking-[.2em] text-slate-600 lg:w-auto lg:text-left">Tudo em um só fluxo</p>
+        {[{Icon:Search,label:"Pesquisa por cidade"},{Icon:Target,label:"Filtros por segmento"},{Icon:Users,label:"Leads organizados"},{Icon:MessageCircle,label:"Atalho para contato"},{Icon:Clock3,label:"Histórico e retornos"}].map(({Icon,label})=><span key={label} className="inline-flex items-center gap-2 text-[11px] font-bold text-slate-400"><Icon size={15} className="text-indigo-300"/>{label}</span>)}
+      </div>
+    </section>
 
     <section id="recursos" className="relative mx-auto max-w-[1280px] px-5 py-20 sm:py-28 lg:px-10"><div className="grid gap-10 lg:grid-cols-[.75fr_1.25fr] lg:gap-24"><div className="max-w-[390px]"><p className="text-[10px] font-extrabold uppercase tracking-[.2em] text-indigo-300">Feito para sua rotina comercial</p><h2 className="mt-5 text-4xl font-extrabold leading-[1.05] tracking-[-.06em] text-white sm:text-5xl">Da pesquisa ao próximo contato.</h2><p className="mt-5 text-sm leading-7 text-slate-400">Menos abas abertas. Mais clareza para encontrar empresas relevantes e manter cada oportunidade organizada.</p><Link to="/app" className="mt-8 inline-flex items-center gap-2 border-b border-indigo-300/50 pb-2 text-[13px] font-extrabold text-indigo-200 transition hover:text-white">Conhecer o painel <ArrowUpRight size={15}/></Link></div><div className="grid gap-3 sm:grid-cols-2">{features.map(([Icon,title,desc])=><article key={title} className={`rounded-2xl p-6 transition duration-300 hover:-translate-y-1 hover:border-indigo-300/25 hover:bg-white/[.09] ${glass}`}><span className="grid size-11 place-items-center rounded-xl border border-indigo-300/20 bg-indigo-400/10 text-indigo-200"><Icon size={19}/></span><h3 className="mt-5 text-[16px] font-extrabold tracking-[-.035em] text-white">{title}</h3><p className="mt-2 text-[13px] leading-6 text-slate-400">{desc}</p></article>)}</div></div></section>
 
