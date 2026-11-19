@@ -1063,7 +1063,7 @@ export function MySitesModal({
             <Loader2 className="size-4 animate-spin" /> Carregando…
           </p>
         ) : sites.length === 0 ? (
-          <p className="text-sm text-muted">Você ainda não publicou nenhum site. Abra um lead do pipeline e toque em “Criar site”.</p>
+          <p className="text-sm text-muted">Você ainda não publicou nenhum site. Abra um lead do pipeline e toque em “Criar com IA”.</p>
         ) : (
           <div className="divide-y divide-border">
             {sites.map((site) => {
