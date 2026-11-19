@@ -3,7 +3,7 @@ import { BadgeCheck, Check, Copy, KeyRound, Loader2, MapPin, MessageCircle, QrCo
 import { checkCoupon, createPix, createStripeCheckout, getOrder, type OrderView } from "@/lib/shop.functions";
 import { PLANS, SUPPORT_WHATSAPP, brl } from "@/lib/plans";
 
-const card = "glass-panel rounded-2xl";
+const card = "glass-panel rounded-[1.5rem]";
 const field =
   "w-full rounded-xl border border-border bg-surface-2 px-3.5 py-3 text-fg outline-none placeholder:text-muted/70 focus:border-primary";
 const btnPrimary =
@@ -153,7 +153,7 @@ export function ShopApp() {
                 <button
                   type="button"
                   onClick={() => copy(order.key!, "key")}
-                  className="rounded-lg bg-surface p-2 text-primary"
+                  className="rounded-full bg-surface p-2.5 text-primary"
                   aria-label="Copiar key"
                 >
                   {copied === "key" ? <Check className="size-4" /> : <Copy className="size-4" />}
@@ -248,7 +248,7 @@ export function ShopApp() {
                   setCoupon(null);
                   setCouponMsg("");
                 }}
-                className={`group relative flex min-h-[190px] flex-col overflow-hidden rounded-2xl border p-4 text-left transition duration-200 hover:-translate-y-1 ${
+                className={`group relative flex min-h-[190px] flex-col overflow-hidden rounded-[1.5rem] border p-4 text-left transition duration-200 hover:-translate-y-1 ${
                   planId === item.id
                     ? "border-sky-300/80 bg-gradient-to-br from-[#dff2ff]/95 via-[#edf8ff]/90 to-[#d5eaff]/95 text-[#12345a] shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_18px_38px_-22px_rgba(20,116,200,.55)] ring-2 ring-sky-300/45"
                     : "border-sky-200/70 bg-white/70 text-[#183b61] shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_12px_28px_-22px_rgba(20,116,200,.35)] backdrop-blur-xl hover:border-sky-300 hover:bg-sky-50/90"
@@ -293,7 +293,7 @@ export function ShopApp() {
                 placeholder="Tem cupom de desconto?"
                 className={field}
               />
-              <button type="button" onClick={() => void applyCoupon()} disabled={!couponText.trim()} className="shrink-0 rounded-xl border border-border bg-surface px-4 text-sm font-semibold hover:border-primary hover:text-primary disabled:opacity-50">
+              <button type="button" onClick={() => void applyCoupon()} disabled={!couponText.trim()} className="shrink-0 rounded-full border border-border bg-surface px-5 text-sm font-semibold hover:border-primary hover:text-primary disabled:opacity-50">
                 Aplicar
               </button>
             </div>
@@ -303,7 +303,7 @@ export function ShopApp() {
               {busy ? <Loader2 className="size-4 animate-spin" /> : <QrCode className="size-4" />}
               Pagar {brl(coupon ? coupon.finalCents : plan.priceCents)} com Pix
             </button>
-            <button type="button" disabled={busy} onClick={() => void payWithCard()} className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 font-semibold text-fg transition hover:border-primary hover:text-primary disabled:opacity-60">
+            <button type="button" disabled={busy} onClick={() => void payWithCard()} className="flex h-12 w-full items-center justify-center gap-2 rounded-full border border-border bg-surface px-4 font-semibold text-fg transition hover:border-primary hover:text-primary disabled:opacity-60">
               Pagar com cartão (Stripe)
             </button>
             <p className="text-center text-xs text-muted">A key chega na tela assim que o Pix for confirmado.</p>
