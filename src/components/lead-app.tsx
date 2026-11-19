@@ -1063,7 +1063,7 @@ const PipelineRow = memo(function PipelineRow({
           )}
           {onSite && (
             <button type="button" onClick={() => onSite(lead.id)} className={`${btnGhost} inline-flex items-center gap-1.5`}>
-              <Globe className="size-4" /> Criar site
+              <Sparkles className="size-4" /> Criar com IA
             </button>
           )}
           {onPrompt && (
