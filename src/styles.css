@@ -701,3 +701,24 @@ nav.fixed {
     transition-duration: .01ms !important;
   }
 }
+
+
+/* Identidade editorial exclusiva da página comercial do LeadHunter. */
+.marketing-site {
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+}
+.marketing-site .marketing-display {
+  font-family: "DM Serif Display", Georgia, serif;
+  font-weight: 400;
+}
+.marketing-site a {
+  text-decoration: none;
+}
+.marketing-site section[id] {
+  scroll-margin-top: 5rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .marketing-site a {
+    transition: color .18s ease, background-color .18s ease, border-color .18s ease, transform .18s ease;
+  }
+}
