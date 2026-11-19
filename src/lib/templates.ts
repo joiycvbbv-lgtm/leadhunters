@@ -5,7 +5,17 @@ export const FIRST_TEMPLATES: Template[] = [
   {
     id: "geral",
     label: "Geral",
-    text: "Olá! Vi que a {nome} ainda não tem site. Posso te mostrar um site simples que aparece no Google e traz cliente novo?",
+    text: "Oi! Encontrei a {nome} no Google e não localizei um site próprio. Estou preparando ideias de sites para negócios da região, com informações, fotos e botão de WhatsApp. Posso te mandar uma prévia sem compromisso?",
+  },
+  {
+    id: "previsualizacao",
+    label: "Oferecer prévia personalizada",
+    text: "Oi! Encontrei a {nome} no Google e pensei em uma forma de apresentar melhor o negócio de vocês na internet. Posso montar uma prévia de site com as informações da empresa e botão de WhatsApp para você avaliar, sem compromisso?",
+  },
+  {
+    id: "pergunta-canal",
+    label: "Começar uma conversa",
+    text: "Oi! Tudo bem? Encontrei a {nome} pesquisando empresas de {segmento} em {cidade}. Hoje vocês recebem a maioria dos novos clientes pelo Instagram, indicação ou Google? Estou trabalhando com sites para negócios locais e queria entender se uma página própria faria sentido para vocês.",
   },
   {
     id: "restaurante",
