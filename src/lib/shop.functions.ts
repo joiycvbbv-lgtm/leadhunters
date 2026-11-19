@@ -117,9 +117,12 @@ export const createStripeCheckout = createServerFn({ method: "POST" })
     let origin: URL;
     try {
       origin = new URL(data.origin);
+      const configuredOrigin = process.env.APP_URL?.trim() || (process.env.VERCEL_URL ? "https://" + process.env.VERCEL_URL : "");
       if (origin.protocol !== "https:" && origin.hostname !== "localhost") throw new Error("origin");
+      if (configuredOrigin && origin.origin !== new URL(configuredOrigin).origin) throw new Error("origin mismatch");
+      if (process.env.NODE_ENV === "production" && !configuredOrigin) throw new Error("APP_URL missing");
     } catch {
-      return { ok: false, error: "Endereço de retorno inválido." };
+      return { ok: false, error: "Endereço do LeadHunter inválido. Configure APP_URL nas variáveis do servidor." };
     }
     const { getDb: getSql } = await import("./db-app.server");
     const { randomUUID } = await import("node:crypto");
