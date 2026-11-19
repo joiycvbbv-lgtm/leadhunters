@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, ArrowUpRight, Check, ChevronDown, Clock3, MapPin, MessageCircle, Search, Target, Users, Sparkles, ShieldCheck, Zap } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Check, ChevronDown, Clock3, MapPin, MessageCircle, Search, Target, Users, Sparkles, ShieldCheck, Zap, Star } from "lucide-react";
 import { PLANS, brl } from "@/lib/plans";
 
 const demoLeads = [
