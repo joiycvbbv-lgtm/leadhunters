@@ -85,3 +85,22 @@ export function bestContactTime(category: string): string {
   if (/store|shop|market|clothing|pharmacy/.test(c)) return "10h–12h";
   return "9h–11h ou 14h–16h";
 }
+
+
+/** Mensagens internacionais: personalize e revise antes de enviar. */
+export const INTERNATIONAL_TEMPLATES: Record<string, Template[]> = {
+  en: [
+    { id: "en-intro", label: "English · First contact", text: "Hi! I found {nome} while looking for {segmento} businesses in {cidade}. I couldn't find an official website, so I had an idea for a simple, professional page with your services, photos and a direct contact button. Would you be open to seeing a no-obligation preview?" },
+    { id: "en-preview", label: "English · Offer a preview", text: "Hello! I’m reaching out because I think a professional website could make it easier for customers to find and contact {nome}. I can put together a quick concept for you to review, with no obligation. Would you like me to send it?" },
+    { id: "en-follow", label: "English · Follow-up", text: "Hi! Just following up on my message about a website for {nome}. No pressure at all—would you like me to send the example, or should I close the conversation for now?" },
+  ],
+  es: [
+    { id: "es-intro", label: "Español · Primer contacto", text: "¡Hola! Encontré {nome} buscando negocios de {segmento} en {cidade}. No encontré una página web oficial y pensé que un sitio profesional, con sus servicios, fotos y un botón de contacto, podría ayudar a sus clientes. ¿Te gustaría ver una propuesta sin compromiso?" },
+    { id: "es-preview", label: "Español · Ofrecer una vista previa", text: "¡Hola! Puedo preparar una propuesta visual de sitio web para {nome}, para que veas cómo podría presentarse tu negocio en internet. Sin compromiso. ¿Te interesa?" },
+    { id: "es-follow", label: "Español · Seguimiento", text: "¡Hola! Quería dar seguimiento a mi mensaje sobre el sitio web de {nome}. Si todavía te interesa, puedo enviarte un ejemplo. Si no, no hay problema. ¡Gracias!" },
+  ],
+  pt: [
+    { id: "pt-intro", label: "Português · Primeiro contato", text: "Olá! Encontrei {nome} ao pesquisar empresas de {segmento} em {cidade}. Não encontrei um site oficial e pensei que uma página profissional, com serviços, fotos e contato direto, poderia facilitar o contato com novos clientes. Posso enviar uma prévia sem compromisso?" },
+    { id: "pt-preview", label: "Português · Oferecer prévia", text: "Olá! Posso preparar uma prévia de site para {nome}, mostrando como o negócio poderia aparecer profissionalmente nas pesquisas e facilitar o contato de clientes. Gostaria de ver?" },
+  ],
+};
