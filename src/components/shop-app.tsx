@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BadgeCheck, Check, Copy, KeyRound, Loader2, MapPin, MessageCircle, QrCode, Radar, Target, Zap } from "lucide-react";
-import { checkCoupon, createPix, getOrder, type OrderView } from "@/lib/shop.functions";
+import { checkCoupon, createPix, createStripeCheckout, getOrder, type OrderView } from "@/lib/shop.functions";
 import { PLANS, SUPPORT_WHATSAPP, brl } from "@/lib/plans";
 
 const card = "rounded-2xl border border-border bg-surface shadow-card";
@@ -75,6 +75,26 @@ export function ShopApp() {
       setOrder(result);
     } catch {
       setError("Não consegui gerar o Pix agora. Tente de novo.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function payWithCard() {
+    setError("");
+    setBusy(true);
+    try {
+      const result = await createStripeCheckout({
+        data: { plan: planId, name, email, whatsapp, origin: window.location.origin, coupon: coupon?.code ?? "" },
+      });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      localStorage.setItem(ORDER, result.orderId);
+      window.location.assign(result.url);
+    } catch {
+      setError("Não consegui abrir o checkout do cartão. Tente novamente.");
     } finally {
       setBusy(false);
     }
@@ -278,6 +298,9 @@ export function ShopApp() {
             <button type="submit" disabled={busy} className={`h-12 w-full ${btnPrimary}`}>
               {busy ? <Loader2 className="size-4 animate-spin" /> : <QrCode className="size-4" />}
               Pagar {brl(coupon ? coupon.finalCents : plan.priceCents)} com Pix
+            </button>
+            <button type="button" disabled={busy} onClick={() => void payWithCard()} className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 font-semibold text-fg transition hover:border-primary hover:text-primary disabled:opacity-60">
+              Pagar com cartão (Stripe)
             </button>
             <p className="text-center text-xs text-muted">A key chega na tela assim que o Pix for confirmado.</p>
           </form>
