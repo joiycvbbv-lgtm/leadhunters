@@ -7,7 +7,7 @@ const card = "rounded-2xl border border-border bg-surface shadow-card";
 const field =
   "w-full rounded-xl border border-border bg-surface-2 px-3.5 py-3 text-fg outline-none placeholder:text-muted/70 focus:border-primary";
 const btnPrimary =
-  "inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-primary to-primary-deep font-semibold text-primary-fg shadow-[0_6px_16px_-6px_rgba(29,111,224,0.6)] transition hover:brightness-105 disabled:opacity-60";
+  "inline-flex items-center justify-center gap-2 rounded-full border border-sky-200/50 bg-gradient-to-r from-[#1766bd]/90 via-[#2788d8]/90 to-[#4aa9e8]/90 font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,.42),0_12px_30px_-14px_rgba(14,116,200,.8)] backdrop-blur-2xl transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[inset_0_1px_0_rgba(255,255,255,.55),0_16px_34px_-14px_rgba(14,116,200,.9)] disabled:pointer-events-none disabled:opacity-60";
 const ORDER = "lh_order";
 
 const BENEFITS = [
@@ -250,8 +250,8 @@ export function ShopApp() {
                 }}
                 className={`group relative flex min-h-[190px] flex-col overflow-hidden rounded-2xl border p-4 text-left transition duration-200 hover:-translate-y-1 ${
                   planId === item.id
-                    ? "border-primary/70 bg-primary-soft shadow-[0_16px_42px_-24px_rgba(81,70,229,.45)] ring-2 ring-primary/25"
-                    : "border-border bg-surface hover:border-primary/45 hover:shadow-card"
+                    ? "border-sky-300/80 bg-gradient-to-br from-[#dff2ff]/95 via-[#edf8ff]/90 to-[#d5eaff]/95 text-[#12345a] shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_18px_38px_-22px_rgba(20,116,200,.55)] ring-2 ring-sky-300/45"
+                    : "border-sky-200/70 bg-white/70 text-[#183b61] shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_12px_28px_-22px_rgba(20,116,200,.35)] backdrop-blur-xl hover:border-sky-300 hover:bg-sky-50/90"
                 }`}
               >
                 {item.highlight && (
@@ -261,7 +261,7 @@ export function ShopApp() {
                 )}
                 <div className="flex items-center justify-between gap-2 pr-1">
                   <p className="font-semibold">{item.name}</p>
-                  <span className={`size-2 rounded-full ${planId === item.id ? "bg-primary shadow-[0_0_0_4px_rgba(81,70,229,.12)]" : "bg-border"}`} />
+                  <span className={`size-2 rounded-full ${planId === item.id ? "bg-sky-600 shadow-[0_0_0_4px_rgba(14,165,233,.18)]" : "bg-sky-200"}`} />
                 </div>
                 <p className="mt-4 font-display text-[1.8rem] font-semibold tracking-tight">{brl(item.priceCents)}</p>
                 <p className="mt-1 text-xs text-muted">{item.days === null ? "pagamento único · acesso vitalício" : `acesso por ${item.days} dias`}</p>
