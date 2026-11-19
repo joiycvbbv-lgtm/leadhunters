@@ -213,6 +213,7 @@ export const searchPlaces = createServerFn({ method: "POST" })
     return { city, countryCode, niche, neighborhood, minReviews, mobileOnly, openOnly, broad, siteMode, minRating, quantity, accessKey, deviceId };
   })
   .handler(async ({ data }): Promise<SearchResult> => {
+    const countryCode = data.countryCode || "BR";
     const placesKey = getPlacesKey();
     if (!placesKey) {
       return {
