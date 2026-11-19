@@ -227,7 +227,8 @@ export const searchPlaces = createServerFn({ method: "POST" })
     const used = await consumeSearch(access.keyId, limit);
     if (used === null) return { ok: false, error: "LIMITE_DIARIO" };
     const area = data.neighborhood ? `${data.neighborhood}, ${data.city}` : data.city;
-    const query = data.niche ? `${data.niche} em ${area}` : `empresas em ${area}`;
+    const connector = countryCode === "BR" || countryCode === "PT" ? " em " : " in ";
+    const query = data.niche ? `${data.niche}${connector}${area}` : `${countryCode === "BR" || countryCode === "PT" ? "empresas" : "businesses"}${connector}${area}`;
     const leads: Lead[] = [];
     const seen = new Set<string>();
     let scanned = 0;
@@ -247,7 +248,7 @@ export const searchPlaces = createServerFn({ method: "POST" })
         const lead = toLead(place, base + index, data.city);
         if (!lead || seen.has(lead.id)) return;
         if (lead.rating < data.minRating || lead.reviews < data.minReviews) return;
-        if (data.mobileOnly && !(lead.phone.length === 11 && lead.phone[2] === "9")) return;
+        if (data.mobileOnly && countryCode === "BR" && !(lead.phone.length === 11 && lead.phone[2] === "9")) return;
         if (data.openOnly && lead.openNow !== true) return;
         seen.add(lead.id);
         leads.push(lead);
