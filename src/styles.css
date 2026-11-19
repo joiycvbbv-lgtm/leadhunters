@@ -1331,3 +1331,79 @@ html[data-theme="dark"] nav.fixed.inset-x-0.bottom-0 > button.text-primary {
  nav.fixed.inset-x-0.bottom-0 {gap:4px;padding-left:8px;padding-right:8px;}
  nav.fixed.inset-x-0.bottom-0 > button {min-height:54px;}
 }
+
+
+/* LeadHunter purple + black identity across app, marketing and license checkout. */
+@theme {
+ --color-bg:#09080f; --color-surface:#12101b; --color-surface-2:#1c1729;
+ --color-fg:#f5f1ff; --color-muted:#aaa0bd; --color-primary:#9b6bff;
+ --color-primary-deep:#7040d8; --color-primary-soft:#281b40;
+ --color-primary-fg:#ffffff; --color-border:#302641;
+}
+html,body { background:#09080f !important; color:#f5f1ff !important; }
+body {
+ background-image:
+ radial-gradient(ellipse 55% 32% at 90% 0%,rgba(124,58,237,.17),transparent 65%),
+ linear-gradient(180deg,#0c0a13 0%,#09080f 100%) !important;
+ background-attachment:fixed;
+}
+html[data-theme="dark"] {
+ --color-bg:#09080f;--color-surface:#12101b;--color-surface-2:#1c1729;
+ --color-fg:#f5f1ff;--color-muted:#aaa0bd;--color-primary:#a77bff;
+ --color-primary-deep:#7c4be0;--color-primary-soft:#281b40;--color-border:#302641;
+}
+html[data-theme="dark"] body {background:radial-gradient(ellipse 65% 38% at 90% 0%,rgba(124,58,237,.18),transparent 65%),#09080f !important;}
+.glass-panel,.app-card {
+ border:1px solid rgba(184,145,255,.17) !important;
+ background:linear-gradient(145deg,rgba(30,23,45,.88),rgba(15,13,23,.92)) !important;
+ box-shadow:0 16px 42px -28px rgba(0,0,0,.78),inset 0 1px 0 rgba(255,255,255,.055) !important;
+ -webkit-backdrop-filter:blur(22px) saturate(1.2) !important;
+ backdrop-filter:blur(22px) saturate(1.2) !important;
+}
+button:not(:disabled),[role="button"]:not([aria-disabled="true"]) {border-radius:9999px !important;}
+button:not(:disabled):not([class*="destructive"]):not([class*="bg-red"]):not([class*="bg-green"]),
+[role="button"]:not([aria-disabled="true"]):not([class*="destructive"]) {
+ color:#eee7ff !important;
+ border:1px solid rgba(190,158,255,.2) !important;
+ background:linear-gradient(135deg,rgba(66,45,99,.74),rgba(31,24,45,.86)) !important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 9px 24px -18px rgba(0,0,0,.8) !important;
+ -webkit-backdrop-filter:blur(18px) saturate(1.2) !important;
+ backdrop-filter:blur(18px) saturate(1.2) !important;
+}
+button[class*="bg-primary"]:not(:disabled),button[type="submit"],
+a[class*="bg-primary"],a[class*="from-primary"] {
+ color:#fff !important;border:1px solid rgba(220,200,255,.32) !important;
+ background:linear-gradient(130deg,#9b6bff,#6735c5) !important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 12px 28px -16px rgba(124,58,237,.62) !important;
+}
+input:not([type="checkbox"]):not([type="radio"]),select,textarea {
+ border-radius:14px !important;border-color:#382b4e !important;
+ background:rgba(20,16,29,.92) !important;color:#f5f1ff !important;
+}
+input::placeholder,textarea::placeholder {color:#9388a6 !important;}
+nav.fixed.inset-x-0.bottom-0 {
+ border:1px solid rgba(190,158,255,.16) !important;border-bottom:0 !important;
+ border-radius:24px 24px 0 0 !important;background:rgba(14,11,21,.94) !important;
+ box-shadow:0 -8px 30px -22px rgba(0,0,0,.8) !important;
+ -webkit-backdrop-filter:blur(24px) saturate(1.2) !important;
+ backdrop-filter:blur(24px) saturate(1.2) !important;
+}
+nav.fixed.inset-x-0.bottom-0 > button {
+ min-height:54px;flex:1 1 0;min-width:0;border:1px solid transparent !important;
+ border-radius:9999px !important;background:transparent !important;box-shadow:none !important;
+ color:#a49ab4 !important;font-size:11px;font-weight:600;
+}
+nav.fixed.inset-x-0.bottom-0 > button.text-primary {
+ color:#d8c5ff !important;background:rgba(124,58,237,.2) !important;
+ border-color:rgba(167,123,255,.22) !important;
+}
+nav.fixed.inset-x-0.bottom-0 > button svg {width:20px;height:20px;stroke-width:2;}
+/* Neutralize old blue/indigo/violet utility colors in favor of one purple accent. */
+[class*="text-blue-"],[class*="text-indigo-"],[class*="text-violet-"] {color:#b99aff !important;}
+[class*="border-blue-"],[class*="border-indigo-"],[class*="border-violet-"] {border-color:#493568 !important;}
+[class*="bg-blue-"],[class*="bg-indigo-"],[class*="bg-violet-"] {background-color:#211832 !important;}
+@media(max-width:720px) {
+ body {background-attachment:scroll;}
+ nav.fixed.inset-x-0.bottom-0 {gap:4px;padding-left:8px;padding-right:8px;}
+ nav.fixed.inset-x-0.bottom-0 > button {min-height:54px;}
+}
