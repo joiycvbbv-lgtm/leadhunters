@@ -35,7 +35,7 @@ function validFacts(data: Partial<AiFacts> | undefined): AiFacts {
     category: clean(data?.category, 80),
     city: clean(data?.city, 80),
     address: clean(data?.address, 200),
-    notes: clean(data?.notes, 1500),
+    notes: clean(data?.notes, 3000),
     hasHours: Boolean(data?.hasHours),
     tone: data?.tone === "acolhedor" || data?.tone === "premium" ? data.tone : "direto",
   };
@@ -52,8 +52,9 @@ async function guardAi(auth: Auth) {
   const { getDb } = await import("./db-app.server");
   const access = await checkAccess(auth.key, auth.deviceId, false);
   if (!access.ok) return { ok: false, error: access.code as string } as const;
-  if (access.info.kind === "test") return { ok: false, error: "A key de teste não usa a IA. Escolha um plano." as string } as const;
-  const limit = Math.max(1, Number(process.env.AI_DAILY_LIMIT) || 8);
+  const configuredLimit = Math.max(1, Number(process.env.AI_DAILY_LIMIT) || 8);
+  // O teste gratuito pode experimentar o criador, mas com apenas uma geração por dia.
+  const limit = access.info.kind === "test" ? Math.min(1, configuredLimit) : configuredLimit;
   const sql = await getDb();
   const rows = await sql.query<{ count: number }>(
     `insert into ai_usage (key_id, day, count) values ($1, (now() at time zone 'America/Sao_Paulo')::date, 1)
@@ -88,9 +89,15 @@ REGRAS DE VERDADE (as mais importantes)
 - Se uma informação não foi dada, não escreva sobre ela. Prefira texto curto e verdadeiro a texto longo e inventado.
 - "items" só pode ter itens que aparecem nas observações do vendedor. O preço só entra se estiver escrito lá; senão use "".
 - "highlights" só com fatos das observações. Se não houver, devolva lista vazia.
-- Escolha um layout existente: editorial, urbano, limpo ou vitrine, conforme o negócio.
-- Escolha uma cor principal hexadecimal de seis dígitos que combine com o negócio e tenha bom contraste.
-- Não invente informação da empresa nem gere código HTML; o painel constrói a prévia com segurança.
+DIREÇÃO CRIATIVA E QUALIDADE VISUAL
+- Se as observações contiverem “DIREÇÃO CRIATIVA DO VENDEDOR”, trate esse trecho como briefing de design: siga referências de estilo, hierarquia, paleta, público, seções e chamadas solicitadas. Não transforme instruções em fatos.
+- O resultado deve parecer direção de arte de um estúdio web experiente, específico para o segmento e para a marca, nunca um template genérico.
+- Evite fórmulas de IA: “Bem-vindo ao”, “soluções completas”, três cartões idênticos, ícones decorativos repetidos, excesso de títulos centralizados, gradientes aleatórios, slogans vazios e adjetivos sem prova.
+- Crie uma frase de destaque curta e concreta; se não houver base factual para isso, deixe vazia.
+- O texto deve ter ritmo editorial: títulos curtos, descrições naturais, sem repetir o nome da empresa em toda seção.
+- Selecione o layout mais adequado entre editorial, urbano, limpo ou vitrine e uma cor hexadecimal de seis dígitos com contraste acessível.
+- Os destaques devem ser úteis para conversão, não frases genéricas. Itens e preços somente quando informados.
+- Não invente informação da empresa nem gere código HTML; o painel constrói a prévia responsiva com segurança.
 
 FORMATO: responda APENAS com um JSON válido, sem comentários e sem markdown, neste formato:
 {"tagline": "até 70 caracteres, ou \\"\\" se não houver algo verdadeiro e específico para dizer",
@@ -114,10 +121,10 @@ export const aiCopy = createServerFn({ method: "POST" })
       try {
         const { callGemini, extractJson, AiError, AI_MESSAGES } = await import("./ai.server");
         const f = data.facts;
-        const user = `Escreva os textos do site desta empresa.\n\nTom: ${TONES[f.tone]}.\n\nFATOS CONFIRMADOS\n- Nome: ${f.name}\n- Tipo de negócio: ${f.kindLabel}${f.category ? ` (categoria: ${f.category})` : ""}\n- Cidade: ${f.city || "não informada"}\n- Endereço: ${f.address || "não informado"}\n\nOBSERVAÇÕES DO VENDEDOR (o que a empresa vende ou faz, diferenciais, preços):\n${f.notes || "(nenhuma observação)"}`;
+        const user = `Crie a direção de conteúdo e identidade visual para um site profissional e responsivo desta empresa. O pedido criativo abaixo deve orientar a composição e a linguagem, sem ser tratado como fato:\n\nTom: ${TONES[f.tone]}.\n\nFATOS CONFIRMADOS\n- Nome: ${f.name}\n- Tipo de negócio: ${f.kindLabel}${f.category ? ` (categoria: ${f.category})` : ""}\n- Cidade: ${f.city || "não informada"}\n- Endereço: ${f.address || "não informado"}\n\nOBSERVAÇÕES DO VENDEDOR (o que a empresa vende ou faz, diferenciais, preços):\n${f.notes || "(nenhuma observação)"}`;
         let text: string;
         try {
-          text = await callGemini({ system: COPY_SYSTEM, user, maxTokens: 1100, temperature: 0.6 });
+          text = await callGemini({ system: COPY_SYSTEM, user, maxTokens: 1500, temperature: 0.72 });
         } catch (error) {
           await refund(guard.keyId);
           const code = error instanceof AiError ? error.code : "IA_ERRO";

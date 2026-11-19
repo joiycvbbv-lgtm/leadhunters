@@ -892,7 +892,7 @@ const LeadCard = memo(function LeadCard({
       <div className="mt-3 flex flex-wrap gap-4 text-sm">
         {onPrompt && (
           <button type="button" onClick={() => onPrompt(lead)} className="font-semibold text-primary hover:underline">
-            Virar prompt
+            Criar com IA
           </button>
         )}
         {lead.siteKind === "site" && onAudit && (
@@ -936,7 +936,6 @@ const PipelineRow = memo(function PipelineRow({
   selected,
   onSelect,
   onSite,
-  onPrompt,
   onAiMessage,
   aiBusyId,
 }: {
@@ -952,7 +951,6 @@ const PipelineRow = memo(function PipelineRow({
   selected?: boolean;
   onSelect?: (id: string) => void;
   onSite?: (id: string) => void;
-  onPrompt?: (id: string) => void;
   onAiMessage?: (lead: SavedLead) => void;
   aiBusyId?: string;
 }) {
@@ -1063,12 +1061,7 @@ const PipelineRow = memo(function PipelineRow({
           )}
           {onSite && (
             <button type="button" onClick={() => onSite(lead.id)} className={`${btnGhost} inline-flex items-center gap-1.5`}>
-              <Globe className="size-4" /> Criar site
-            </button>
-          )}
-          {onPrompt && (
-            <button type="button" onClick={() => onPrompt(lead.id)} className={btnGhost}>
-              Virar prompt
+              <Sparkles className="size-4" /> Criar com IA
             </button>
           )}
           <button type="button" onClick={() => onNotes(lead.id)} className={btnGhost}>
@@ -1988,12 +1981,6 @@ export function LeadApp() {
     setSiteLeadId(id);
   }, []);
 
-  const openPromptEditor = useCallback((id: string) => {
-    setSiteExtra(null);
-    setSitePane("prompt");
-    setSiteLeadId(id);
-  }, []);
-
   const promptFromLead = useCallback(
     (lead: Lead) => {
       setSiteExtra({ ...lead, city, status: "novo", notes: "", value: ticket, addedAt: new Date().toISOString() } as SavedLead);
@@ -2891,7 +2878,7 @@ export function LeadApp() {
             }}
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-400 to-indigo-400 px-4 py-3 text-sm font-bold text-[#10172b] shadow-lg shadow-sky-950/20 transition hover:brightness-110"
           >
-            <Sparkles className="size-4" /> Criar site
+            <Sparkles className="size-4" /> Criador IA
           </button>
           <div className="flex items-center gap-3 rounded-2xl px-2 py-2">
             {profilePhoto ? <img src={profilePhoto} alt="Foto de perfil" className="size-9 rounded-full object-cover ring-1 ring-white/30"/> : <div className="flex size-9 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white">{(userName || "LH").slice(0, 1).toUpperCase()}</div>}
@@ -3645,7 +3632,6 @@ export function LeadApp() {
                     onCopy={copyText}
                     onContact={markContact}
                     onSite={openSiteEditor}
-                    onPrompt={openPromptEditor}
                     onAiMessage={draftAiLeadMessage}
                     aiBusyId={aiLeadBusyId}
                   />
@@ -3828,7 +3814,6 @@ export function LeadApp() {
                 selected={selected.has(lead.id)}
                 onSelect={toggleSelect}
                 onSite={openSiteEditor}
-                onPrompt={openPromptEditor}
                 onAiMessage={draftAiLeadMessage}
                 aiBusyId={aiLeadBusyId}
               />
