@@ -1580,3 +1580,213 @@ html[data-theme="dark"] nav.fixed.inset-x-0.bottom-0 > button.text-primary { col
   html:not([data-theme="dark"]) body, html[data-theme="dark"] body { background-attachment: scroll !important; }
   .lead-app-shell .app-card, .lead-app-shell .glass-panel { -webkit-backdrop-filter:none !important;backdrop-filter:none !important; }
 }
+
+
+/* LeadHunter — unified visual system v2. Corrects legacy light/dark overrides. */
+:root {
+  --lh-violet: #8655e9;
+  --lh-violet-strong: #7040d2;
+  --lh-violet-soft: #eee8ff;
+  --lh-ink: #171323;
+  --lh-muted: #716b80;
+}
+html:not([data-theme="dark"]) {
+  color-scheme: light;
+  --color-bg: #f6f5fa;
+  --color-surface: #ffffff;
+  --color-surface-2: #f7f5fb;
+  --color-fg: #211b2d;
+  --color-muted: #716b80;
+  --color-primary: #7847dc;
+  --color-primary-deep: #6033c1;
+  --color-primary-soft: #eee8ff;
+  --color-primary-fg: #ffffff;
+  --color-border: #e6e0ef;
+  --shadow-card: 0 12px 34px -24px rgba(42, 28, 70, .28);
+}
+html:not([data-theme="dark"]) body {
+  color: #211b2d !important;
+  background: #f6f5fa !important;
+  background-image:
+    radial-gradient(ellipse 55% 32% at 100% 0%, rgba(134,85,233,.09), transparent 68%),
+    linear-gradient(180deg,#faf9fc 0%,#f4f2f8 100%) !important;
+}
+html:not([data-theme="dark"]) .lead-app-shell {
+  color: #211b2d !important;
+  background: transparent !important;
+}
+html:not([data-theme="dark"]) .lead-app-shell .app-card,
+html:not([data-theme="dark"]) .lead-app-shell .glass-panel {
+  color: #211b2d !important;
+  background: #fff !important;
+  border: 1px solid #e8e2f0 !important;
+  box-shadow: 0 12px 34px -24px rgba(42,28,70,.30),0 2px 8px rgba(42,28,70,.035) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html:not([data-theme="dark"]) .lead-app-shell .app-card :is(h1,h2,h3,h4,p,span,label,strong,small,li),
+html:not([data-theme="dark"]) .lead-app-shell .glass-panel :is(h1,h2,h3,h4,p,span,label,strong,small,li) {
+  color: inherit !important;
+}
+html:not([data-theme="dark"]) .lead-app-shell .app-card .text-muted,
+html:not([data-theme="dark"]) .lead-app-shell .glass-panel .text-muted,
+html:not([data-theme="dark"]) .lead-app-shell .app-card [class*="text-slate-400"],
+html:not([data-theme="dark"]) .lead-app-shell .app-card [class*="text-slate-500"] {
+  color: #716b80 !important;
+}
+html:not([data-theme="dark"]) .lead-app-shell input:not([type="checkbox"]):not([type="radio"]),
+html:not([data-theme="dark"]) .lead-app-shell select,
+html:not([data-theme="dark"]) .lead-app-shell textarea {
+  color: #211b2d !important;
+  background: #faf9fc !important;
+  border: 1px solid #e3ddec !important;
+  box-shadow: none !important;
+}
+html:not([data-theme="dark"]) .lead-app-shell input::placeholder,
+html:not([data-theme="dark"]) .lead-app-shell textarea::placeholder { color: #92899f !important; }
+html:not([data-theme="dark"]) .lead-app-shell button:not(:disabled):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]):not([class*="bg-primary"]),
+html:not([data-theme="dark"]) .lead-app-shell [role="button"]:not([aria-disabled="true"]) {
+  color: #40364f !important;
+  border-color: #e3ddec !important;
+  background: #fff !important;
+  box-shadow: 0 2px 7px rgba(42,28,70,.045) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html:not([data-theme="dark"]) .lead-app-shell button[class*="bg-primary"],
+html:not([data-theme="dark"]) .lead-app-shell button[type="submit"],
+html:not([data-theme="dark"]) .lead-app-shell a[class*="bg-primary"] {
+  color: #fff !important;
+  border-color: transparent !important;
+  background: linear-gradient(135deg,#8959ed,#7040d2) !important;
+  box-shadow: 0 8px 20px -12px rgba(112,64,210,.7) !important;
+}
+html:not([data-theme="dark"]) .lead-app-shell aside {
+  color: #f7f3ff !important;
+  background: linear-gradient(180deg,#21182f,#171323) !important;
+  border: 1px solid rgba(255,255,255,.09) !important;
+}
+html:not([data-theme="dark"]) .lead-app-shell aside :is(p,span,button) { color: inherit; }
+html:not([data-theme="dark"]) .lead-app-shell header.sticky {
+  color: #211b2d !important;
+  background: rgba(255,255,255,.94) !important;
+  border: 1px solid #e8e2f0 !important;
+  box-shadow: 0 8px 24px -18px rgba(42,28,70,.28) !important;
+}
+html:not([data-theme="dark"]) nav.fixed.inset-x-0.bottom-0 {
+  background: rgba(255,255,255,.97) !important;
+  border-color: #e7e0ef !important;
+  box-shadow: 0 -8px 26px -20px rgba(42,28,70,.25) !important;
+}
+html:not([data-theme="dark"]) nav.fixed.inset-x-0.bottom-0 > button { color: #827a91 !important; }
+html:not([data-theme="dark"]) nav.fixed.inset-x-0.bottom-0 > button.text-primary {
+  color: #7040d2 !important;
+  background: #f0eaff !important;
+  border-color: #e4d8ff !important;
+}
+
+/* Login and public pages share the same brand language. */
+.login-shell {
+  background: #f6f5fa !important;
+  background-image: radial-gradient(ellipse 50% 42% at 100% 0%,rgba(134,85,233,.12),transparent 70%),linear-gradient(180deg,#faf9fc,#f3f0f8) !important;
+}
+.login-story {
+  background:
+    radial-gradient(ellipse at 86% 12%,rgba(151,105,246,.48),transparent 38%),
+    radial-gradient(ellipse at 12% 90%,rgba(104,67,177,.28),transparent 42%),
+    linear-gradient(145deg,#21182f 0%,#171323 58%,#2a1c43 100%) !important;
+}
+.login-panel {
+  border: 1px solid #e7e0ef !important;
+  background: #fff !important;
+  color: #211b2d !important;
+  box-shadow: 0 22px 65px -42px rgba(42,28,70,.42) !important;
+}
+.login-panel :is(h1,p,label,span) { color: inherit; }
+.login-panel .text-muted { color: #716b80 !important; }
+.login-panel input:not([type="checkbox"]):not([type="radio"]) {
+  color: #211b2d !important;
+  background: #faf9fc !important;
+  border: 1px solid #e3ddec !important;
+}
+.login-panel button[type="submit"] {
+  color: #fff !important;
+  background: linear-gradient(135deg,#8959ed,#7040d2) !important;
+}
+.login-demo-card { border-color: rgba(255,255,255,.13) !important; }
+
+/* Dark mode: true graphite surfaces with readable muted text and violet actions. */
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #0e0b16;
+  --color-surface: #181321;
+  --color-surface-2: #211a2d;
+  --color-fg: #f5f1fb;
+  --color-muted: #b5a9c8;
+  --color-primary: #aa82ff;
+  --color-primary-deep: #8655e9;
+  --color-primary-soft: #302342;
+  --color-primary-fg: #ffffff;
+  --color-border: #392d4c;
+  --shadow-card: 0 16px 42px -28px rgba(0,0,0,.8);
+}
+html[data-theme="dark"] body {
+  color: #f5f1fb !important;
+  background: #0e0b16 !important;
+  background-image: radial-gradient(ellipse 58% 34% at 100% 0%,rgba(134,85,233,.18),transparent 68%),linear-gradient(180deg,#120e1c,#0e0b16) !important;
+}
+html[data-theme="dark"] .lead-app-shell { color: #f5f1fb !important;background: transparent !important; }
+html[data-theme="dark"] .lead-app-shell .app-card,
+html[data-theme="dark"] .lead-app-shell .glass-panel {
+  color: #f5f1fb !important;
+  background: linear-gradient(145deg,#211a2d,#181321) !important;
+  border: 1px solid #392d4c !important;
+  box-shadow: 0 16px 42px -28px rgba(0,0,0,.8) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html[data-theme="dark"] .lead-app-shell .app-card :is(h1,h2,h3,h4,p,span,label,strong,small,li),
+html[data-theme="dark"] .lead-app-shell .glass-panel :is(h1,h2,h3,h4,p,span,label,strong,small,li) { color: inherit !important; }
+html[data-theme="dark"] .lead-app-shell .app-card .text-muted,
+html[data-theme="dark"] .lead-app-shell .glass-panel .text-muted,
+html[data-theme="dark"] .lead-app-shell .app-card [class*="text-slate-400"],
+html[data-theme="dark"] .lead-app-shell .app-card [class*="text-slate-500"] { color: #b5a9c8 !important; }
+html[data-theme="dark"] .lead-app-shell input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="dark"] .lead-app-shell select,
+html[data-theme="dark"] .lead-app-shell textarea {
+  color: #f5f1fb !important;background: #120e1c !important;border: 1px solid #443555 !important;
+}
+html[data-theme="dark"] .lead-app-shell input::placeholder,
+html[data-theme="dark"] .lead-app-shell textarea::placeholder { color: #9386a7 !important; }
+html[data-theme="dark"] .lead-app-shell button:not(:disabled):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]):not([class*="bg-primary"]),
+html[data-theme="dark"] .lead-app-shell [role="button"]:not([aria-disabled="true"]) {
+  color: #e9e1f5 !important;background: #2a2138 !important;border-color: #443555 !important;box-shadow: none !important;
+}
+html[data-theme="dark"] .lead-app-shell button[class*="bg-primary"],
+html[data-theme="dark"] .lead-app-shell button[type="submit"],
+html[data-theme="dark"] .lead-app-shell a[class*="bg-primary"] {
+  color: #fff !important;background: linear-gradient(135deg,#8959ed,#7040d2) !important;border-color: transparent !important;
+}
+html[data-theme="dark"] .lead-app-shell aside {
+  color: #f5f1fb !important;background: linear-gradient(180deg,#21182f,#171323) !important;border: 1px solid #392d4c !important;
+}
+html[data-theme="dark"] .lead-app-shell header.sticky {
+  color: #f5f1fb !important;background: rgba(24,19,33,.96) !important;border-color: #392d4c !important;
+}
+html[data-theme="dark"] nav.fixed.inset-x-0.bottom-0 {
+  background: rgba(20,15,29,.97) !important;border-color: #392d4c !important;
+}
+html[data-theme="dark"] nav.fixed.inset-x-0.bottom-0 > button { color: #b5a9c8 !important; }
+html[data-theme="dark"] nav.fixed.inset-x-0.bottom-0 > button.text-primary {
+  color: #eadfff !important;background: #302342 !important;border-color: #513c6d !important;
+}
+html[data-theme="dark"] .login-shell { background:#0e0b16 !important;background-image:radial-gradient(ellipse at 90% 10%,rgba(134,85,233,.18),transparent 42%),linear-gradient(180deg,#120e1c,#0e0b16) !important; }
+html[data-theme="dark"] .login-panel { color:#f5f1fb !important;background:#181321 !important;border-color:#392d4c !important; }
+html[data-theme="dark"] .login-panel .text-muted { color:#b5a9c8 !important; }
+html[data-theme="dark"] .login-panel input:not([type="checkbox"]):not([type="radio"]) { color:#f5f1fb !important;background:#120e1c !important;border-color:#443555 !important; }
+
+@media (max-width:720px) {
+  .login-panel { padding: 1.25rem !important; border-radius: 1.35rem !important; }
+  .login-shell { align-items: flex-start !important; padding-top: max(1rem,env(safe-area-inset-top)) !important; padding-bottom: max(1rem,env(safe-area-inset-bottom)) !important; }
+  .lead-app-shell { padding-left: .85rem !important;padding-right: .85rem !important; }
+}
