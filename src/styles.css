@@ -1407,3 +1407,32 @@ nav.fixed.inset-x-0.bottom-0 > button svg {width:20px;height:20px;stroke-width:2
  nav.fixed.inset-x-0.bottom-0 {gap:4px;padding-left:8px;padding-right:8px;}
  nav.fixed.inset-x-0.bottom-0 > button {min-height:54px;}
 }
+
+
+/* Botões translúcidos: remover fundos brancos e manter o vidro roxo sobre preto. */
+button:not(:disabled):not([class*="destructive"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]),
+[role="button"]:not([aria-disabled="true"]):not([class*="destructive"]),
+a[class*="bg-primary"], a[class*="from-primary"] {
+  color: #eee7ff !important;
+  border: 1px solid rgba(190, 158, 255, .22) !important;
+  background: rgba(124, 58, 237, .10) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.055), 0 8px 22px -18px rgba(0,0,0,.72) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.25) !important;
+  backdrop-filter: blur(20px) saturate(1.25) !important;
+}
+button:not(:disabled):not([class*="destructive"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]):hover,
+[role="button"]:not([aria-disabled="true"]):not([class*="destructive"]):hover,
+a[class*="bg-primary"]:hover, a[class*="from-primary"]:hover {
+  background: rgba(155, 107, 255, .20) !important;
+  border-color: rgba(190, 158, 255, .38) !important;
+}
+/* Ações principais continuam roxas, mas também translúcidas — nunca brancas. */
+button[class*="bg-primary"]:not(:disabled), button[class*="from-primary"]:not(:disabled),
+button[type="submit"]:not([class*="destructive"]) {
+  color: #fff !important;
+  border-color: rgba(190, 158, 255, .34) !important;
+  background: rgba(124, 58, 237, .48) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.10), 0 10px 26px -18px rgba(124,58,237,.55) !important;
+}
+nav.fixed.inset-x-0.bottom-0 > button { background: transparent !important; }
+nav.fixed.inset-x-0.bottom-0 > button.text-primary { background: rgba(124,58,237,.20) !important; }
