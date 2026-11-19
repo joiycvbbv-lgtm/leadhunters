@@ -110,7 +110,7 @@ import {
   type Status,
 } from "@/lib/storage";
 
-const CITIES = [
+const CITIES = Array.from(new Set([
   "São Paulo, SP",
   "Rio de Janeiro, RJ",
   "Belo Horizonte, MG",
@@ -276,7 +276,7 @@ const CITIES = [
   "Santarém, PA",
   "Marabá, PA",
   "Castanhal, PA",
-];
+]));
 
 const QUANTITIES = [5, 10, 15, 20, 30, 40, 50, 60];
 
