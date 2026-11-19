@@ -556,7 +556,7 @@ const field =
 const btnPrimary =
   "inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-deep px-5 py-3 text-sm font-bold text-primary-fg shadow-[0_12px_24px_-12px_rgba(79,70,229,0.65)] transition duration-200 hover:-translate-y-0.5 hover:brightness-105 active:translate-y-0 disabled:opacity-60";
 const btnGhost =
-  "rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-sm font-semibold text-fg transition duration-200 hover:border-primary/50 hover:bg-primary-soft hover:text-primary";
+  "glass-control rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-sm font-semibold text-fg transition duration-200 hover:border-primary/50 hover:bg-primary-soft hover:text-primary";
 
 type FollowState = "atrasado" | "hoje" | "futuro" | null;
 
@@ -686,7 +686,7 @@ function chip(active: boolean) {
   return `rounded-full border px-3 py-1.5 text-sm font-medium transition ${
     active
       ? "border-primary bg-primary text-primary-fg shadow-sm"
-      : "border-border bg-surface text-muted hover:border-primary/50 hover:text-fg"
+      : "glass-control border-border bg-surface text-muted hover:border-primary/50 hover:text-fg"
   }`;
 }
 
