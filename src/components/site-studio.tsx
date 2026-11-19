@@ -29,13 +29,6 @@ import {
   type SiteVersion,
 } from "@/lib/sites.functions";
 import { aiBrief, aiCopy } from "@/lib/ai.functions";
-import {
-  PROMPT_FORMATS,
-  PROMPT_STYLES,
-  buildPrompt,
-  type PromptFormat,
-  type PromptStyle,
-} from "@/lib/prompt-kit";
 import type { SavedLead } from "@/lib/storage";
 import {
   DESIGNS,
@@ -145,16 +138,6 @@ async function dominantLogoColor(source: string): Promise<string | null> {
   });
 }
 
-function download(name: string, text: string, type: string) {
-  const blob = new Blob([text], { type });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = name;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
 function waDigits(phone: string) {
   const d = phone.replace(/\D/g, "");
   return d.startsWith("55") && d.length > 11 ? d : `55${d}`;
@@ -234,17 +217,13 @@ export function SiteStudio({
   const [device, setDevice] = useState<"mobile" | "desktop">("mobile");
   const [pixKey, setPixKey] = useState("");
   const [copied, setCopied] = useState("");
-  const [view, setView] = useState<"site" | "prompt">(initialPane);
+  const [view, setView] = useState<"site" | "prompt">(initialPane === "prompt" ? "site" : initialPane);
   const [notes, setNotes] = useState(lead.notes || "");
   const [tone, setTone] = useState<"direto" | "acolhedor" | "premium">("direto");
   const [aiBusy, setAiBusy] = useState("");
   const [aiInfo, setAiInfo] = useState("");
   const [aiWarnings, setAiWarnings] = useState<string[]>([]);
   const [undo, setUndo] = useState<{ tagline: string; about: string; hl: string; items: string; design: DesignId; color: string } | null>(null);
-  const [pStyle, setPStyle] = useState<PromptStyle>("premium");
-  const [pFormat, setPFormat] = useState<PromptFormat>("unico");
-  const [pDetail, setPDetail] = useState<"completo" | "curto">("completo");
-  const [brief, setBrief] = useState("");
   const [sitePrompt, setSitePrompt] = useState("");
 
   useEffect(() => {
@@ -287,11 +266,6 @@ export function SiteStudio({
   const photosSize = site.photos.reduce((sum, p) => sum + p.length, 0) + site.logo.length;
   const tooHeavy = photosSize > 3_000_000;
 
-  const prompt = useMemo(
-    () => buildPrompt(data, { style: pStyle, format: pFormat, detail: pDetail, brief }),
-    [data, pStyle, pFormat, pDetail, brief],
-  );
-
   function facts() {
     return {
       name: data.name,
@@ -299,7 +273,7 @@ export function SiteStudio({
       category: data.category,
       city: data.city,
       address: data.address,
-      notes: [sitePrompt.trim() ? `DIREÇÃO CRIATIVA DO VENDEDOR (instruções, não fatos): ${sitePrompt.trim()}` : "", notes].filter(Boolean).join("\n\n").slice(0, 1500),
+      notes: [sitePrompt.trim() ? `DIREÇÃO CRIATIVA DO VENDEDOR (instruções, não fatos): ${sitePrompt.trim()}` : "", notes].filter(Boolean).join("\n\n").slice(0, 3000),
       hasHours: data.hours.length > 0,
       tone,
     };
@@ -367,34 +341,6 @@ export function SiteStudio({
     } finally {
       setAiBusy("");
     }
-  }
-
-  async function makeBrief() {
-    setAiBusy("brief");
-    setError("");
-    try {
-      const style = PROMPT_STYLES.find((item) => item.id === pStyle);
-      const res = await aiBrief({
-        data: { key: accessKey, deviceId, facts: facts(), style: style ? `${style.label}: ${style.text}` : "", format: pFormat },
-      });
-      if (!res.ok) {
-        if (ACCESS_ERRORS.includes(res.error)) onAccessError(res.error);
-        else setError(res.error);
-        return;
-      }
-      setBrief(res.brief);
-      setAiInfo(`${res.usage.used} de ${res.usage.limit} gerações de IA usadas hoje`);
-      notify("Briefing criado e já incluído no prompt");
-    } catch {
-      setError("Não consegui falar com a IA agora. Tente de novo.");
-    } finally {
-      setAiBusy("");
-    }
-  }
-
-  function openAi(url: string) {
-    window.open(url, "_blank", "noopener");
-    copy(prompt, "prompt", "Prompt copiado. Cole na IA com Ctrl+V.");
   }
 
   function patch(change: Partial<SiteData>) {
@@ -545,14 +491,6 @@ export function SiteStudio({
           <Globe className="size-5 text-primary" /> Site de {lead.name}
         </p>
         <div className="flex items-center gap-2">
-          <div className="flex gap-1">
-            <button type="button" onClick={() => setView("site")} className={chip(view === "site")}>
-              Site pronto
-            </button>
-            <button type="button" onClick={() => setView("prompt")} className={chip(view === "prompt")}>
-              Prompt para IA
-            </button>
-          </div>
           <button type="button" onClick={() => void writeWithAi(true)} disabled={loading || Boolean(aiBusy) || !sitePrompt.trim()} className={`h-10 px-3 text-xs sm:px-4 sm:text-sm ${btnPrimary}`}>
             {aiBusy === "copy" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />} <span className="hidden sm:inline">Criar site</span><span className="sm:hidden">Criar</span>
           </button>
@@ -579,131 +517,31 @@ export function SiteStudio({
           <div className={`space-y-5 ${pane === "previa" ? "hidden lg:block" : ""}`}>
             {error && <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm font-medium text-danger">{error}</p>}
 
-            {view === "prompt" && (
-              <section className={`space-y-4 p-4 ${card}`}>
-                <div>
-                  <h3 className="flex items-center gap-2 font-semibold">
-                    <Sparkles className="size-5 text-primary" /> Virar prompt
-                  </h3>
-                  <p className="mt-1 text-xs text-muted">
-                    Monta um prompt profissional com os dados reais da empresa, pronto para colar no Claude, no ChatGPT ou no Gemini e gerar o site lá.
-                    Confira os dados na aba “Site pronto” antes de copiar.
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-primary/20 bg-primary-soft p-4 text-sm">
-                  <p className="font-semibold text-primary">Fotos reais, sem aparência de banco de imagens</p>
-                  <p className="mt-1 text-xs leading-5 text-muted">
-                    {site.photos.length > 0
-                      ? `O painel já tem ${site.photos.length} foto(s) autorizada(s), mas o prompt é só texto. Anexe também os arquivos originais na conversa com a IA externa para que ela possa usá-los.`
-                      : "Peça fotos do próprio estabelecimento ao cliente e adicione-as na aba Site pronto. O prompt orienta a IA a deixar espaços para fotos reais enquanto elas não forem enviadas."}
-                  </p>
-                  <button type="button" onClick={() => { setView("site"); setPane("editar"); }} className="mt-2 text-xs font-bold text-primary hover:underline">
-                    {site.photos.length > 0 ? "Revisar as fotos no editor" : "Adicionar fotos reais no editor"}
-                  </button>
-                </div>
-                <div>
-                  <p className="mb-2 text-sm font-semibold">Estilo</p>
-                  <div className="flex flex-wrap gap-2">
-                    {PROMPT_STYLES.map((item) => (
-                      <button key={item.id} type="button" onClick={() => setPStyle(item.id)} className={chip(pStyle === item.id)}>
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="block text-sm">
-                    <span className="mb-1 block font-semibold">Formato do código</span>
-                    <select value={pFormat} onChange={(e) => setPFormat(e.target.value as PromptFormat)} className={field}>
-                      {PROMPT_FORMATS.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="block text-sm">
-                    <span className="mb-1 block font-semibold">Tamanho</span>
-                    <select value={pDetail} onChange={(e) => setPDetail(e.target.value as "completo" | "curto")} className={field}>
-                      <option value="completo">Completo (melhor resultado)</option>
-                      <option value="curto">Curto</option>
-                    </select>
-                  </label>
-                </div>
-                <div className="rounded-xl bg-primary-soft p-3">
-                  <p className="text-sm font-semibold">Briefing criativo feito pela IA do painel</p>
-                  <p className="mt-0.5 text-xs text-muted">
-                    A IA cria a direção visual específica para esta empresa (conceito, cores, fontes, detalhes) e inclui no prompt. Usa 1 geração de IA.
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <button type="button" onClick={() => void makeBrief()} disabled={aiBusy === "brief"} className={`px-4 py-2 text-sm ${btnPrimary}`}>
-                      {aiBusy === "brief" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-                      {brief ? "Gerar outro briefing" : "Gerar briefing com IA"}
-                    </button>
-                    {brief && (
-                      <button type="button" onClick={() => setBrief("")} className={btnGhost}>
-                        Tirar do prompt
-                      </button>
-                    )}
-                  </div>
-                  {aiInfo && <p className="mt-2 text-xs text-muted">{aiInfo}</p>}
-                </div>
-                <textarea
-                  readOnly
-                  value={prompt}
-                  rows={14}
-                  onFocus={(event) => event.currentTarget.select()}
-                  className="w-full rounded-xl border border-border bg-surface-2 p-3 font-mono text-xs leading-relaxed text-fg outline-none"
-                />
-                <p className="text-xs text-muted">{prompt.length.toLocaleString("pt-BR")} caracteres</p>
-                <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => copy(prompt, "prompt", "Prompt copiado")} className={`px-4 py-2.5 ${btnPrimary}`}>
-                    {copied === "prompt" ? <Check className="size-4" /> : <Copy className="size-4" />} Copiar prompt
-                  </button>
-                  <button type="button" onClick={() => openAi("https://claude.ai/new")} className={btnGhost}>
-                    Copiar e abrir o Claude
-                  </button>
-                  <button type="button" onClick={() => openAi("https://chatgpt.com/")} className={btnGhost}>
-                    ChatGPT
-                  </button>
-                  <button type="button" onClick={() => openAi("https://gemini.google.com/app")} className={btnGhost}>
-                    Gemini
-                  </button>
-                  <button type="button" onClick={() => download(`prompt-${slugify(data.name || "site")}.txt`, prompt, "text/plain;charset=utf-8")} className={btnGhost}>
-                    <Download className="size-4" /> Baixar .txt
-                  </button>
-                </div>
-                <p className="text-xs text-muted">
-                  Dica: no Claude, cole o prompt, envie e peça para ele entregar o arquivo pronto. Depois troque os marcadores [EDITAR] pelos dados e fotos reais.
-                </p>
-              </section>
-            )}
-
             {view === "site" && (<>
             <section className="space-y-3 p-4 glass-panel rounded-[1.6rem]">
               <div className="flex items-center gap-2">
                 <Sparkles className="size-5 text-primary" />
-                <h3 className="font-semibold">Criador automático por prompt</h3>
+                <h3 className="font-semibold">Criador de sites com IA</h3>
               </div>
-              <p className="text-sm text-muted">Descreva o site que você quer. O LeadHunter usa os dados já encontrados do negócio, cria os textos e a identidade visual, monta a prévia e salva o link automaticamente.</p>
+              <p className="text-sm text-muted">Escreva como você imagina o site. A IA interpreta seu briefing, cria os textos, escolhe a direção visual e monta uma prévia responsiva para você revisar antes de entregar ao cliente.</p>
               <textarea
                 value={sitePrompt}
-                onChange={(event) => setSitePrompt(event.target.value.slice(0, 1200))}
+                onChange={(event) => setSitePrompt(event.target.value.slice(0, 2500))}
                 rows={4}
-                maxLength={1200}
-                placeholder="Ex.: Crie um site moderno e elegante para uma sorveteria, com cores alegres, destaque para os sabores, seção de localização e botão grande para pedir pelo WhatsApp. Não invente preços."
+                maxLength={2500}
+                placeholder="Ex.: Crie um site premium para uma sorveteria em Belo Horizonte. Quero uma identidade visual própria, cores inspiradas nos sabores, uma capa marcante, cardápio organizado, localização, botão de WhatsApp bem visível e layout impecável no celular. Não use frases genéricas nem invente preços, produtos ou informações."
                 className={field}
               />
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs text-muted">{sitePrompt.length}/1200 caracteres · Uma única geração de IA</span>
+                <span className="text-xs text-muted">{sitePrompt.length}/2500 caracteres · Uma geração completa</span>
                 <button type="button" onClick={() => void writeWithAi(true)} disabled={loading || Boolean(aiBusy) || !sitePrompt.trim()} className={btnPrimary}>
                   {aiBusy === "copy" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-                  {aiBusy === "copy" ? "Criando seu site..." : "Criar site automaticamente"}
+                  {aiBusy === "copy" ? "Criando seu site..." : "Gerar site com IA"}
                 </button>
               </div>
             </section>
             <section className={`space-y-3 p-4 ${card}`}>
-              <h3 className="font-semibold">1. Dados da empresa</h3>
+              <h3 className="font-semibold">Dados da empresa</h3>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block text-sm">
                   <span className="mb-1 block font-semibold">Nome</span>
@@ -821,7 +659,7 @@ export function SiteStudio({
             </section>
 
             <section className={`space-y-3 p-4 ${card}`}>
-              <h3 className="font-semibold">2. {PRESETS[site.kind].itemsTitle} e diferenciais</h3>
+              <h3 className="font-semibold">{PRESETS[site.kind].itemsTitle} e diferenciais</h3>
               <label className="block text-sm">
                 <span className="mb-1 flex items-center justify-between gap-2 font-semibold">
                   Um item por linha: nome | descrição | preço
@@ -839,7 +677,7 @@ export function SiteStudio({
             </section>
 
             <section className={`space-y-3 p-4 ${card}`}>
-              <h3 className="font-semibold">3. Fotos do cliente</h3>
+              <h3 className="font-semibold">Fotos do cliente</h3>
               <p className="text-xs text-muted">
                 Use fotos que o próprio dono enviar, ou suas, com autorização dele. Fotos tiradas do Google Maps pertencem a quem
                 as postou e não devem ser copiadas para o site. Até 8 fotos; a primeira vira a capa.
