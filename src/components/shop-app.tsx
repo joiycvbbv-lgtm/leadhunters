@@ -248,21 +248,25 @@ export function ShopApp() {
                   setCoupon(null);
                   setCouponMsg("");
                 }}
-                className={`relative rounded-2xl border p-4 text-left transition ${
+                className={`group relative flex min-h-[190px] flex-col overflow-hidden rounded-2xl border p-4 text-left transition duration-200 hover:-translate-y-1 ${
                   planId === item.id
-                    ? "border-primary bg-primary-soft shadow-card ring-2 ring-primary/40"
-                    : "border-border bg-surface hover:border-primary/50"
+                    ? "border-primary/70 bg-primary-soft shadow-[0_16px_42px_-24px_rgba(81,70,229,.45)] ring-2 ring-primary/25"
+                    : "border-border bg-surface hover:border-primary/45 hover:shadow-card"
                 }`}
               >
                 {item.highlight && (
-                  <span className="absolute -top-2.5 right-3 rounded-full bg-primary px-2.5 py-0.5 text-xs font-bold text-primary-fg">
+                  <span className="absolute right-3 top-3 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary">
                     Mais escolhido
                   </span>
                 )}
-                <p className="font-semibold">{item.name}</p>
-                <p className="mt-1 font-display text-2xl font-semibold">{brl(item.priceCents)}</p>
-                <p className="mt-1 text-xs text-muted">{item.tagline}</p>
-                <p className="mt-2 text-xs text-muted">{item.dailyLimit} buscas por dia</p>
+                <div className="flex items-center justify-between gap-2 pr-1">
+                  <p className="font-semibold">{item.name}</p>
+                  <span className={`size-2 rounded-full ${planId === item.id ? "bg-primary shadow-[0_0_0_4px_rgba(81,70,229,.12)]" : "bg-border"}`} />
+                </div>
+                <p className="mt-4 font-display text-[1.8rem] font-semibold tracking-tight">{brl(item.priceCents)}</p>
+                <p className="mt-1 text-xs text-muted">{item.days === null ? "pagamento único · acesso vitalício" : `acesso por ${item.days} dias`}</p>
+                <div className="my-3 h-px bg-border/80" />
+                <p className="mt-auto text-xs leading-5 text-muted">{item.dailyLimit} leads por dia · {item.tagline}</p>
               </button>
             ))}
           </div>
