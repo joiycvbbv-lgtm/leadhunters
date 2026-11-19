@@ -936,7 +936,6 @@ const PipelineRow = memo(function PipelineRow({
   selected,
   onSelect,
   onSite,
-  onPrompt,
   onAiMessage,
   aiBusyId,
 }: {
@@ -952,7 +951,6 @@ const PipelineRow = memo(function PipelineRow({
   selected?: boolean;
   onSelect?: (id: string) => void;
   onSite?: (id: string) => void;
-  onPrompt?: (id: string) => void;
   onAiMessage?: (lead: SavedLead) => void;
   aiBusyId?: string;
 }) {
@@ -1064,11 +1062,6 @@ const PipelineRow = memo(function PipelineRow({
           {onSite && (
             <button type="button" onClick={() => onSite(lead.id)} className={`${btnGhost} inline-flex items-center gap-1.5`}>
               <Sparkles className="size-4" /> Criar com IA
-            </button>
-          )}
-          {onPrompt && (
-            <button type="button" onClick={() => onPrompt(lead.id)} className={btnGhost}>
-              Criar com IA
             </button>
           )}
           <button type="button" onClick={() => onNotes(lead.id)} className={btnGhost}>
@@ -1985,12 +1978,6 @@ export function LeadApp() {
   const openSiteEditor = useCallback((id: string) => {
     setSiteExtra(null);
     setSitePane("site");
-    setSiteLeadId(id);
-  }, []);
-
-  const openPromptEditor = useCallback((id: string) => {
-    setSiteExtra(null);
-    setSitePane("prompt");
     setSiteLeadId(id);
   }, []);
 
@@ -3046,7 +3033,7 @@ export function LeadApp() {
                 </button>
                 {pipeline.length > 0 && (
                   <button type="button" onClick={() => openSiteEditor(pipeline[0].id)} className="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-bold text-[#263b75] shadow-lg transition hover:-translate-y-0.5">
-                    <Sparkles className="size-4" /> Criador IA com IA
+                    <Sparkles className="size-4" /> Criar site com IA
                   </button>
                 )}
                 <button type="button" onClick={startFocus} className="inline-flex items-center gap-2 rounded-2xl bg-cyan-300 px-4 py-3 text-sm font-bold text-[#102449] shadow-lg transition hover:-translate-y-0.5">
@@ -3645,7 +3632,6 @@ export function LeadApp() {
                     onCopy={copyText}
                     onContact={markContact}
                     onSite={openSiteEditor}
-                    onPrompt={openPromptEditor}
                     onAiMessage={draftAiLeadMessage}
                     aiBusyId={aiLeadBusyId}
                   />
@@ -3828,7 +3814,6 @@ export function LeadApp() {
                 selected={selected.has(lead.id)}
                 onSelect={toggleSelect}
                 onSite={openSiteEditor}
-                onPrompt={openPromptEditor}
                 onAiMessage={draftAiLeadMessage}
                 aiBusyId={aiLeadBusyId}
               />
