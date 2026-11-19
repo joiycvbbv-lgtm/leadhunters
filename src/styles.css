@@ -950,3 +950,76 @@ html[data-theme="dark"] select, html[data-theme="dark"] textarea {
 @media (prefers-reduced-motion: reduce) {
   .glass-panel, .app-card, .admin-card, .shop-card { transition: none !important; }
 }
+
+
+/* LeadHunter Glass Buttons — restaura o acabamento Liquid Glass nos botões.
+   Mantém cores semânticas (perigo/sucesso/WhatsApp) e melhora o toque no mobile. */
+button:not(:disabled):not([class*="destructive"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]),
+[role="button"]:not([aria-disabled="true"]):not([class*="destructive"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]) {
+  border: 1px solid rgba(255, 255, 255, .72);
+  background: linear-gradient(135deg, rgba(255,255,255,.76), rgba(222,240,255,.48));
+  color: #14558d;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.96),
+    inset 0 -1px 0 rgba(89,158,211,.10),
+    0 9px 24px -17px rgba(13,78,132,.42);
+  -webkit-backdrop-filter: blur(22px) saturate(1.65);
+  backdrop-filter: blur(22px) saturate(1.65);
+}
+button[class*="bg-primary"]:not(:disabled),
+button[class*="from-primary"]:not(:disabled),
+a[class*="bg-primary"],
+a[class*="from-primary"],
+[role="button"][class*="bg-primary"] {
+  border: 1px solid rgba(255,255,255,.68) !important;
+  background: linear-gradient(135deg, rgba(70,166,232,.82), rgba(17,104,181,.86)) !important;
+  color: #fff !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.56),
+    inset 0 -1px 0 rgba(5,58,111,.12),
+    0 12px 30px -16px rgba(12,91,157,.62) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.7) !important;
+  backdrop-filter: blur(24px) saturate(1.7) !important;
+}
+button:not(:disabled):not([class*="destructive"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]):hover,
+[role="button"]:not([aria-disabled="true"]):not([class*="destructive"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]):hover {
+  border-color: rgba(83,163,222,.58);
+  background: linear-gradient(135deg, rgba(255,255,255,.9), rgba(210,235,255,.64));
+  box-shadow: inset 0 1px 0 #fff, 0 13px 30px -17px rgba(15,91,151,.42);
+}
+button[class*="bg-primary"]:not(:disabled):hover,
+button[class*="from-primary"]:not(:disabled):hover,
+a[class*="bg-primary"]:hover,
+a[class*="from-primary"]:hover,
+[role="button"][class*="bg-primary"]:hover {
+  filter: brightness(1.06);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.68), 0 16px 34px -16px rgba(12,91,157,.7) !important;
+}
+html[data-theme="dark"] button:not(:disabled):not([class*="destructive"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]),
+html[data-theme="dark"] [role="button"]:not([aria-disabled="true"]):not([class*="destructive"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]) {
+  border-color: rgba(174,211,241,.24);
+  background: linear-gradient(135deg, rgba(73,116,151,.48), rgba(27,70,105,.42));
+  color: #eaf6ff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 10px 26px -18px rgba(0,0,0,.62);
+}
+html[data-theme="dark"] button[class*="bg-primary"]:not(:disabled),
+html[data-theme="dark"] button[class*="from-primary"]:not(:disabled),
+html[data-theme="dark"] a[class*="bg-primary"],
+html[data-theme="dark"] a[class*="from-primary"],
+html[data-theme="dark"] [role="button"][class*="bg-primary"] {
+  background: linear-gradient(135deg, rgba(55,151,218,.78), rgba(14,83,143,.84)) !important;
+  color: #fff !important;
+  border-color: rgba(194,228,250,.3) !important;
+}
+@media (max-width: 720px) {
+  button:not(:disabled), [role="button"]:not([aria-disabled="true"]) {
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    backdrop-filter: blur(16px) saturate(1.4);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  button:not(:disabled), [role="button"]:not([aria-disabled="true"]) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
