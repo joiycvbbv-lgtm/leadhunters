@@ -28,7 +28,7 @@ import {
   type MySite,
   type SiteVersion,
 } from "@/lib/sites.functions";
-import { aiBrief, aiCopy } from "@/lib/ai.functions";
+import { aiCopy } from "@/lib/ai.functions";
 import type { SavedLead } from "@/lib/storage";
 import {
   DESIGNS,
@@ -486,11 +486,11 @@ export function SiteStudio({
     <div className="fixed inset-0 z-50 overflow-y-auto bg-bg">
       <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 border-b border-border bg-surface/95 px-4 py-3 backdrop-blur">
         <p className="flex items-center gap-2 font-display text-lg font-semibold">
-          <Globe className="size-5 text-primary" /> Site de {lead.name}
+          <Sparkles className="size-5 text-primary" /> Criador IA · {lead.name}
         </p>
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => void writeWithAi(true)} disabled={loading || Boolean(aiBusy) || !sitePrompt.trim()} className={`h-10 px-3 text-xs sm:px-4 sm:text-sm ${btnPrimary}`}>
-            {aiBusy === "copy" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />} <span className="hidden sm:inline">Criar site</span><span className="sm:hidden">Criar</span>
+            {aiBusy === "copy" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />} <span className="hidden sm:inline">Gerar site</span><span className="sm:hidden">Gerar</span>
           </button>
           <div className="flex gap-1 lg:hidden">
             <button type="button" onClick={() => setPane("editar")} className={chip(pane === "editar")}>
@@ -601,7 +601,7 @@ export function SiteStudio({
 
             <section className={`space-y-3 p-4 ${card}`}>
               <h3 className="flex items-center gap-2 font-semibold">
-                <Sparkles className="size-5 text-primary" /> Criação de site com IA
+                <Sparkles className="size-5 text-primary" /> Informações adicionais para a IA
               </h3>
               <p className="text-xs text-muted">
                 Opcional: informe detalhes reais do negócio que ainda não aparecem no cadastro. A IA usa isso junto com o seu prompt principal.
