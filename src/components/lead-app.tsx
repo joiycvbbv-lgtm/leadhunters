@@ -1192,6 +1192,7 @@ export function LeadApp() {
   const [tab, setTab] = useState<Tab>("inicio");
   const [ready, setReady] = useState(false);
   const [city, setCity] = useState(CITIES[0]);
+  const [countryCode, setCountryCode] = useState("BR");
   const [niche, setNiche] = useState("restaurante");
   const [quantity, setQuantity] = useState(10);
   const [minRating, setMinRating] = useState(4);
@@ -1874,7 +1875,7 @@ export function LeadApp() {
     setLoading(true);
     try {
       const result = await searchPlaces({
-        data: { city, niche, neighborhood, minReviews, mobileOnly, openOnly: onlyOpen, broad, siteMode, minRating, quantity, accessKey, deviceId },
+        data: { city, countryCode, niche, neighborhood, minReviews, mobileOnly, openOnly: onlyOpen, broad, siteMode, minRating, quantity, accessKey, deviceId },
       });
       if (!result.ok) {
         setResults([]);
@@ -3202,25 +3203,53 @@ export function LeadApp() {
       {tab === "buscar" && (
         <section className="fade-up space-y-4">
           <div className={`grid gap-3 p-4 sm:grid-cols-2 sm:p-5 ${card}`}>
+            <label className="block text-sm sm:col-span-2">
+              <span className="mb-1.5 block font-semibold">País da prospecção</span>
+              <select
+                value={countryCode}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setCountryCode(next);
+                  setCity(next === "BR" ? CITIES[0] : "");
+                }}
+                className={field}
+              >
+                <option value="BR">🇧🇷 Brasil</option>
+                <option value="US">🇺🇸 Estados Unidos</option>
+                <option value="CA">🇨🇦 Canadá</option>
+                <option value="GB">🇬🇧 Reino Unido</option>
+                <option value="PT">🇵🇹 Portugal</option>
+                <option value="ES">🇪🇸 Espanha</option>
+                <option value="FR">🇫🇷 França</option>
+                <option value="DE">🇩🇪 Alemanha</option>
+                <option value="IT">🇮🇹 Itália</option>
+                <option value="AU">🇦🇺 Austrália</option>
+                <option value="IE">🇮🇪 Irlanda</option>
+                <option value="MX">🇲🇽 México</option>
+              </select>
+              {countryCode !== "BR" && (
+                <p className="mt-1 text-xs text-muted">Digite a cidade no idioma local ou em inglês. Ex.: Miami, Florida / Toronto / Lisboa.</p>
+              )}
+            </label>
             <label className="block text-sm">
               <span className="mb-1.5 block font-semibold">Cidade</span>
               <select
-                value={CITIES.includes(city) ? city : "__outra__"}
+                value={countryCode === "BR" && CITIES.includes(city) ? city : "__outra__"}
                 onChange={(event) => setCity(event.target.value === "__outra__" ? "" : event.target.value)}
                 className={field}
               >
-                {CITIES.map((item) => (
+                {countryCode === "BR" && CITIES.map((item) => (
                   <option key={item} value={item}>
                     {item}
                   </option>
                 ))}
                 <option value="__outra__">Outra cidade…</option>
               </select>
-              {!CITIES.includes(city) && (
+              {(countryCode !== "BR" || !CITIES.includes(city)) && (
                 <input
                   value={city}
                   onChange={(event) => setCity(event.target.value)}
-                  placeholder="Ex.: Divinópolis, MG"
+                  placeholder={countryCode === "BR" ? "Ex.: Divinópolis, MG" : "Ex.: Miami, Florida"}
                   className={`${field} mt-2`}
                   autoFocus
                 />
