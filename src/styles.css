@@ -1023,3 +1023,123 @@ html[data-theme="dark"] [role="button"][class*="bg-primary"] {
     backdrop-filter: none;
   }
 }
+
+
+/* LeadHunter — identidade azul integral baseada na referência enviada.
+   Fundo azul profundo, painéis azul-claro translúcidos e tipografia branca. */
+:root {
+  --color-bg: #104b8b;
+  --color-surface: rgba(91, 145, 202, .72);
+  --color-surface-2: rgba(110, 163, 218, .42);
+  --color-fg: #ffffff;
+  --color-muted: #d2e6fb;
+  --color-primary: #b9dcff;
+  --color-primary-deep: #1766ad;
+  --color-primary-soft: rgba(194, 224, 255, .2);
+  --color-primary-fg: #ffffff;
+  --color-border: rgba(220, 239, 255, .42);
+  --shadow-card: 0 24px 64px -34px rgba(0, 28, 72, .5);
+}
+html, body {
+  background-color: #104b8b !important;
+  color: #fff;
+}
+body {
+  background-image:
+    radial-gradient(ellipse 80% 55% at 78% 12%, rgba(94, 164, 226, .72), transparent 65%),
+    radial-gradient(ellipse 65% 52% at 5% 85%, rgba(7, 48, 111, .78), transparent 70%),
+    linear-gradient(135deg, #0a3978 0%, #15599e 43%, #367fbd 100%) !important;
+  background-attachment: fixed;
+}
+.app-card,
+.glass-panel {
+  color: #fff !important;
+  border: 1px solid rgba(224, 241, 255, .52) !important;
+  background:
+    linear-gradient(135deg, rgba(170, 210, 248, .40), rgba(100, 157, 213, .32) 52%, rgba(74, 137, 198, .40)) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(1.55) !important;
+  backdrop-filter: blur(30px) saturate(1.55) !important;
+  box-shadow:
+    0 22px 58px -34px rgba(0, 25, 67, .52),
+    inset 0 1.5px 0 rgba(255,255,255,.52),
+    inset 0 -1px 0 rgba(224,242,255,.16) !important;
+}
+.app-card::before, .glass-panel::before {
+  background:
+    radial-gradient(ellipse at 8% 0%, rgba(255,255,255,.23), transparent 54%),
+    linear-gradient(115deg, rgba(255,255,255,.12), transparent 48%, rgba(179,220,255,.08)) !important;
+}
+.app-card :is(h1,h2,h3,h4,p,span,label,strong,small,li),
+.glass-panel :is(h1,h2,h3,h4,p,span,label,strong,small,li) {
+  --tw-text-opacity: 1;
+}
+.app-card .text-fg, .glass-panel .text-fg { color: #fff !important; }
+.app-card .text-muted, .glass-panel .text-muted,
+.app-card .text-slate-400, .glass-panel .text-slate-400,
+.app-card .text-slate-500, .glass-panel .text-slate-500 {
+  color: rgba(232,244,255,.82) !important;
+}
+input:not([type="checkbox"]):not([type="radio"]),
+select, textarea,
+input.glass-input, select.glass-input, textarea.glass-input {
+  color: #fff !important;
+  border: 1px solid rgba(224,241,255,.48) !important;
+  background: rgba(13,62,116,.28) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  backdrop-filter: blur(20px) saturate(1.4);
+}
+input::placeholder, textarea::placeholder { color: rgba(229,242,255,.66) !important; }
+button:not(:disabled):not([class*="destructive"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]),
+[role="button"]:not([aria-disabled="true"]):not([class*="destructive"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]) {
+  border: 1px solid rgba(235,247,255,.68);
+  background: linear-gradient(135deg, rgba(207,232,255,.48), rgba(129,183,232,.28));
+  color: #fff;
+  -webkit-backdrop-filter: blur(24px) saturate(1.65);
+  backdrop-filter: blur(24px) saturate(1.65);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.56), 0 12px 28px -18px rgba(0,25,67,.55);
+}
+button[class*="bg-primary"]:not(:disabled),
+button[class*="from-primary"]:not(:disabled),
+a[class*="bg-primary"], a[class*="from-primary"] {
+  border: 1px solid rgba(239,248,255,.76) !important;
+  background: linear-gradient(135deg, rgba(190,225,255,.68), rgba(65,139,205,.72)) !important;
+  color: #fff !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.72), 0 14px 32px -17px rgba(0,25,67,.65) !important;
+}
+nav.fixed, header.glass-panel {
+  border-color: rgba(230,244,255,.48) !important;
+  background: rgba(27,83,143,.72) !important;
+  color: #fff !important;
+  -webkit-backdrop-filter: blur(30px) saturate(1.6) !important;
+  backdrop-filter: blur(30px) saturate(1.6) !important;
+}
+nav.fixed :is(a,button,span), header.glass-panel :is(a,button,span) { color: #fff; }
+html[data-theme="dark"] {
+  --color-bg: #0a3978;
+  --color-surface: rgba(68, 125, 184, .7);
+  --color-surface-2: rgba(77, 137, 198, .36);
+  --color-fg: #fff;
+  --color-muted: #d2e6fb;
+  --color-primary: #b9dcff;
+  --color-primary-deep: #1766ad;
+  --color-primary-soft: rgba(194,224,255,.2);
+  --color-border: rgba(220,239,255,.38);
+}
+html[data-theme="dark"] body {
+  background-image:
+    radial-gradient(ellipse 80% 55% at 78% 12%, rgba(56,126,192,.56), transparent 65%),
+    radial-gradient(ellipse 65% 52% at 5% 85%, rgba(3,27,72,.8), transparent 70%),
+    linear-gradient(135deg,#071f4c 0%,#104b8b 48%,#276da9 100%) !important;
+}
+html[data-theme="dark"] .app-card,
+html[data-theme="dark"] .glass-panel {
+  border-color: rgba(222,240,255,.38) !important;
+  background: linear-gradient(135deg,rgba(116,169,218,.38),rgba(48,103,160,.42) 58%,rgba(31,82,139,.48)) !important;
+}
+@media (max-width: 720px) {
+  body { background-attachment: scroll; }
+  .app-card, .glass-panel {
+    -webkit-backdrop-filter: blur(22px) saturate(1.4) !important;
+    backdrop-filter: blur(22px) saturate(1.4) !important;
+  }
+}
