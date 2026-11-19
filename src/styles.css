@@ -1790,3 +1790,55 @@ html[data-theme="dark"] .login-panel input:not([type="checkbox"]):not([type="rad
   .login-shell { align-items: flex-start !important; padding-top: max(1rem,env(safe-area-inset-top)) !important; padding-bottom: max(1rem,env(safe-area-inset-bottom)) !important; }
   .lead-app-shell { padding-left: .85rem !important;padding-right: .85rem !important; }
 }
+
+
+/* Public website and checkout: align every touchpoint with the violet brand. */
+.marketing-site {
+  background: #100c19 !important;
+  color: #f7f3ff !important;
+  background-image: radial-gradient(ellipse 58% 35% at 92% 0%,rgba(134,85,233,.18),transparent 70%),linear-gradient(180deg,#151020 0%,#100c19 100%) !important;
+}
+.marketing-site [class*="indigo-"] { --tw-text-opacity: 1; }
+.marketing-site [class*="text-indigo-"] { color: #c4a9ff !important; }
+.marketing-site [class*="bg-indigo-"] { background-color: rgba(134,85,233,.18) !important; }
+.marketing-site [class*="border-indigo-"] { border-color: rgba(177,143,255,.28) !important; }
+.marketing-site [class*="from-[#5557e9]"] { --tw-gradient-from: #8959ed var(--tw-gradient-from-position) !important; }
+.marketing-site [class*="to-[#6875f5]"] { --tw-gradient-to: #7040d2 var(--tw-gradient-to-position) !important; }
+.marketing-site a[class*="bg-indigo-"],
+.marketing-site a[class*="from-[#5557e9]"] {
+  color: #fff !important;
+  background-image: linear-gradient(135deg,#8959ed,#7040d2) !important;
+  border-color: rgba(196,169,255,.32) !important;
+}
+.marketing-site [class*="text-sky-"] { color: #c4a9ff !important; }
+.marketing-site [class*="bg-sky-"] { background-color: rgba(134,85,233,.13) !important; }
+.marketing-site [class*="border-sky-"] { border-color: rgba(177,143,255,.24) !important; }
+.marketing-site ::selection { background: rgba(134,85,233,.38); color: #fff; }
+
+body:has(.glass-panel) {
+  background: #f6f5fa !important;
+}
+main:not(.marketing-site) .glass-panel {
+  border-color: #e6e0ef !important;
+  background: #fff !important;
+  box-shadow: 0 14px 38px -28px rgba(42,28,70,.34),0 2px 8px rgba(42,28,70,.035) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+main:not(.marketing-site) .glass-panel input,
+main:not(.marketing-site) .glass-panel select,
+main:not(.marketing-site) .glass-panel textarea {
+  color: #211b2d !important;
+  background: #faf9fc !important;
+  border-color: #e3ddec !important;
+}
+main:not(.marketing-site) .glass-panel button[class*="bg-sky-"],
+main:not(.marketing-site) .glass-panel button[class*="from-[#1766bd]"] {
+  color: #fff !important;
+  background: linear-gradient(135deg,#8959ed,#7040d2) !important;
+  border-color: transparent !important;
+}
+@media (max-width:720px) {
+  .marketing-site header { padding-top: max(.25rem,env(safe-area-inset-top)); }
+  .marketing-site section { scroll-margin-top: 5rem; }
+}
