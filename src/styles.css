@@ -1143,3 +1143,145 @@ html[data-theme="dark"] .glass-panel {
     backdrop-filter: blur(22px) saturate(1.4) !important;
   }
 }
+
+
+/* LeadHunter unified identity: navy, clean white, ice blue and restrained glass. */
+:root {
+  --color-bg: #f3f8fd;
+  --color-surface: #ffffff;
+  --color-surface-2: #eaf3fb;
+  --color-fg: #26384a;
+  --color-muted: #657b91;
+  --color-primary: #2878c8;
+  --color-primary-deep: #185b9e;
+  --color-primary-soft: #e2f0fc;
+  --color-primary-fg: #ffffff;
+  --color-border: #d4e4f2;
+  --shadow-card: 0 12px 36px -24px rgba(16,43,76,.24);
+}
+html, body {
+  background-color: #f3f8fd !important;
+  color: #26384a;
+}
+body {
+  background-image:
+    radial-gradient(ellipse 60% 35% at 100% 0%, rgba(40,120,200,.075), transparent 60%),
+    linear-gradient(180deg,#f8fbff 0%,#f1f7fc 100%) !important;
+  background-attachment: fixed;
+}
+html[data-theme="dark"] {
+  --color-bg: #10243a;
+  --color-surface: #17314d;
+  --color-surface-2: #1d3a58;
+  --color-fg: #edf6ff;
+  --color-muted: #b3c7d9;
+  --color-primary: #75b9f2;
+  --color-primary-deep: #3c91d6;
+  --color-primary-soft: #1c4265;
+  --color-border: #345775;
+}
+html[data-theme="dark"] body {
+  background-image: radial-gradient(ellipse 70% 45% at 100% 0%,rgba(48,130,199,.18),transparent 62%),linear-gradient(180deg,#10243a,#0d1d30) !important;
+}
+.glass-panel {
+  border: 1px solid rgba(255,255,255,.88) !important;
+  background: linear-gradient(135deg,rgba(255,255,255,.88),rgba(230,242,252,.68)) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.45) !important;
+  backdrop-filter: blur(24px) saturate(1.45) !important;
+  box-shadow: 0 16px 46px -30px rgba(16,43,76,.28), inset 0 1px 0 rgba(255,255,255,.98) !important;
+}
+html[data-theme="dark"] .glass-panel {
+  border-color: rgba(190,220,245,.24) !important;
+  background: linear-gradient(135deg,rgba(39,75,108,.82),rgba(22,49,76,.78)) !important;
+}
+.glass-panel::before, .glass-panel::after { pointer-events:none; }
+
+/* Every interactive control uses a rounded, touch-friendly glass treatment. */
+button:not(:disabled), [role="button"]:not([aria-disabled="true"]),
+a[class*="inline-flex"], a[class*="flex"][class*="items-center"] {
+  border-radius: 9999px;
+}
+button:not(:disabled):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]):not([class*="text-danger"]),
+[role="button"]:not([aria-disabled="true"]) {
+  border-color: rgba(255,255,255,.88);
+  background-image: linear-gradient(135deg,rgba(255,255,255,.82),rgba(221,239,253,.58));
+  color: #185b9e;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.98),0 8px 24px -18px rgba(16,76,128,.42);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  backdrop-filter: blur(20px) saturate(1.5);
+}
+button[class*="bg-primary"], button[class*="from-[#1766bd"], button[type="submit"],
+a[class*="bg-primary"] {
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,.72) !important;
+  background: linear-gradient(125deg,rgba(78,160,222,.88),rgba(31,108,179,.92)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.62),0 12px 28px -17px rgba(20,91,153,.58) !important;
+}
+button:disabled { border-radius: 9999px; }
+input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+  border-radius: 1rem;
+  border-color: #d4e4f2;
+  background: rgba(255,255,255,.78);
+  color: #26384a;
+}
+html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="dark"] select, html[data-theme="dark"] textarea {
+  border-color: #345775;
+  background: rgba(22,49,76,.8);
+  color: #edf6ff;
+}
+html[data-theme="dark"] button:not(:disabled),
+html[data-theme="dark"] [role="button"]:not([aria-disabled="true"]) {
+  border-color: rgba(190,220,245,.28);
+  background-image: linear-gradient(135deg,rgba(67,112,150,.55),rgba(31,70,105,.52));
+  color: #edf6ff;
+}
+html[data-theme="dark"] button[class*="bg-primary"],
+html[data-theme="dark"] button[type="submit"],
+html[data-theme="dark"] a[class*="bg-primary"] {
+  background: linear-gradient(125deg,#398bc9,#1d659f) !important;
+  color: #fff !important;
+}
+
+/* Marketing page: replace the old purple/black accents with the same blue identity. */
+[class*="bg-[#0b1020"], [class*="bg-[#111a30"], [class*="bg-[#121a30"], [class*="bg-[#151d38"], [class*="bg-[#102235"] {
+  background-color: #102b4c !important;
+}
+[class*="from-[#5557e9"], [class*="to-[#6875f5"] {
+  background-image: linear-gradient(120deg,#4c9bd5,#2878c8) !important;
+}
+[class*="text-indigo-"], [class*="text-violet-"] { color: #2878c8 !important; }
+[class*="border-indigo-"], [class*="border-violet-"] { border-color: #c7def1 !important; }
+[class*="bg-indigo-"], [class*="bg-violet-"] { background-color: #e6f2fc !important; }
+[class*="shadow-[0_"][class*="rgba(99,102,241"] { box-shadow: 0 10px 28px -18px rgba(40,120,200,.45) !important; }
+
+/* License checkout page: unify the plan cards, coupon and payment actions. */
+main.max-w-3xl .group.relative.flex.min-h-\[190px\] {
+  border-radius: 1.65rem !important;
+  border-color: rgba(255,255,255,.9) !important;
+  background: linear-gradient(135deg,rgba(255,255,255,.88),rgba(220,239,253,.72)) !important;
+  color: #183b61 !important;
+  box-shadow: 0 16px 42px -28px rgba(16,76,128,.32),inset 0 1px 0 #fff !important;
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  backdrop-filter: blur(22px) saturate(1.5);
+}
+main.max-w-3xl .group.relative.flex.min-h-\[190px\][class*="ring-2"] {
+  border-color: #70b3e6 !important;
+  background: linear-gradient(135deg,rgba(195,226,249,.9),rgba(232,245,255,.86)) !important;
+}
+main.max-w-3xl form button:not([type="submit"]) {
+  border-radius: 9999px !important;
+}
+main.max-w-3xl form button[type="submit"],
+main.max-w-3xl form button[ type="button" ] {
+  min-height: 3rem;
+  border-radius: 9999px !important;
+}
+main.max-w-3xl header a:last-child {
+  border-radius: 9999px;
+}
+@media (max-width:720px) {
+  button:not(:disabled), [role="button"]:not([aria-disabled="true"]) { min-height: 42px; }
+  main.max-w-3xl { padding-top: 1rem; }
+  main.max-w-3xl .group.relative.flex.min-h-\[190px\] { min-height: 170px; }
+}
