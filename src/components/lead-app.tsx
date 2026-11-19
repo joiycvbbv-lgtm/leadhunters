@@ -550,13 +550,13 @@ function BrandMark({ className = "size-6" }: { className?: string }) {
   );
 }
 
-const card = "glass-panel rounded-[1.6rem]";
+const card = "app-card rounded-2xl";
 const field =
   "w-full rounded-2xl border border-border bg-surface-2 px-4 py-3 text-sm text-fg outline-none placeholder:text-muted/70 focus:border-primary focus:ring-4 focus:ring-primary/10";
 const btnPrimary =
-  "inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-deep px-5 py-3 text-sm font-bold text-primary-fg shadow-[0_12px_24px_-12px_rgba(79,70,229,0.65)] transition duration-200 hover:-translate-y-0.5 hover:brightness-105 active:translate-y-0 disabled:opacity-60";
+  "inline-flex items-center justify-center gap-2 rounded-xl bg-[#3448a5] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors duration-150 hover:bg-[#293b91] active:bg-[#23347f] disabled:opacity-60";
 const btnGhost =
-  "glass-control rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-sm font-semibold text-fg transition duration-200 hover:border-primary/50 hover:bg-primary-soft hover:text-primary";
+  "rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm font-semibold text-fg transition-colors duration-150 hover:border-primary/40 hover:bg-primary-soft hover:text-primary";
 
 type FollowState = "atrasado" | "hoje" | "futuro" | null;
 
@@ -2814,8 +2814,8 @@ export function LeadApp() {
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-none bg-[#f5f7fb] px-4 pb-28 pt-5 text-fg dark:bg-[#0b1020] sm:px-6 sm:pb-16 lg:pl-[292px] lg:pr-8 lg:pt-7">
-      <aside className="fixed bottom-4 left-4 top-4 z-40 hidden w-[256px] flex-col rounded-[2rem] bg-gradient-to-b from-[#111a32]/90 via-[#17264b]/85 to-[#10172b]/90 p-5 text-white shadow-[0_24px_70px_-26px_rgba(10,20,48,.8)] backdrop-blur-2xl ring-1 ring-inset ring-white/10 lg:flex">
+    <div className="lead-app-shell mx-auto min-h-screen max-w-none bg-[#f5f7fb] px-4 pb-28 pt-5 text-fg dark:bg-[#0b1020] sm:px-6 sm:pb-16 lg:pl-[292px] lg:pr-8 lg:pt-7">
+      <aside className="fixed bottom-4 left-4 top-4 z-40 hidden w-[256px] flex-col rounded-2xl bg-[#172033] p-5 text-white shadow-[0_24px_70px_-26px_rgba(10,20,48,.8)] backdrop-blur-2xl ring-1 ring-inset ring-white/10 lg:flex">
         <div className="flex items-center gap-3 px-1">
           <div className="flex size-11 items-center justify-center rounded-2xl bg-white/10 text-white ring-1 ring-white/15">
             <BrandMark className="size-5" />
@@ -2889,7 +2889,7 @@ export function LeadApp() {
           </div>
         </div>
       </aside>
-      <header className={`sticky top-3 z-30 mb-6 flex flex-wrap items-center justify-between gap-3 rounded-[1.75rem] border border-white/70 bg-white/85 p-3 shadow-[0_16px_42px_-30px_rgba(15,23,42,.45)] backdrop-blur-xl dark:border-white/5 dark:bg-surface/85 sm:p-4 ${card}`}>
+      <header className={`sticky top-3 z-30 mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#e4e7ed] bg-white p-3 shadow-sm dark:border-white/10 dark:bg-surface sm:p-4 ${card}`}>
         <div className="flex items-center gap-3 lg:hidden">
           <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-b from-primary to-primary-deep text-primary-fg shadow-[0_8px_20px_-8px_rgba(79,70,229,0.45)]">
             <BrandMark className="size-5" />
