@@ -892,7 +892,7 @@ const LeadCard = memo(function LeadCard({
       <div className="mt-3 flex flex-wrap gap-4 text-sm">
         {onPrompt && (
           <button type="button" onClick={() => onPrompt(lead)} className="font-semibold text-primary hover:underline">
-            Virar prompt
+            Criar com IA
           </button>
         )}
         {lead.siteKind === "site" && onAudit && (
@@ -1068,7 +1068,7 @@ const PipelineRow = memo(function PipelineRow({
           )}
           {onPrompt && (
             <button type="button" onClick={() => onPrompt(lead.id)} className={btnGhost}>
-              Virar prompt
+              Criar com IA
             </button>
           )}
           <button type="button" onClick={() => onNotes(lead.id)} className={btnGhost}>
@@ -2891,7 +2891,7 @@ export function LeadApp() {
             }}
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-400 to-indigo-400 px-4 py-3 text-sm font-bold text-[#10172b] shadow-lg shadow-sky-950/20 transition hover:brightness-110"
           >
-            <Sparkles className="size-4" /> Criar site
+            <Sparkles className="size-4" /> Criador IA
           </button>
           <div className="flex items-center gap-3 rounded-2xl px-2 py-2">
             {profilePhoto ? <img src={profilePhoto} alt="Foto de perfil" className="size-9 rounded-full object-cover ring-1 ring-white/30"/> : <div className="flex size-9 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white">{(userName || "LH").slice(0, 1).toUpperCase()}</div>}
@@ -3046,7 +3046,7 @@ export function LeadApp() {
                 </button>
                 {pipeline.length > 0 && (
                   <button type="button" onClick={() => openSiteEditor(pipeline[0].id)} className="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-bold text-[#263b75] shadow-lg transition hover:-translate-y-0.5">
-                    <Sparkles className="size-4" /> Criar site com IA
+                    <Sparkles className="size-4" /> Criador IA com IA
                   </button>
                 )}
                 <button type="button" onClick={startFocus} className="inline-flex items-center gap-2 rounded-2xl bg-cyan-300 px-4 py-3 text-sm font-bold text-[#102449] shadow-lg transition hover:-translate-y-0.5">
