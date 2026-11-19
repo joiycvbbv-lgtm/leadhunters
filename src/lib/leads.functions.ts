@@ -160,7 +160,7 @@ async function fetchPage(query: string, apiKey: string, pageToken?: string, coun
   const body: Record<string, unknown> = {
     textQuery: query,
     maxResultCount: 20,
-    languageCode: countryCode === "US" ? "en" : countryCode === "GB" ? "en" : countryCode === "CA" ? "en" : countryCode === "AU" ? "en" : countryCode === "PT" ? "pt-PT" : "es",
+    languageCode: ({ BR: "pt-BR", PT: "pt-PT", US: "en", CA: "en", GB: "en", AU: "en", IE: "en", ES: "es", MX: "es", FR: "fr", DE: "de", IT: "it" } as Record<string, string>)[countryCode] || "en",
     regionCode: countryCode,
   };
   if (pageToken) body.pageToken = pageToken;
