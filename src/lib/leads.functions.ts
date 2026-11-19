@@ -52,6 +52,7 @@ export type SearchResult =
 
 type Input = {
   city: string;
+  countryCode?: string;
   niche: string;
   neighborhood?: string;
   minReviews?: number;
@@ -155,12 +156,12 @@ function toLead(place: Place, index: number, city: string): Lead | null {
   };
 }
 
-async function fetchPage(query: string, apiKey: string, pageToken?: string) {
+async function fetchPage(query: string, apiKey: string, pageToken?: string, countryCode = "BR") {
   const body: Record<string, unknown> = {
     textQuery: query,
     maxResultCount: 20,
-    languageCode: "pt-BR",
-    regionCode: "BR",
+    languageCode: countryCode === "US" ? "en" : countryCode === "GB" ? "en" : countryCode === "CA" ? "en" : countryCode === "AU" ? "en" : countryCode === "PT" ? "pt-PT" : "es",
+    regionCode: countryCode,
   };
   if (pageToken) body.pageToken = pageToken;
 
@@ -195,6 +196,7 @@ async function fetchPage(query: string, apiKey: string, pageToken?: string) {
 export const searchPlaces = createServerFn({ method: "POST" })
   .validator((data: Input) => {
     const city = String(data.city || "").trim().slice(0, 120);
+    const countryCode = /^[A-Z]{2}$/.test(String(data.countryCode || "")) ? String(data.countryCode) : "BR";
     const niche = String(data.niche || "").trim().slice(0, 60);
     const neighborhood = String(data.neighborhood || "").trim().slice(0, 60);
     const minReviews = Math.max(0, Math.min(1000, Math.round(Number(data.minReviews) || 0)));
@@ -208,7 +210,7 @@ export const searchPlaces = createServerFn({ method: "POST" })
     const accessKey = String(data.accessKey || "");
     const deviceId = String(data.deviceId || "");
     if (!city) throw new Error("Escolha uma cidade.");
-    return { city, niche, neighborhood, minReviews, mobileOnly, openOnly, broad, siteMode, minRating, quantity, accessKey, deviceId };
+    return { city, countryCode, niche, neighborhood, minReviews, mobileOnly, openOnly, broad, siteMode, minRating, quantity, accessKey, deviceId };
   })
   .handler(async ({ data }): Promise<SearchResult> => {
     const placesKey = getPlacesKey();
@@ -255,7 +257,7 @@ export const searchPlaces = createServerFn({ method: "POST" })
     try {
       for (let page = 0; page < 3 && leads.length < data.quantity; page += 1) {
         if (page > 0) await new Promise((resolve) => setTimeout(resolve, 1800));
-        const pageResult = await fetchPage(query, placesKey, pageToken);
+        const pageResult = await fetchPage(query, placesKey, pageToken, countryCode);
         if (!pageResult.ok) {
           await refundSearch(access.keyId);
           return pageResult;
@@ -268,7 +270,7 @@ export const searchPlaces = createServerFn({ method: "POST" })
           const variants = data.niche
             ? [`${data.niche} ${area}`, `${data.niche} perto de ${area}`, `melhores ${data.niche} ${area}`]
             : [`comércio ${area}`, `serviços ${area}`];
-          const extra = await Promise.all(variants.map((variant) => fetchPage(variant, placesKey)));
+          const extra = await Promise.all(variants.map((variant) => fetchPage(variant, placesKey, undefined, countryCode)));
           extra.forEach((result, position) => {
             if (!result.ok) return;
             scanned += result.places.length;
