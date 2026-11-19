@@ -26,6 +26,7 @@ export type AdminOrder = {
   buyerEmail: string;
   buyerWhatsapp: string;
   status: string;
+  provider: string;
   keyHint: string | null;
   createdAt: string;
   paidAt: string | null;
@@ -149,11 +150,12 @@ export const adminOverview = createServerFn({ method: "POST" })
       buyer_email: string;
       buyer_whatsapp: string;
       status: string;
+      provider: string;
       key_plain: string | null;
       created_at: string;
       paid_at: string | null;
     }>(
-      `select o.id, o.plan, o.amount_cents, o.buyer_name, o.buyer_email, o.buyer_whatsapp, o.status,
+      `select o.id, o.plan, o.amount_cents, o.buyer_name, o.buyer_email, o.buyer_whatsapp, o.status, o.provider,
               k.key_plain, to_char(o.created_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as created_at, to_char(o.paid_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as paid_at
          from orders o left join access_keys k on k.id = o.key_id
         order by o.created_at desc limit 100`,
@@ -304,6 +306,7 @@ export const adminOverview = createServerFn({ method: "POST" })
         buyerEmail: o.buyer_email,
         buyerWhatsapp: o.buyer_whatsapp,
         status: o.status,
+        provider: o.provider || "mercadopago",
         keyHint: o.key_plain,
         createdAt: o.created_at,
         paidAt: o.paid_at,
