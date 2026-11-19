@@ -855,15 +855,15 @@ export function AdminApp() {
 
       <section id="admin-orders" className={`scroll-mt-24 p-4 ${card}`}>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-semibold">Pedidos Pix</h2>
+          <h2 className="font-semibold">Pedidos e pagamentos</h2>
           <button
             type="button"
             className={btnGhost}
             onClick={() =>
               downloadCsv(
                 "pedidos.csv",
-                ["Data", "Nome", "E-mail", "WhatsApp", "Plano", "Valor", "Status"],
-                data.orders.map((o) => [when(o.createdAt), o.buyerName, o.buyerEmail, o.buyerWhatsapp, o.plan, brl(o.amountCents), o.status]),
+                ["Data", "Nome", "E-mail", "WhatsApp", "Plano", "Valor", "Provedor", "Status"],
+                data.orders.map((o) => [when(o.createdAt), o.buyerName, o.buyerEmail, o.buyerWhatsapp, o.plan, brl(o.amountCents), o.provider, o.status]),
               )
             }
           >
@@ -878,6 +878,7 @@ export function AdminApp() {
                 <th className="pr-3">Cliente</th>
                 <th className="pr-3">Plano</th>
                 <th className="pr-3">Valor</th>
+                <th className="pr-3">Pagamento</th>
                 <th className="pr-3">Status</th>
                 <th>Key</th>
                 <th />
@@ -893,6 +894,7 @@ export function AdminApp() {
                   </td>
                   <td className="pr-3">{o.plan}</td>
                   <td className="pr-3">{brl(o.amountCents)}</td>
+                  <td className="pr-3 capitalize">{o.provider === "stripe" ? "Stripe · cartão" : "Mercado Pago · Pix"}</td>
                   <td className="pr-3">{o.status}</td>
                   <td className="font-mono text-xs">{o.keyHint ?? "—"}</td>
                   <td>
