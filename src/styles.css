@@ -453,7 +453,6 @@ html[data-theme="light"] .lead-app-shell [class*="bg-[#171020]"],
 html[data-theme="light"] .lead-app-shell [class*="bg-[#15111f]"] {
   background-color: #fff !important;
 }
-html[data-theme="light"] .lead-app-shell [class*="bg-white"] { background-color: #fff !important; }
 html[data-theme="light"] .lead-app-shell [class*="text-white"] { color: #292235 !important; }
 html[data-theme="light"] .lead-app-shell [class*="text-[#17264b]"],
 html[data-theme="light"] .lead-app-shell [class*="text-[#34405a]"],
@@ -965,7 +964,6 @@ html[data-theme="light"] .glass-panel {
   border-color: #e5e7eb !important; box-shadow: 0 8px 28px -24px rgba(15,23,42,.25) !important;
   -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
 }
-html[data-theme="light"] .lead-app-shell [class*="text-white"] { color: #202630 !important; }
 html[data-theme="light"] .lead-app-shell [class*="bg-white"] { background-color: #fff !important; }
 html[data-theme="light"] .lead-app-shell input:not([type="checkbox"]):not([type="radio"]),
 html[data-theme="light"] .lead-app-shell select,
@@ -987,4 +985,79 @@ html[data-theme="light"] nav.fixed.inset-x-0.bottom-0 {
 html[data-theme="light"] nav.fixed.inset-x-0.bottom-0 > button { color: #737d8a !important; }
 html[data-theme="light"] nav.fixed.inset-x-0.bottom-0 > button.text-primary {
   color: #202630 !important; background: #eef0f3 !important; border-color: #e2e5e9 !important;
+}
+
+
+/* Refinamento visual: preservar áreas escuras e dar hierarquia ao dashboard. */
+html[data-theme="light"] .lead-app-shell .dashboard-hero {
+  color: #fff !important;
+  background:
+    radial-gradient(ellipse 55% 90% at 100% 0%, rgba(255,255,255,.10), transparent 68%),
+    linear-gradient(125deg, #252c36 0%, #171d26 58%, #303945 100%) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  box-shadow: 0 22px 48px -32px rgba(15,23,42,.55) !important;
+}
+html[data-theme="light"] .lead-app-shell .dashboard-hero h2,
+html[data-theme="light"] .lead-app-shell .dashboard-hero p,
+html[data-theme="light"] .lead-app-shell .dashboard-hero span { color: inherit; }
+html[data-theme="light"] .lead-app-shell .dashboard-hero .text-white\/75 { color: rgba(255,255,255,.76) !important; }
+html[data-theme="light"] .lead-app-shell .dashboard-hero .text-blue-100\/70 { color: rgba(226,232,240,.78) !important; }
+html[data-theme="light"] .lead-app-shell .dashboard-hero-action {
+  min-height: 44px; border-radius: 12px !important; font-weight: 650;
+  transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+}
+html[data-theme="light"] .lead-app-shell .dashboard-hero-action:first-child {
+  color: #fff !important; background: rgba(255,255,255,.10) !important;
+  border: 1px solid rgba(255,255,255,.22) !important;
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+}
+html[data-theme="light"] .lead-app-shell .dashboard-hero-action:not(:first-child) {
+  color: #202630 !important; background: #fff !important;
+  border: 1px solid rgba(255,255,255,.8) !important;
+}
+html[data-theme="light"] .lead-app-shell .dashboard-hero-action:hover {
+  transform: translateY(-2px); box-shadow: 0 10px 22px rgba(0,0,0,.18);
+}
+html[data-theme="light"] .lead-app-shell .dashboard-hero > div > div:last-child > div {
+  border-radius: 14px; background: rgba(255,255,255,.075) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+}
+html[data-theme="light"] .lead-app-shell .app-card {
+  border-radius: 18px !important; border: 1px solid #e7e9ed !important;
+  background: #fff !important; box-shadow: 0 5px 18px -16px rgba(15,23,42,.28) !important;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+html[data-theme="light"] .lead-app-shell button.app-card:hover {
+  border-color: #cbd1d9 !important; box-shadow: 0 12px 24px -20px rgba(15,23,42,.35) !important;
+}
+html[data-theme="light"] .lead-app-shell aside nav button {
+  min-height: 43px; border-radius: 11px !important; font-weight: 600;
+}
+html[data-theme="light"] .lead-app-shell aside nav button[aria-current="page"] {
+  position: relative; background: #f0f2f5 !important;
+}
+html[data-theme="light"] .lead-app-shell aside nav button[aria-current="page"]::before {
+  content: ""; position: absolute; left: 0; top: 9px; bottom: 9px; width: 3px;
+  border-radius: 0 4px 4px 0; background: #374151;
+}
+html[data-theme="light"] .lead-app-shell header {
+  border-radius: 17px !important; box-shadow: 0 8px 24px -22px rgba(15,23,42,.35) !important;
+}
+html[data-theme="light"] .lead-app-shell .text-muted { color: #737d8a !important; }
+html[data-theme="light"] .lead-app-shell input,
+html[data-theme="light"] .lead-app-shell select,
+html[data-theme="light"] .lead-app-shell textarea {
+  min-height: 44px; border-radius: 11px !important;
+}
+html[data-theme="light"] .lead-app-shell button:focus-visible {
+  outline-color: rgba(55,65,81,.65) !important;
+}
+@media (max-width: 1023px) {
+  .lead-app-shell { padding-top: 12px !important; }
+  .lead-app-shell > header { position: sticky; top: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lead-app-shell *, .lead-app-shell *::before, .lead-app-shell *::after {
+    transition-duration: .01ms !important; animation-duration: .01ms !important;
+  }
 }
