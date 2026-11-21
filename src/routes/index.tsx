@@ -1,12 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { MarketingSite } from "@/components/marketing-site";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
-  component: MarketingSite,
+  beforeLoad: () => {
+    throw redirect({ href: "/app" });
+  },
   head: () => ({
     meta: [
-      { title: "LeadHunter — Encontre oportunidades e venda mais" },
-      { name: "description", content: "Encontre empresas, organize leads e acompanhe oportunidades comerciais com o LeadHunter." },
+      { title: "LeadHunter — Aplicativo de prospecção" },
+      { name: "description", content: "Acesse o painel LeadHunter para encontrar empresas, organizar leads e acompanhar oportunidades comerciais." },
     ],
   }),
 });
