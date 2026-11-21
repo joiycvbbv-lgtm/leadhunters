@@ -155,10 +155,10 @@ export function getDeviceId() {
 export type Theme = "light" | "dark";
 export function loadTheme(): Theme {
   try {
-    // Padrão é o tema claro; só fica escuro se a pessoa escolher no botão do painel.
-    return localStorage.getItem(THEME) === "dark" ? "dark" : "light";
+    // O tema escuro é o padrão; uma escolha explícita de tema claro continua sendo respeitada.
+    return localStorage.getItem(THEME) === "light" ? "light" : "dark";
   } catch {
-    return "light";
+    return "dark";
   }
 }
 export function saveTheme(value: Theme) {
