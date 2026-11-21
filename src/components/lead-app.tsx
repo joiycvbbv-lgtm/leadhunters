@@ -3016,27 +3016,25 @@ export function LeadApp() {
 
       {tab === "inicio" && (
         <section className="fade-up space-y-5">
-          <div className="relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#374151] via-[#4b5563] to-[#111827] p-6 text-white shadow-[0_28px_70px_-30px_rgba(45,55,145,.65)] backdrop-blur-2xl ring-1 ring-inset ring-white/15 sm:p-8">
-            <div aria-hidden="true" className="absolute -right-16 -top-24 -z-10 size-72 rounded-full bg-cyan-300/20 blur-3xl" />
-            <div aria-hidden="true" className="absolute -bottom-24 right-1/3 -z-10 size-56 rounded-full bg-slate-300/20 blur-3xl" />
+          <div className="dashboard-hero relative isolate overflow-hidden rounded-[2rem] p-6 text-white shadow-xl sm:p-8">
             <div className="flex flex-col gap-7 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-2xl">
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-blue-100">
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white">
                   <Sparkles className="size-3.5" /> Central de prospecção
                 </span>
                 <h2 className="mt-4 font-display text-3xl font-bold tracking-tight sm:text-4xl">Encontre oportunidades. Feche mais negócios.</h2>
-                <p className="mt-3 max-w-xl text-sm leading-6 text-blue-100/80 sm:text-base">Seus contatos, retornos e sites em um só lugar. Escolha uma ação para continuar de onde parou.</p>
+                <p className="mt-3 max-w-xl text-sm leading-6 text-white/75 sm:text-base">Seus contatos, retornos e sites em um só lugar. Escolha uma ação para continuar de onde parou.</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <button type="button" onClick={() => setTab("buscar")} className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/20">
+                <button type="button" onClick={() => setTab("buscar")} className="dashboard-hero-action inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/20">
                   <Search className="size-4" /> Buscar empresas
                 </button>
                 {pipeline.length > 0 && (
-                  <button type="button" onClick={() => openSiteEditor(pipeline[0].id)} className="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-bold text-[#263b75] shadow-lg transition hover:-translate-y-0.5">
+                  <button type="button" onClick={() => openSiteEditor(pipeline[0].id)} className="dashboard-hero-action inline-flex items-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-slate-900 shadow-lg transition hover:-translate-y-0.5">
                     <Sparkles className="size-4" /> Criar site com IA
                   </button>
                 )}
-                <button type="button" onClick={startFocus} className="inline-flex items-center gap-2 rounded-2xl bg-cyan-300 px-4 py-3 text-sm font-bold text-[#102449] shadow-lg transition hover:-translate-y-0.5">
+                <button type="button" onClick={startFocus} className="dashboard-hero-action inline-flex items-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-slate-900 shadow-lg transition hover:-translate-y-0.5">
                   <Zap className="size-4" /> Começar
                 </button>
               </div>
