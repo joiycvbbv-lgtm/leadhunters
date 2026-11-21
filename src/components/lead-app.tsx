@@ -1253,7 +1253,7 @@ export function LeadApp() {
   const [ticket, setTicket] = useState(1500);
   const [message, setMessage] = useState(DEFAULT_MSG);
   const [followMessage, setFollowMessage] = useState(DEFAULT_FOLLOW_MSG);
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useState<Theme>("dark");
   const [deviceId, setDeviceId] = useState("");
   const [info, setInfo] = useState<AccessInfo | null>(null);
   const [cloudReady, setCloudReady] = useState(false);
@@ -1392,8 +1392,8 @@ export function LeadApp() {
   const isTest = info?.kind === "test";
 
   useEffect(() => {
-    // A tela de login é sempre clara; o tema escolhido vale só dentro do painel.
-    document.documentElement.setAttribute("data-theme", step === "app" ? theme : "light");
+    // Mantém login e painel com a mesma identidade visual.
+    document.documentElement.setAttribute("data-theme", theme);
   }, [theme, step]);
 
   useEffect(() => {
@@ -2561,7 +2561,7 @@ export function LeadApp() {
                 <Sparkles className="size-3.5" /> Oportunidades locais, em um só lugar
               </p>
               <h2 className="mt-5 font-display text-4xl font-bold leading-[1.08] tracking-tight xl:text-5xl">
-                Seu próximo cliente pode estar <span className="text-sky-300">sem site.</span>
+                Seu próximo cliente pode estar <span className="text-violet-300">sem site.</span>
               </h2>
               <p className="mt-4 max-w-lg text-base leading-7 text-white/70">
                 Encontre empresas, organize os contatos e acompanhe cada oportunidade até a criação do site.
@@ -2582,7 +2582,7 @@ export function LeadApp() {
             </div>
             <div className="login-demo-card relative z-10 ml-auto mt-8 w-full max-w-sm rounded-2xl border border-white/10 p-4 shadow-xl backdrop-blur-xl">
               <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-xl bg-white/10 text-sky-200">
+                <div className="flex size-10 items-center justify-center rounded-xl bg-white/10 text-violet-200">
                   <Building2 className="size-5" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -2596,7 +2596,7 @@ export function LeadApp() {
                 <span className="font-bold text-sky-200">84 / 100</span>
               </div>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full w-[84%] rounded-full bg-gradient-to-r from-sky-300 to-indigo-300" />
+                <div className="h-full w-[84%] rounded-full bg-gradient-to-r from-violet-300 to-purple-300" />
               </div>
             </div>
           </section>
@@ -2814,14 +2814,14 @@ export function LeadApp() {
   }
 
   return (
-    <div className="lead-app-shell mx-auto min-h-screen max-w-none bg-[#f5f7fb] px-4 pb-28 pt-5 text-fg dark:bg-[#0b1020] sm:px-6 sm:pb-16 lg:pl-[292px] lg:pr-8 lg:pt-7">
-      <aside className="fixed bottom-4 left-4 top-4 z-40 hidden w-[256px] flex-col rounded-2xl bg-[#172033] p-5 text-white shadow-[0_24px_70px_-26px_rgba(10,20,48,.8)] backdrop-blur-2xl ring-1 ring-inset ring-white/10 lg:flex">
+    <div className="lead-app-shell mx-auto min-h-screen max-w-none bg-[#0b0912] px-4 pb-28 pt-5 text-fg dark:bg-[#0b0912] sm:px-6 sm:pb-16 lg:pl-[292px] lg:pr-8 lg:pt-7">
+      <aside className="fixed bottom-4 left-4 top-4 z-40 hidden w-[256px] flex-col rounded-2xl bg-[#171020] p-5 text-white shadow-[0_24px_70px_-26px_rgba(10,20,48,.8)] backdrop-blur-2xl ring-1 ring-inset ring-white/10 lg:flex">
         <div className="flex items-center gap-3 px-1">
           <div className="flex size-11 items-center justify-center rounded-2xl bg-white/10 text-white ring-1 ring-white/15">
             <BrandMark className="size-5" />
           </div>
           <div>
-            <p className="text-xs font-bold tracking-[0.22em] text-blue-200">LEADHUNTER</p>
+            <p className="text-xs font-bold tracking-[0.22em] text-violet-200">LEADHUNTER</p>
             <p className="mt-0.5 text-xs text-white/55">Prospecção inteligente</p>
           </div>
         </div>
@@ -2847,7 +2847,7 @@ export function LeadApp() {
                 aria-current={tab === id ? "page" : undefined}
                 onClick={() => setTab(id)}
                 className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-semibold transition ${
-                  tab === id ? "bg-white text-[#17264b] shadow-lg shadow-black/10" : "text-white/70 hover:bg-white/10 hover:text-white"
+                  tab === id ? "bg-[#35234d] text-white shadow-lg shadow-black/20" : "text-white/70 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 <Icon className={`size-4 shrink-0 ${tab === id ? "text-primary" : "text-white/65"}`} />
@@ -2876,7 +2876,7 @@ export function LeadApp() {
               if (pipeline.length > 0) openSiteEditor(pipeline[0].id);
               else setTab("pipeline");
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-400 to-indigo-400 px-4 py-3 text-sm font-bold text-[#10172b] shadow-lg shadow-sky-950/20 transition hover:brightness-110"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#a879ff] to-[#7044bd] px-4 py-3 text-sm font-bold text-[#10172b] shadow-lg shadow-sky-950/20 transition hover:brightness-110"
           >
             <Sparkles className="size-4" /> Criador IA
           </button>
@@ -2889,7 +2889,7 @@ export function LeadApp() {
           </div>
         </div>
       </aside>
-      <header className={`sticky top-3 z-30 mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#e4e7ed] bg-white p-3 shadow-sm dark:border-white/10 dark:bg-surface sm:p-4 ${card}`}>
+      <header className={`sticky top-3 z-30 mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#15111f] p-3 shadow-sm dark:border-white/10 dark:bg-surface sm:p-4 ${card}`}>
         <div className="flex items-center gap-3 lg:hidden">
           <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-b from-primary to-primary-deep text-primary-fg shadow-[0_8px_20px_-8px_rgba(79,70,229,0.45)]">
             <BrandMark className="size-5" />
@@ -3016,7 +3016,7 @@ export function LeadApp() {
 
       {tab === "inicio" && (
         <section className="fade-up space-y-5">
-          <div className="relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#121c3b]/90 via-[#253b73]/85 to-[#4f46e5]/90 p-6 text-white shadow-[0_28px_70px_-30px_rgba(45,55,145,.65)] backdrop-blur-2xl ring-1 ring-inset ring-white/15 sm:p-8">
+          <div className="relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#21152f]/95 via-[#392354]/90 to-[#7044bd]/90 p-6 text-white shadow-[0_28px_70px_-30px_rgba(45,55,145,.65)] backdrop-blur-2xl ring-1 ring-inset ring-white/15 sm:p-8">
             <div aria-hidden="true" className="absolute -right-16 -top-24 -z-10 size-72 rounded-full bg-cyan-300/20 blur-3xl" />
             <div aria-hidden="true" className="absolute -bottom-24 right-1/3 -z-10 size-56 rounded-full bg-violet-300/20 blur-3xl" />
             <div className="flex flex-col gap-7 xl:flex-row xl:items-end xl:justify-between">
