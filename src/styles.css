@@ -313,3 +313,196 @@ nav.fixed.inset-x-0.bottom-0 > button svg { width: 20px; height: 20px; }
 @media(prefers-reduced-motion:reduce) {
   *,*::before,*::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+
+/* LIGHT REFINEMENT — clean white workspace with restrained violet accents. */
+html[data-theme="light"] {
+  color-scheme: light;
+  --lh-bg: #f7f7fb;
+  --lh-panel: rgba(255,255,255,.88);
+  --lh-panel-strong: #ffffff;
+  --lh-border: #e8e4ef;
+  --lh-purple: #7650c9;
+  --lh-purple-soft: #f1ebff;
+  --lh-text: #211b2d;
+  --lh-muted: #777084;
+  --color-bg: #f7f7fb;
+  --color-surface: #ffffff;
+  --color-surface-2: #f4f1f9;
+  --color-fg: #211b2d;
+  --color-muted: #777084;
+  --color-primary: #7650c9;
+  --color-primary-deep: #6540b3;
+  --color-primary-soft: #f1ebff;
+  --color-primary-fg: #ffffff;
+  --color-accent: #8a65dc;
+  --color-border: #e8e4ef;
+}
+html[data-theme="light"] body {
+  color: #211b2d;
+  background:
+    radial-gradient(ellipse 46% 30% at 100% 0%,rgba(139,105,210,.08),transparent 72%),
+    #f7f7fb;
+}
+html[data-theme="light"] .glass-panel,
+html[data-theme="light"] .app-card {
+  color: #211b2d;
+  border: 1px solid #e9e5f0 !important;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 8px 28px -20px rgba(42,28,66,.22), 0 2px 8px rgba(42,28,66,.035);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+html[data-theme="light"] .glass-panel::before { display:none; }
+html[data-theme="light"] header.glass-panel {
+  background: rgba(255,255,255,.94) !important;
+  box-shadow: 0 5px 22px -18px rgba(42,28,66,.2);
+}
+html[data-theme="light"] input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="light"] select,
+html[data-theme="light"] textarea {
+  color: #292235;
+  border-color: #e5dfed;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(30,20,45,.025);
+}
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder { color: #9992a5; }
+html[data-theme="light"] input:focus,
+html[data-theme="light"] select:focus,
+html[data-theme="light"] textarea:focus {
+  border-color: #a58ae0;
+  box-shadow: 0 0 0 3px rgba(128,91,195,.11);
+}
+html[data-theme="light"] .login-shell {
+  background:
+    radial-gradient(ellipse 42% 42% at 0% 0%,rgba(148,116,210,.11),transparent 72%),
+    radial-gradient(ellipse 40% 38% at 100% 100%,rgba(116,91,178,.08),transparent 72%),
+    #f7f7fb;
+}
+html[data-theme="light"] .login-story {
+  background:
+    radial-gradient(ellipse at 85% 12%,rgba(164,133,224,.25),transparent 46%),
+    linear-gradient(145deg,#272035 0%,#211a30 62%,#302347 100%);
+}
+html[data-theme="light"] .login-panel {
+  color: #292235 !important;
+  background: #fff !important;
+  border: 1px solid #e9e4f0 !important;
+  box-shadow: 0 18px 55px -38px rgba(40,26,62,.28);
+}
+html[data-theme="light"] .login-panel h1,
+html[data-theme="light"] .login-panel label,
+html[data-theme="light"] .login-panel strong { color: #292235 !important; }
+html[data-theme="light"] .login-panel input:not([type="checkbox"]):not([type="radio"]) {
+  color: #292235 !important;
+  background: #faf9fc !important;
+  border-color: #e6e0ee !important;
+}
+html[data-theme="light"] .login-panel button[type="submit"] {
+  color: #fff !important;
+  border: 1px solid #7650c9 !important;
+  border-radius: 999px !important;
+  background: linear-gradient(135deg,#8764d3,#704bbd) !important;
+  box-shadow: 0 8px 18px -12px rgba(112,75,189,.75) !important;
+}
+html[data-theme="light"] .login-panel button[type="submit"]:hover:not(:disabled) {
+  background: linear-gradient(135deg,#9674df,#7954c5) !important;
+}
+html[data-theme="light"] .login-panel button:not([type="submit"]) { color: #6d55a0; }
+html[data-theme="light"] .login-panel .border-border { border-color: #ebe6f1 !important; }
+html[data-theme="light"] .lead-app-shell {
+  color: #292235 !important;
+  background: #f7f7fb !important;
+}
+html[data-theme="light"] .lead-app-shell aside {
+  color: #514960 !important;
+  background: #fff !important;
+  border: 1px solid #e9e5f0 !important;
+  box-shadow: 0 8px 30px -22px rgba(42,28,66,.25) !important;
+}
+html[data-theme="light"] .lead-app-shell aside nav button[aria-current="page"] {
+  color: #6847ad !important;
+  background: #f1ebfb !important;
+  border: 1px solid #e6dcf6 !important;
+  box-shadow: none !important;
+}
+html[data-theme="light"] .lead-app-shell aside nav button:not([aria-current="page"]) {
+  color: #625b6d !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+}
+html[data-theme="light"] .lead-app-shell aside nav button:not([aria-current="page"]):hover {
+  color: #6847ad !important;
+  background: #f8f5fc !important;
+}
+html[data-theme="light"] .lead-app-shell header {
+  color: #292235 !important;
+  border-color: #e9e5f0 !important;
+  background: rgba(255,255,255,.95) !important;
+  box-shadow: 0 5px 22px -18px rgba(42,28,66,.22);
+}
+html[data-theme="light"] .lead-app-shell .app-card {
+  color: #292235 !important;
+  border-color: #e9e5f0 !important;
+  background: #fff !important;
+  box-shadow: 0 7px 24px -20px rgba(42,28,66,.22);
+}
+html[data-theme="light"] .lead-app-shell [class*="bg-[#0b0912]"],
+html[data-theme="light"] .lead-app-shell [class*="bg-[#171020]"],
+html[data-theme="light"] .lead-app-shell [class*="bg-[#15111f]"] {
+  background-color: #fff !important;
+}
+html[data-theme="light"] .lead-app-shell [class*="bg-white"] { background-color: #fff !important; }
+html[data-theme="light"] .lead-app-shell [class*="text-white"] { color: #292235 !important; }
+html[data-theme="light"] .lead-app-shell [class*="text-[#17264b]"],
+html[data-theme="light"] .lead-app-shell [class*="text-[#34405a]"],
+html[data-theme="light"] .lead-app-shell [class*="text-[#263b75]"] { color: #292235 !important; }
+html[data-theme="light"] .lead-app-shell [class*="border-[#e4e7ed]"],
+html[data-theme="light"] .lead-app-shell [class*="border-[#d9deeb]"] { border-color: #e9e5f0 !important; }
+html[data-theme="light"] .lead-app-shell [class*="from-[#121c3b]"],
+html[data-theme="light"] .lead-app-shell [class*="from-[#21152f]"] {
+  --tw-gradient-from: #fff var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position) !important;
+}
+html[data-theme="light"] .lead-app-shell [class*="via-[#253b73]"],
+html[data-theme="light"] .lead-app-shell [class*="via-[#392354]"] { --tw-gradient-via: #f6f2fb var(--tw-gradient-via-position) !important; }
+html[data-theme="light"] .lead-app-shell [class*="to-[#4f46e5]"],
+html[data-theme="light"] .lead-app-shell [class*="to-[#7044bd]"] { --tw-gradient-to: #eee7fa var(--tw-gradient-to-position) !important; }
+html[data-theme="light"] .lead-app-shell [class*="text-blue-"],
+html[data-theme="light"] .lead-app-shell [class*="text-sky-"],
+html[data-theme="light"] .lead-app-shell [class*="text-indigo-"],
+html[data-theme="light"] .lead-app-shell [class*="text-cyan-"],
+html[data-theme="light"] .lead-app-shell [class*="text-violet-"] { color: #7650c9 !important; }
+html[data-theme="light"] .lead-app-shell [class*="bg-blue-"],
+html[data-theme="light"] .lead-app-shell [class*="bg-sky-"],
+html[data-theme="light"] .lead-app-shell [class*="bg-indigo-"],
+html[data-theme="light"] .lead-app-shell [class*="bg-cyan-"],
+html[data-theme="light"] .lead-app-shell [class*="bg-violet-"] { background-color: #f1ebfb !important; }
+html[data-theme="light"] .lead-app-shell input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="light"] .lead-app-shell select,
+html[data-theme="light"] .lead-app-shell textarea {
+  color: #292235 !important;
+  border-color: #e5dfed !important;
+  background: #fff !important;
+}
+html[data-theme="light"] nav.fixed {
+  border: 1px solid #e9e5f0 !important;
+  background: rgba(255,255,255,.96) !important;
+  box-shadow: 0 -8px 28px -24px rgba(42,28,66,.25) !important;
+}
+html[data-theme="light"] nav.fixed.inset-x-0.bottom-0 > button {
+  color: #777084 !important;
+  background: transparent !important;
+}
+html[data-theme="light"] nav.fixed.inset-x-0.bottom-0 > button.text-primary {
+  color: #6847ad !important;
+  background: #f1ebfb !important;
+  border-color: #e6dcf6 !important;
+}
+html[data-theme="light"] .marketing-site { background: #f7f7fb !important; color: #292235 !important; }
+html[data-theme="light"] .marketing-site header { background: rgba(255,255,255,.94) !important; border-color: #e9e5f0 !important; }
+html[data-theme="light"] .skeleton { background: linear-gradient(90deg,#f0edf5 25%,#e6e0ef 50%,#f0edf5 75%) !important; background-size: 200% 100% !important; }
+@media(max-width:720px) {
+  html[data-theme="light"] .lead-app-shell aside { box-shadow: 0 8px 28px -20px rgba(42,28,66,.24) !important; }
+}
