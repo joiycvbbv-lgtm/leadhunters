@@ -1253,7 +1253,7 @@ export function LeadApp() {
   const [ticket, setTicket] = useState(1500);
   const [message, setMessage] = useState(DEFAULT_MSG);
   const [followMessage, setFollowMessage] = useState(DEFAULT_FOLLOW_MSG);
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [theme, setTheme] = useState<Theme>("light");
   const [deviceId, setDeviceId] = useState("");
   const [info, setInfo] = useState<AccessInfo | null>(null);
   const [cloudReady, setCloudReady] = useState(false);
