@@ -570,3 +570,78 @@ html[data-theme="light"] nav.fixed { background:rgba(255,255,255,.97) !important
 html[data-theme="light"] nav.fixed.inset-x-0.bottom-0 > button.text-primary {
   color:#111827 !important; background:#f1f3f5 !important; border-color:#e5e7eb !important;
 }
+
+
+/* Glass controls — consistent tactile buttons across the entire application. */
+html[data-theme="light"] button,
+html[data-theme="light"] [role="button"] {
+  border-radius: 13px;
+  transition:
+    transform 180ms cubic-bezier(.2,.8,.2,1),
+    box-shadow 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    opacity 180ms ease;
+}
+html[data-theme="light"] button:not(:disabled):not([data-variant="ghost"]):not([aria-current="page"]) {
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+}
+html[data-theme="light"] button:not(:disabled):hover,
+html[data-theme="light"] [role="button"]:not([aria-disabled="true"]):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px -12px rgba(15,23,42,.28);
+}
+html[data-theme="light"] button:not(:disabled):active,
+html[data-theme="light"] [role="button"]:not([aria-disabled="true"]):active {
+  transform: translateY(0) scale(.975);
+  box-shadow: 0 2px 7px -5px rgba(15,23,42,.25);
+}
+html[data-theme="light"] button:focus-visible,
+html[data-theme="light"] [role="button"]:focus-visible {
+  outline: 2px solid rgba(71,85,105,.55);
+  outline-offset: 3px;
+}
+html[data-theme="light"] .lead-app-shell button {
+  border-color: rgba(148,163,184,.24);
+}
+html[data-theme="light"] .lead-app-shell button[class*="bg-primary"],
+html[data-theme="light"] .lead-app-shell button[class*="bg-black"],
+html[data-theme="light"] .lead-app-shell button[class*="bg-[#1f2937]"],
+html[data-theme="light"] .login-panel button[type="submit"] {
+  color: #fff !important;
+  background: linear-gradient(145deg,rgba(55,65,81,.96),rgba(17,24,39,.98)) !important;
+  border: 1px solid rgba(255,255,255,.2) !important;
+  box-shadow: 0 8px 20px -13px rgba(15,23,42,.65), inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+html[data-theme="light"] .lead-app-shell button[class*="bg-primary"]:hover,
+html[data-theme="light"] .lead-app-shell button[class*="bg-black"]:hover,
+html[data-theme="light"] .lead-app-shell button[class*="bg-[#1f2937]"]:hover,
+html[data-theme="light"] .login-panel button[type="submit"]:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+html[data-theme="light"] .lead-app-shell button[class*="border"]:not([class*="bg-primary"]):not([class*="bg-black"]) {
+  background: rgba(255,255,255,.68);
+  border: 1px solid rgba(148,163,184,.28);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 3px 10px -8px rgba(15,23,42,.25);
+  -webkit-backdrop-filter: blur(18px) saturate(1.25);
+  backdrop-filter: blur(18px) saturate(1.25);
+}
+html[data-theme="light"] .lead-app-shell button[class*="border"]:not([class*="bg-primary"]):not([class*="bg-black"]):hover {
+  background: rgba(255,255,255,.94);
+  border-color: rgba(100,116,139,.38);
+}
+html[data-theme="light"] .lead-app-shell aside nav button,
+html[data-theme="light"] nav.fixed.inset-x-0.bottom-0 > button {
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html[data-theme="light"] .lead-app-shell aside nav button[aria-current="page"],
+html[data-theme="light"] nav.fixed.inset-x-0.bottom-0 > button.text-primary {
+  background: rgba(226,232,240,.72) !important;
+  border: 1px solid rgba(148,163,184,.28) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+html[data-theme="light"] button:disabled { opacity:.48; box-shadow:none !important; transform:none !important; }
