@@ -920,3 +920,71 @@ html[data-theme="light"] .dashboard-hero .dashboard-hero-action:not(:first-child
 html[data-theme="light"] .lead-app-shell button:not(aside nav button) {
   border-radius: 12px;
 }
+
+
+/* LeadHunter visual reset: neutral light workspace, consistent contrast and restrained glass. */
+:root {
+  color-scheme: light;
+  --lh-bg: #f5f6f8;
+  --lh-panel: rgba(255,255,255,.9);
+  --lh-panel-strong: #fff;
+  --lh-border: #e5e7eb;
+  --lh-text: #202630;
+  --lh-muted: #737d8a;
+  --color-bg: #f5f6f8;
+  --color-surface: #fff;
+  --color-surface-2: #f4f5f7;
+  --color-fg: #202630;
+  --color-muted: #737d8a;
+  --color-primary: #374151;
+  --color-primary-deep: #202630;
+  --color-primary-soft: #eef0f3;
+  --color-primary-fg: #fff;
+  --color-accent: #64748b;
+  --color-border: #e5e7eb;
+}
+html, body { background: #f5f6f8; color: #202630; }
+body { background-image: none; }
+html[data-theme="light"] body { background: #f5f6f8; color: #202630; }
+html[data-theme="light"] .lead-app-shell { background: #f5f6f8 !important; color: #202630 !important; }
+html[data-theme="light"] .lead-app-shell aside {
+  background: #fff !important; color: #202630 !important;
+  border: 1px solid #e5e7eb !important; box-shadow: 0 12px 38px -24px rgba(15,23,42,.28) !important;
+}
+html[data-theme="light"] .lead-app-shell aside nav button[aria-current="page"] {
+  color: #202630 !important; background: #eef0f3 !important; border: 1px solid #e2e5e9 !important;
+}
+html[data-theme="light"] .lead-app-shell aside nav button:not([aria-current="page"]) { color: #68717e !important; }
+html[data-theme="light"] .lead-app-shell aside nav button:not([aria-current="page"]):hover { color: #202630 !important; background: #f5f6f8 !important; }
+html[data-theme="light"] .lead-app-shell aside p,
+html[data-theme="light"] .lead-app-shell aside span { text-shadow: none !important; }
+html[data-theme="light"] .lead-app-shell header,
+html[data-theme="light"] .lead-app-shell .app-card,
+html[data-theme="light"] .glass-panel {
+  color: #202630 !important; background: rgba(255,255,255,.94) !important;
+  border-color: #e5e7eb !important; box-shadow: 0 8px 28px -24px rgba(15,23,42,.25) !important;
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+}
+html[data-theme="light"] .lead-app-shell [class*="text-white"] { color: #202630 !important; }
+html[data-theme="light"] .lead-app-shell [class*="bg-white"] { background-color: #fff !important; }
+html[data-theme="light"] .lead-app-shell input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="light"] .lead-app-shell select,
+html[data-theme="light"] .lead-app-shell textarea {
+  color: #202630 !important; background: #fff !important; border: 1px solid #dfe3e8 !important;
+}
+button, [role="button"] { border-radius: 13px; }
+button:not(:disabled):hover, [role="button"]:not([aria-disabled="true"]):hover { filter: none; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid rgba(71,85,105,.55); outline-offset: 2px;
+}
+html[data-theme="light"] .lead-app-shell button:not([class*="bg-gradient-to-r"]) {
+  transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+html[data-theme="light"] nav.fixed.inset-x-0.bottom-0 {
+  background: rgba(255,255,255,.94) !important; border: 1px solid #e5e7eb !important;
+  box-shadow: 0 -8px 28px -20px rgba(15,23,42,.22) !important;
+}
+html[data-theme="light"] nav.fixed.inset-x-0.bottom-0 > button { color: #737d8a !important; }
+html[data-theme="light"] nav.fixed.inset-x-0.bottom-0 > button.text-primary {
+  color: #202630 !important; background: #eef0f3 !important; border-color: #e2e5e9 !important;
+}
