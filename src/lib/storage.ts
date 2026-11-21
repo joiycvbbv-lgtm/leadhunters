@@ -156,9 +156,9 @@ export type Theme = "light" | "dark";
 export function loadTheme(): Theme {
   try {
     // O tema escuro é o padrão; uma escolha explícita de tema claro continua sendo respeitada.
-    return localStorage.getItem(THEME) === "light" ? "light" : "dark";
+    return localStorage.getItem(THEME) === "dark" ? "dark" : "light";
   } catch {
-    return "dark";
+    return "light";
   }
 }
 export function saveTheme(value: Theme) {
