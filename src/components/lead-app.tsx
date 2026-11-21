@@ -554,9 +554,9 @@ const card = "app-card rounded-2xl";
 const field =
   "w-full rounded-2xl border border-border bg-surface-2 px-4 py-3 text-sm text-fg outline-none placeholder:text-muted/70 focus:border-primary focus:ring-4 focus:ring-primary/10";
 const btnPrimary =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-indigo-300/20 bg-gradient-to-r from-[#5557e9] to-[#6875f5] px-6 py-3 text-sm font-semibold text-white shadow-[0_8px_22px_-12px_rgba(85,87,233,.65)] transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_12px_26px_-12px_rgba(85,87,233,.75)] active:translate-y-0 disabled:pointer-events-none disabled:opacity-55";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/20 bg-gradient-to-b from-[#303640] to-[#171b22] px-5 py-3 text-sm font-semibold text-white shadow-[0_8px_22px_-14px_rgba(15,23,42,.55)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_26px_-14px_rgba(15,23,42,.6)] active:translate-y-0 disabled:pointer-events-none disabled:opacity-55";
 const btnGhost =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#d9deeb] bg-white px-5 py-2.5 text-sm font-semibold text-[#34405a] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#aeb8df] hover:bg-[#f7f8ff] hover:shadow-md active:translate-y-0 disabled:pointer-events-none disabled:opacity-55";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#d9dee5] bg-white/80 px-5 py-2.5 text-sm font-semibold text-[#303640] shadow-[0_2px_8px_rgba(15,23,42,.04)] backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-[#aeb6c2] hover:bg-white hover:shadow-[0_8px_18px_rgba(15,23,42,.08)] active:translate-y-0 disabled:pointer-events-none disabled:opacity-55";
 
 type FollowState = "atrasado" | "hoje" | "futuro" | null;
 
@@ -2595,7 +2595,7 @@ export function LeadApp() {
                 <span className="text-white/60">Prioridade de contato</span>
                 <span className="font-bold text-sky-200">84 / 100</span>
               </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#e7e9ed]">
                 <div className="h-full w-[84%] rounded-full bg-gradient-to-r from-violet-300 to-slate-300" />
               </div>
             </div>
@@ -2814,19 +2814,19 @@ export function LeadApp() {
   }
 
   return (
-    <div className="lead-app-shell mx-auto min-h-screen max-w-none bg-[#0b0912] px-4 pb-28 pt-5 text-fg dark:bg-[#0b0912] sm:px-6 sm:pb-16 lg:pl-[292px] lg:pr-8 lg:pt-7">
-      <aside className="fixed bottom-4 left-4 top-4 z-40 hidden w-[256px] flex-col rounded-2xl bg-[#1f2937] p-5 text-white shadow-[0_24px_70px_-26px_rgba(10,20,48,.8)] backdrop-blur-2xl ring-1 ring-inset ring-white/10 lg:flex">
+    <div className="lead-app-shell mx-auto min-h-screen max-w-none bg-[#f5f6f8] px-4 pb-28 pt-5 text-[#202630] sm:px-6 sm:pb-16 lg:pl-[292px] lg:pr-8 lg:pt-7">
+      <aside className="fixed bottom-4 left-4 top-4 z-40 hidden w-[256px] flex-col rounded-[22px] border border-[#e4e7ec] bg-white p-5 text-[#202630] shadow-[0_12px_38px_-24px_rgba(15,23,42,.28)] lg:flex">
         <div className="flex items-center gap-3 px-1">
-          <div className="flex size-11 items-center justify-center rounded-2xl bg-white/10 text-white ring-1 ring-white/15">
+          <div className="flex size-11 items-center justify-center rounded-xl bg-[#f0f2f5] text-[#303640] ring-1 ring-[#e5e7eb]">
             <BrandMark className="size-5" />
           </div>
           <div>
-            <p className="text-xs font-bold tracking-[0.22em] text-white/80">LEADHUNTER</p>
-            <p className="mt-0.5 text-xs text-white/55">Prospecção inteligente</p>
+            <p className="text-xs font-bold tracking-[0.22em] text-[#303640]">LEADHUNTER</p>
+            <p className="mt-0.5 text-xs text-[#8a929e]">Prospecção inteligente</p>
           </div>
         </div>
         <div className="mt-9">
-          <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Menu principal</p>
+          <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#9aa1ab]">Menu principal</p>
           <nav aria-label="Navegação principal" className="max-h-[55vh] space-y-1 overflow-y-auto pr-1">
             {([
               ["inicio", "Dashboard", LayoutDashboard],
@@ -2847,10 +2847,10 @@ export function LeadApp() {
                 aria-current={tab === id ? "page" : undefined}
                 onClick={() => setTab(id)}
                 className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-semibold transition ${
-                  tab === id ? "bg-[#374151] text-white shadow-lg shadow-black/20" : "text-white/70 hover:bg-white/10 hover:text-white"
+                  tab === id ? "bg-[#eef0f3] text-[#202630] shadow-sm" : "text-[#68717e] hover:bg-[#f5f6f8] hover:text-[#202630]"
                 }`}
               >
-                <Icon className={`size-4 shrink-0 ${tab === id ? "text-primary" : "text-white/65"}`} />
+                <Icon className={`size-4 shrink-0 ${tab === id ? "text-[#303640]" : "text-[#8b939e]"}`} />
                 <span className="flex-1">{label}</span>
                 {id === "hoje" && dueCount > 0 && (
                   <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${tab === id ? "bg-danger text-white" : "bg-white/15 text-white"}`}>{dueCount}</span>
@@ -2859,15 +2859,15 @@ export function LeadApp() {
             ))}
           </nav>
         </div>
-        <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.06] p-4">
+        <div className="mt-6 rounded-2xl border border-[#e7e9ed] bg-[#f8f9fa] p-4">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-xs font-semibold text-white/70">Meta de contatos</p>
-            <span className="font-mono text-xs font-bold text-blue-200">{Math.min(sendStats.todayCount, dailyGoal)}/{dailyGoal}</span>
+            <p className="text-xs font-semibold text-[#68717e]">Meta de contatos</p>
+            <span className="font-mono text-xs font-bold text-[#303640]">{Math.min(sendStats.todayCount, dailyGoal)}/{dailyGoal}</span>
           </div>
           <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
-            <div className="h-full rounded-full bg-gradient-to-r from-slate-300 to-slate-500 transition-all" style={{ width: `${Math.min(100, Math.round((sendStats.todayCount / Math.max(1, dailyGoal)) * 100))}%` }} />
+            <div className="h-full rounded-full bg-gradient-to-r from-[#6b7280] to-[#303640] transition-all" style={{ width: `${Math.min(100, Math.round((sendStats.todayCount / Math.max(1, dailyGoal)) * 100))}%` }} />
           </div>
-          <p className="mt-2 text-[11px] leading-relaxed text-white/45">Um contato por vez. Constância traz mais respostas.</p>
+          <p className="mt-2 text-[11px] leading-relaxed text-[#9299a3]">Um contato por vez. Constância traz mais respostas.</p>
         </div>
         <div className="mt-auto space-y-3">
           <button
@@ -2876,20 +2876,20 @@ export function LeadApp() {
               if (pipeline.length > 0) openSiteEditor(pipeline[0].id);
               else setTab("pipeline");
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#374151] to-[#111827] px-4 py-3 text-sm font-bold text-[#10172b] shadow-lg shadow-sky-950/20 transition hover:brightness-110"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#343b46] bg-gradient-to-b from-[#343b46] to-[#202630] px-4 py-3 text-sm font-bold text-white shadow-[0_8px_18px_rgba(15,23,42,.16)] transition hover:-translate-y-0.5 hover:shadow-lg"
           >
             <Sparkles className="size-4" /> Criador IA
           </button>
           <div className="flex items-center gap-3 rounded-2xl px-2 py-2">
-            {profilePhoto ? <img src={profilePhoto} alt="Foto de perfil" className="size-9 rounded-full object-cover ring-1 ring-white/30"/> : <div className="flex size-9 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white">{(userName || "LH").slice(0, 1).toUpperCase()}</div>}
+            {profilePhoto ? <img src={profilePhoto} alt="Foto de perfil" className="size-9 rounded-full object-cover ring-1 ring-white/30"/> : <div className="flex size-9 items-center justify-center rounded-full bg-[#eef0f3] text-xs font-bold text-[#303640]">{(userName || "LH").slice(0, 1).toUpperCase()}</div>}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{userName || "Seu painel"}</p>
-              <p className="text-[11px] text-white/45">Conta ativa</p>
+              <p className="text-[11px] text-[#9299a3]">Conta ativa</p>
             </div>
           </div>
         </div>
       </aside>
-      <header className={`sticky top-3 z-30 mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#15111f] p-3 shadow-sm dark:border-white/10 dark:bg-surface sm:p-4 ${card}`}>
+      <header className={`sticky top-3 z-30 mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#e5e7eb] bg-white p-3 shadow-[0_8px_28px_-24px_rgba(15,23,42,.28)] sm:p-4 ${card}`}>
         <div className="flex items-center gap-3 lg:hidden">
           <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-b from-primary to-primary-deep text-primary-fg shadow-[0_8px_20px_-8px_rgba(79,70,229,0.45)]">
             <BrandMark className="size-5" />
