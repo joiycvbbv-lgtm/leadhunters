@@ -2561,7 +2561,7 @@ export function LeadApp() {
                 <Sparkles className="size-3.5" /> Oportunidades locais, em um só lugar
               </p>
               <h2 className="mt-5 font-display text-4xl font-bold leading-[1.08] tracking-tight xl:text-5xl">
-                Seu próximo cliente pode estar <span className="text-violet-300">sem site.</span>
+                Seu próximo cliente pode estar <span className="text-white/80">sem site.</span>
               </h2>
               <p className="mt-4 max-w-lg text-base leading-7 text-white/70">
                 Encontre empresas, organize os contatos e acompanhe cada oportunidade até a criação do site.
@@ -2582,7 +2582,7 @@ export function LeadApp() {
             </div>
             <div className="login-demo-card relative z-10 ml-auto mt-8 w-full max-w-sm rounded-2xl border border-white/10 p-4 shadow-xl backdrop-blur-xl">
               <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-xl bg-white/10 text-violet-200">
+                <div className="flex size-10 items-center justify-center rounded-xl bg-white/10 text-white/80">
                   <Building2 className="size-5" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -2596,7 +2596,7 @@ export function LeadApp() {
                 <span className="font-bold text-sky-200">84 / 100</span>
               </div>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full w-[84%] rounded-full bg-gradient-to-r from-violet-300 to-purple-300" />
+                <div className="h-full w-[84%] rounded-full bg-gradient-to-r from-violet-300 to-slate-300" />
               </div>
             </div>
           </section>
@@ -2815,13 +2815,13 @@ export function LeadApp() {
 
   return (
     <div className="lead-app-shell mx-auto min-h-screen max-w-none bg-[#0b0912] px-4 pb-28 pt-5 text-fg dark:bg-[#0b0912] sm:px-6 sm:pb-16 lg:pl-[292px] lg:pr-8 lg:pt-7">
-      <aside className="fixed bottom-4 left-4 top-4 z-40 hidden w-[256px] flex-col rounded-2xl bg-[#171020] p-5 text-white shadow-[0_24px_70px_-26px_rgba(10,20,48,.8)] backdrop-blur-2xl ring-1 ring-inset ring-white/10 lg:flex">
+      <aside className="fixed bottom-4 left-4 top-4 z-40 hidden w-[256px] flex-col rounded-2xl bg-[#1f2937] p-5 text-white shadow-[0_24px_70px_-26px_rgba(10,20,48,.8)] backdrop-blur-2xl ring-1 ring-inset ring-white/10 lg:flex">
         <div className="flex items-center gap-3 px-1">
           <div className="flex size-11 items-center justify-center rounded-2xl bg-white/10 text-white ring-1 ring-white/15">
             <BrandMark className="size-5" />
           </div>
           <div>
-            <p className="text-xs font-bold tracking-[0.22em] text-violet-200">LEADHUNTER</p>
+            <p className="text-xs font-bold tracking-[0.22em] text-white/80">LEADHUNTER</p>
             <p className="mt-0.5 text-xs text-white/55">Prospecção inteligente</p>
           </div>
         </div>
@@ -2847,7 +2847,7 @@ export function LeadApp() {
                 aria-current={tab === id ? "page" : undefined}
                 onClick={() => setTab(id)}
                 className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-semibold transition ${
-                  tab === id ? "bg-[#35234d] text-white shadow-lg shadow-black/20" : "text-white/70 hover:bg-white/10 hover:text-white"
+                  tab === id ? "bg-[#374151] text-white shadow-lg shadow-black/20" : "text-white/70 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 <Icon className={`size-4 shrink-0 ${tab === id ? "text-primary" : "text-white/65"}`} />
@@ -2865,7 +2865,7 @@ export function LeadApp() {
             <span className="font-mono text-xs font-bold text-blue-200">{Math.min(sendStats.todayCount, dailyGoal)}/{dailyGoal}</span>
           </div>
           <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
-            <div className="h-full rounded-full bg-gradient-to-r from-sky-300 to-indigo-300 transition-all" style={{ width: `${Math.min(100, Math.round((sendStats.todayCount / Math.max(1, dailyGoal)) * 100))}%` }} />
+            <div className="h-full rounded-full bg-gradient-to-r from-slate-300 to-slate-500 transition-all" style={{ width: `${Math.min(100, Math.round((sendStats.todayCount / Math.max(1, dailyGoal)) * 100))}%` }} />
           </div>
           <p className="mt-2 text-[11px] leading-relaxed text-white/45">Um contato por vez. Constância traz mais respostas.</p>
         </div>
@@ -2876,7 +2876,7 @@ export function LeadApp() {
               if (pipeline.length > 0) openSiteEditor(pipeline[0].id);
               else setTab("pipeline");
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#a879ff] to-[#7044bd] px-4 py-3 text-sm font-bold text-[#10172b] shadow-lg shadow-sky-950/20 transition hover:brightness-110"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#374151] to-[#111827] px-4 py-3 text-sm font-bold text-[#10172b] shadow-lg shadow-sky-950/20 transition hover:brightness-110"
           >
             <Sparkles className="size-4" /> Criador IA
           </button>
@@ -3016,9 +3016,9 @@ export function LeadApp() {
 
       {tab === "inicio" && (
         <section className="fade-up space-y-5">
-          <div className="relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#21152f]/95 via-[#392354]/90 to-[#7044bd]/90 p-6 text-white shadow-[0_28px_70px_-30px_rgba(45,55,145,.65)] backdrop-blur-2xl ring-1 ring-inset ring-white/15 sm:p-8">
+          <div className="relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#374151] via-[#4b5563] to-[#111827] p-6 text-white shadow-[0_28px_70px_-30px_rgba(45,55,145,.65)] backdrop-blur-2xl ring-1 ring-inset ring-white/15 sm:p-8">
             <div aria-hidden="true" className="absolute -right-16 -top-24 -z-10 size-72 rounded-full bg-cyan-300/20 blur-3xl" />
-            <div aria-hidden="true" className="absolute -bottom-24 right-1/3 -z-10 size-56 rounded-full bg-violet-300/20 blur-3xl" />
+            <div aria-hidden="true" className="absolute -bottom-24 right-1/3 -z-10 size-56 rounded-full bg-slate-300/20 blur-3xl" />
             <div className="flex flex-col gap-7 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-2xl">
                 <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-blue-100">
