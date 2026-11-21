@@ -1061,3 +1061,134 @@ html[data-theme="light"] .lead-app-shell button:focus-visible {
     transition-duration: .01ms !important; animation-duration: .01ms !important;
   }
 }
+
+
+/* White-only palette: remove blue, purple and tinted surfaces from the light app. */
+:root {
+  --lh-bg: #ffffff;
+  --lh-panel: #ffffff;
+  --lh-panel-strong: #ffffff;
+  --lh-border: #e8e8e8;
+  --lh-text: #202020;
+  --lh-muted: #777777;
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-2: #ffffff;
+  --color-fg: #202020;
+  --color-muted: #777777;
+  --color-primary: #242424;
+  --color-primary-deep: #111111;
+  --color-primary-soft: #ffffff;
+  --color-primary-fg: #202020;
+  --color-accent: #555555;
+  --color-border: #e8e8e8;
+}
+html, body,
+html[data-theme="light"] body,
+html[data-theme="light"] .lead-app-shell {
+  background: #fff !important;
+  color: #202020 !important;
+}
+html[data-theme="light"] .lead-app-shell aside,
+html[data-theme="light"] .lead-app-shell > header,
+html[data-theme="light"] .lead-app-shell .app-card,
+html[data-theme="light"] .lead-app-shell .glass-panel,
+html[data-theme="light"] .glass-panel,
+html[data-theme="light"] .app-card,
+html[data-theme="light"] nav.fixed.inset-x-0.bottom-0 {
+  color: #202020 !important;
+  background: #fff !important;
+  border-color: #e8e8e8 !important;
+  box-shadow: 0 5px 22px -18px rgba(0,0,0,.18) !important;
+}
+html[data-theme="light"] .lead-app-shell aside nav button,
+html[data-theme="light"] .lead-app-shell aside nav button:not([aria-current="page"]),
+html[data-theme="light"] nav.fixed.inset-x-0.bottom-0 > button {
+  color: #666 !important;
+  background: #fff !important;
+  border-color: transparent !important;
+}
+html[data-theme="light"] .lead-app-shell aside nav button[aria-current="page"],
+html[data-theme="light"] nav.fixed.inset-x-0.bottom-0 > button.text-primary {
+  color: #202020 !important;
+  background: #f7f7f7 !important;
+  border: 1px solid #e9e9e9 !important;
+  box-shadow: none !important;
+}
+html[data-theme="light"] .lead-app-shell aside nav button[aria-current="page"]::before {
+  background: #333 !important;
+}
+html[data-theme="light"] .lead-app-shell .dashboard-hero {
+  color: #202020 !important;
+  background: #fff !important;
+  border: 1px solid #e8e8e8 !important;
+  box-shadow: 0 5px 22px -18px rgba(0,0,0,.18) !important;
+}
+html[data-theme="light"] .lead-app-shell .dashboard-hero h2,
+html[data-theme="light"] .lead-app-shell .dashboard-hero p,
+html[data-theme="light"] .lead-app-shell .dashboard-hero span,
+html[data-theme="light"] .lead-app-shell .dashboard-hero > div:first-child p,
+html[data-theme="light"] .lead-app-shell .dashboard-hero > div:first-child span,
+html[data-theme="light"] .lead-app-shell .dashboard-hero .text-white\/75,
+html[data-theme="light"] .lead-app-shell .dashboard-hero .text-blue-100\/70 {
+  color: #202020 !important;
+}
+html[data-theme="light"] .lead-app-shell .dashboard-hero .grid > div,
+html[data-theme="light"] .lead-app-shell .dashboard-hero > div > div:last-child > div {
+  color: #202020 !important;
+  background: #fff !important;
+  border: 1px solid #e8e8e8 !important;
+  box-shadow: none !important;
+}
+html[data-theme="light"] .lead-app-shell .dashboard-hero .grid > div p {
+  color: #777 !important;
+}
+html[data-theme="light"] .lead-app-shell .dashboard-hero-action,
+html[data-theme="light"] .lead-app-shell .dashboard-hero-action:first-child,
+html[data-theme="light"] .lead-app-shell .dashboard-hero-action:not(:first-child) {
+  color: #202020 !important;
+  background: #fff !important;
+  border: 1px solid #dedede !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,.035) !important;
+}
+html[data-theme="light"] .lead-app-shell button[class*="bg-primary"],
+html[data-theme="light"] .lead-app-shell button[class*="bg-gradient"],
+html[data-theme="light"] .lead-app-shell button[class*="bg-black"],
+html[data-theme="light"] .lead-app-shell button[class*="bg-[#1f2937]"],
+html[data-theme="light"] .login-panel button[type="submit"] {
+  color: #202020 !important;
+  background: #fff !important;
+  border: 1px solid #dedede !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,.035) !important;
+}
+html[data-theme="light"] .lead-app-shell button[class*="border"],
+html[data-theme="light"] .lead-app-shell button[class*="bg-white"] {
+  color: #202020 !important;
+  background: #fff !important;
+  border-color: #e5e5e5 !important;
+}
+html[data-theme="light"] .lead-app-shell [class*="text-blue-"],
+html[data-theme="light"] .lead-app-shell [class*="text-sky-"],
+html[data-theme="light"] .lead-app-shell [class*="text-cyan-"],
+html[data-theme="light"] .lead-app-shell [class*="text-slate-"],
+html[data-theme="light"] .lead-app-shell [class*="text-primary"] {
+  color: #555 !important;
+}
+html[data-theme="light"] .lead-app-shell [class*="bg-blue-"],
+html[data-theme="light"] .lead-app-shell [class*="bg-sky-"],
+html[data-theme="light"] .lead-app-shell [class*="bg-cyan-"],
+html[data-theme="light"] .lead-app-shell [class*="bg-slate-"],
+html[data-theme="light"] .lead-app-shell [class*="bg-primary-soft"] {
+  background: #fff !important;
+}
+html[data-theme="light"] .lead-app-shell input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="light"] .lead-app-shell select,
+html[data-theme="light"] .lead-app-shell textarea {
+  color: #202020 !important;
+  background: #fff !important;
+  border-color: #e3e3e3 !important;
+}
+html[data-theme="light"] .lead-app-shell input::placeholder,
+html[data-theme="light"] .lead-app-shell textarea::placeholder {
+  color: #999 !important;
+}
