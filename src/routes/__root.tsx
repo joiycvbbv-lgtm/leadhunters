@@ -10,7 +10,7 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "LeadHunter | Prospecção inteligente" },
       { name: "description", content: "Encontre empresas, organize oportunidades e transforme leads em clientes com o LeadHunter." },
-      { name: "theme-color", content: "#111b35" },
+      { name: "theme-color", content: "#f3f9ff" },
     ],
     scripts: [
       {
