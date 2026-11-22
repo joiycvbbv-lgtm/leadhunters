@@ -1523,7 +1523,7 @@ html[data-theme="light"] .lead-app-shell input::placeholder,
 html[data-theme="light"] .lead-app-shell textarea::placeholder {
   color: #82948e !important;
 }
-html[data-theme="light"] .lead-app-shell [class*="text-primary"],
+html[data-theme="light"] .lead-app-shell [class~="text-primary"],
 html[data-theme="light"] .lead-app-shell .text-accent {
   color: #117c68 !important;
 }
