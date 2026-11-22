@@ -24,7 +24,6 @@ import {
   MapPin,
   Megaphone,
   MessageCircle,
-  Moon,
   Phone,
   PhoneCall,
   Plus,
@@ -34,7 +33,6 @@ import {
   SkipForward,
   Sparkles,
   Star,
-  Sun,
   Target,
   Trash2,
   TrendingUp,
@@ -2557,11 +2555,7 @@ export function LeadApp() {
     notify("Perfil atualizado");
   }
 
-  function toggleTheme() {
-    const next: Theme = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    saveTheme(next);
-  }
+
 
   const open = pipeline.find((row) => row.id === openId) ?? null;
 
@@ -2986,9 +2980,7 @@ export function LeadApp() {
               <Cloud className="size-4" />
             )}
           </span>
-          <button type="button" onClick={toggleTheme} aria-label="Alternar tema" className={`${btnGhost} px-2.5`}>
-            {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
-          </button>
+
           <button type="button" onClick={() => void logoutAndSave()} className={`inline-flex items-center gap-2 ${btnGhost}`}>
             <LogOut className="size-4" /> Sair
           </button>
@@ -4266,7 +4258,7 @@ export function LeadApp() {
               <label className="block text-sm">Bairro preferido<input value={neighborhood} onChange={(event)=>setNeighborhood(event.target.value)} placeholder="Opcional" className={field + " mt-1"}/></label>
               <label className="block text-sm">Presença digital<select value={siteMode} onChange={(event)=>setSiteMode(event.target.value as typeof siteMode)} className={field + " mt-1"}><option value="sem">Somente sem site</option><option value="social">Sem site ou só redes sociais</option><option value="todas">Todas as empresas</option></select></label>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={broad} onChange={(event)=>setBroad(event.target.checked)} className="accent-[var(--color-primary)]"/>Ampliar termos da busca</label>
-              <div className="flex flex-wrap gap-2"><button type="button" onClick={toggleTheme} className={btnGhost}>{theme==="dark"?<Sun className="size-4"/>:<Moon className="size-4"/>}{theme==="dark"?"Usar tema claro":"Usar tema escuro"}</button>
+              <div className="flex flex-wrap gap-2">
                 <button type="button" onClick={()=>void toggleNotifications()} className={btnGhost}>{notificationsEnabled?"Desativar lembretes":"Ativar lembretes"}</button></div>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={onlyOpen} onChange={(event)=>setOnlyOpen(event.target.checked)} className="accent-[var(--color-primary)]"/>Mostrar somente empresas abertas</label>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={mobileOnly} onChange={(event)=>setMobileOnly(event.target.checked)} className="accent-[var(--color-primary)]"/>Priorizar celular</label>
