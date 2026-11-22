@@ -1661,3 +1661,109 @@ html[data-theme="light"] .login-panel :focus-visible {
     transition-duration: .01ms !important;
   }
 }
+
+/* Identidade visual azul claro e branco, aplicada também ao admin e à compra. */
+:root,
+html[data-theme="light"],
+html[data-theme="dark"] {
+  color-scheme: light;
+  --color-bg: #f3f9ff;
+  --color-surface: #ffffff;
+  --color-surface-2: #f6fbff;
+  --color-fg: #17324d;
+  --color-muted: #5e7890;
+  --color-primary: #1677b5;
+  --color-primary-deep: #0d5f96;
+  --color-primary-soft: #e5f4ff;
+  --color-primary-fg: #ffffff;
+  --color-accent: #3c98d2;
+  --color-danger: #c43d5c;
+  --color-border: #d5e8f6;
+  --lh-bg: #f3f9ff;
+  --lh-panel: #ffffff;
+  --lh-panel-strong: #ffffff;
+  --lh-border: #d5e8f6;
+  --lh-text: #17324d;
+  --lh-muted: #5e7890;
+}
+html, body {
+  color-scheme: light !important;
+  background: #f3f9ff !important;
+  color: #17324d;
+}
+body {
+  background-image:
+    radial-gradient(ellipse 50% 35% at 95% 0%, rgba(111,190,240,.15), transparent 72%),
+    linear-gradient(180deg, #f8fcff 0%, #eff8ff 100%) !important;
+  background-attachment: fixed;
+}
+.glass-panel,
+.app-card,
+html[data-theme="light"] .glass-panel,
+html[data-theme="dark"] .glass-panel,
+html[data-theme="light"] .app-card,
+html[data-theme="dark"] .app-card {
+  color: #17324d !important;
+  background: #ffffff !important;
+  border: 1px solid #d5e8f6 !important;
+  box-shadow: 0 10px 30px -22px rgba(24,91,139,.28), 0 2px 8px rgba(24,91,139,.05) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.glass-panel::before { display: none !important; }
+header.glass-panel {
+  background: rgba(255,255,255,.97) !important;
+  border-color: #d5e8f6 !important;
+}
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  color: #17324d !important;
+  background: #ffffff !important;
+  border: 1px solid #c9dfef !important;
+  box-shadow: inset 0 1px 2px rgba(24,91,139,.04) !important;
+}
+input::placeholder, textarea::placeholder { color: #7891a6 !important; }
+input:focus, select:focus, textarea:focus {
+  border-color: #4da6dc !important;
+  box-shadow: 0 0 0 3px rgba(60,152,210,.16) !important;
+}
+button[class*="bg-primary"],
+button[class*="bg-gradient"],
+button[type="submit"],
+html[data-theme="light"] .lead-app-shell button[class*="bg-primary"],
+html[data-theme="light"] .lead-app-shell button[class*="bg-gradient"],
+html[data-theme="light"] .login-panel button[type="submit"] {
+  color: #ffffff !important;
+  background: #1677b5 !important;
+  border-color: #1677b5 !important;
+  box-shadow: 0 5px 14px rgba(22,119,181,.2) !important;
+}
+button[class*="bg-primary"]:hover:not(:disabled),
+button[class*="bg-gradient"]:hover:not(:disabled),
+button[type="submit"]:hover:not(:disabled) {
+  color: #ffffff !important;
+  background: #0d5f96 !important;
+  border-color: #0d5f96 !important;
+}
+.text-primary, .text-accent { color: #1677b5 !important; }
+.bg-primary-soft { color: #0d5f96 !important; background: #e5f4ff !important; }
+.border-primary, .border-primary\/20, .border-primary\/40 { border-color: #a9d5f0 !important; }
+html[data-theme="light"] .lead-app-shell,
+html[data-theme="dark"] .lead-app-shell,
+.login-shell {
+  color: #17324d !important;
+  background: #f3f9ff !important;
+}
+.login-story {
+  color: #17324d !important;
+  background: linear-gradient(145deg, #e8f5ff, #f8fcff) !important;
+}
+.login-panel,
+html[data-theme="light"] .login-panel {
+  color: #17324d !important;
+  background: #ffffff !important;
+  border: 1px solid #d5e8f6 !important;
+}
+.login-panel h1, .login-panel label, .login-panel strong { color: #17324d !important; }
+.login-panel .text-muted { color: #5e7890 !important; }

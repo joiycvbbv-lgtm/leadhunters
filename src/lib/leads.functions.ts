@@ -25,6 +25,10 @@ export type Lead = {
   siteKind: "none" | "social" | "site";
   /** quando o Google Places retornou estes dados; não valida se o site continua ativo */
   observedAt: string;
+  /** URL temporária de foto do Google Places; não deve ser persistida. */
+  photoUrl?: string | null;
+  photoAttribution?: { label: string; url: string | null } | null;
+  photoName?: string | null;
 };
 
 const SOCIAL_HOSTS =
@@ -92,6 +96,7 @@ type Place = {
   googleMapsUri?: string;
   businessStatus?: string;
   currentOpeningHours?: { openNow?: boolean; weekdayDescriptions?: string[] };
+  photos?: Array<{ name?: string; authorAttributions?: Array<{ displayName?: string; uri?: string }> }>;
 };
 
 const FIELD_MASK = [
@@ -107,6 +112,7 @@ const FIELD_MASK = [
   "places.googleMapsUri",
   "places.businessStatus",
   "places.currentOpeningHours",
+  "places.photos",
   "nextPageToken",
 ].join(",");
 
@@ -153,6 +159,10 @@ function toLead(place: Place, index: number, city: string): Lead | null {
     website: place.websiteUri || null,
     siteKind: siteKindOf(place.websiteUri),
     observedAt: new Date().toISOString(),
+    photoName: place.photos?.[0]?.name || null,
+    photoAttribution: place.photos?.[0]?.authorAttributions?.[0]?.displayName
+      ? { label: place.photos[0].authorAttributions[0].displayName!, url: place.photos[0].authorAttributions[0].uri || null }
+      : null,
   };
 }
 
@@ -288,6 +298,26 @@ export const searchPlaces = createServerFn({ method: "POST" })
       return { ok: false, error: "Não consegui falar com o Google. Tente de novo." };
     }
 
+    // Resolve URLs only for visible search results; photo resource names can expire.
+    let photoIndex = 0;
+    const workers = Array.from({ length: Math.min(4, leads.length) }, async () => {
+      while (photoIndex < leads.length) {
+        const lead = leads[photoIndex++];
+        if (!lead.photoName) continue;
+        try {
+          const photoResponse = await fetch(
+            "https://places.googleapis.com/v1/" + lead.photoName + "/media?maxWidthPx=720&skipHttpRedirect=true&key=" + encodeURIComponent(placesKey),
+            { signal: AbortSignal.timeout(8_000) },
+          );
+          const photo = (await photoResponse.json().catch(() => null)) as { photoUri?: string } | null;
+          lead.photoUrl = photoResponse.ok ? photo?.photoUri || null : null;
+        } catch {
+          lead.photoUrl = null;
+        }
+        delete lead.photoName;
+      }
+    });
+    await Promise.all(workers);
     return { ok: true, leads, scanned, withSite, asked: data.quantity, usage: { used, limit } };
   });
 
