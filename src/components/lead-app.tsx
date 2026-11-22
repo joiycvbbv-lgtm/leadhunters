@@ -536,19 +536,26 @@ function BrandMark({ className = "size-6" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 48 48" fill="none" aria-hidden="true">
       <defs>
-        <linearGradient id="leadHunterMark" x1="7" y1="5" x2="41" y2="43" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#8B9BFF" />
-          <stop offset="1" stopColor="#48C7E8" />
+        <linearGradient id="leadHunterMark" x1="4" y1="6" x2="44" y2="42" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#d946ef" />
+          <stop offset=".52" stopColor="#9333ea" />
+          <stop offset="1" stopColor="#6d28d9" />
         </linearGradient>
       </defs>
-      <circle cx="22" cy="22" r="15.5" stroke="url(#leadHunterMark)" strokeWidth="4.2" />
-      <circle cx="22" cy="22" r="7.2" stroke="currentColor" strokeOpacity=".92" strokeWidth="3.2" />
-      <circle cx="22" cy="22" r="2.4" fill="url(#leadHunterMark)" />
-      <path d="M33.5 33.5 42 42" stroke="url(#leadHunterMark)" strokeWidth="5" strokeLinecap="round" />
-      <path d="M22 2.8v4.1M2.8 22h4.1" stroke="currentColor" strokeOpacity=".58" strokeWidth="2.4" strokeLinecap="round" />
+      <path d="M3.5 25.1C10.3 13.8 20.9 7.6 32 8.7c4.5.4 8.7 2.2 12.4 5.4-4.1.5-7 2-8.8 4.3 3.8 2.7 6.2 6.1 7.1 10.1-4.4-1.3-8.5-1.6-12.1-.8-4 6.4-10 9.7-17.1 9.1-6.2-.5-10.1-3.4-11.7-8.6l1.7-3.1Z" fill="url(#leadHunterMark)" />
+      <path d="M20.4 35.9c-3.7 5.4-7.9 8.1-12.7 8 2.2-3.8 3.1-7.1 2.7-9.8M18.3 13.4 15 6l10.9 4.6" stroke="#c084fc" strokeWidth="2.1" strokeLinejoin="round" />
+      <path d="M38.2 19.7c-1.4 1.1-3.1 1.5-5.1 1.1" stroke="#f5d0fe" strokeWidth="1.3" strokeLinecap="round" />
+      <circle cx="34.8" cy="16.5" r="1.35" fill="#fff" />
     </svg>
   );
 }
+
+const LOGIN_FEATURES = [
+  [Search, "Busca avançada", "Encontre novos leads"],
+  [Columns3, "CRM completo", "Organize seu pipeline"],
+  [TrendingUp, "Mais resultados", "Acompanhe oportunidades"],
+  [ShieldCheck, "Seguro e confiável", "Acesso protegido"],
+] as const;
 
 const card = "app-card rounded-2xl";
 const field =
@@ -2566,59 +2573,45 @@ export function LeadApp() {
         <div className="pointer-events-none absolute -left-24 top-[-8rem] size-80 rounded-full bg-primary/10 blur-3xl" aria-hidden />
         <div className="pointer-events-none absolute -right-24 bottom-[-7rem] size-96 rounded-full bg-sky-300/15 blur-3xl" aria-hidden />
         <div className="login-layout relative grid w-full max-w-6xl gap-4 lg:min-h-[740px] lg:grid-cols-[1.08fr_0.92fr]">
-          <section className="login-story relative hidden flex-col justify-between overflow-hidden rounded-[2rem] p-8 text-white shadow-card lg:flex xl:p-10">
+          <section className="login-story relative hidden flex-col justify-between overflow-hidden p-6 text-white lg:flex xl:p-10">
             <div className="login-orb login-orb-one" aria-hidden />
             <div className="login-orb login-orb-two" aria-hidden />
-            <div className="relative z-10 flex items-center gap-3">
-              <div className="flex size-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-white shadow-inner backdrop-blur">
-                <BrandMark className="size-6" />
-              </div>
+            <div className="relative z-10 flex items-center gap-4">
+              <BrandMark className="size-20 shrink-0 sm:size-24" />
               <div>
-                <p className="text-sm font-extrabold uppercase tracking-[0.16em] text-white">LeadHunter</p>
-                <p className="text-xs font-medium text-white/60">Prospecção local</p>
+                <p className="font-display text-4xl font-extrabold tracking-tight xl:text-5xl">Lead<span className="text-fuchsia-500">Hunter</span></p>
+                <p className="mt-1 text-base font-medium text-white/65">Encontre. Conquiste. Venda.</p>
               </div>
             </div>
-            <div className="relative z-10 mt-8 max-w-xl">
-              <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-sky-100">
-                <Sparkles className="size-3.5" /> Oportunidades locais, em um só lugar
+            <div className="relative z-10 mt-10 max-w-2xl">
+              <p className="inline-flex items-center gap-2 rounded-full border border-fuchsia-400/25 bg-fuchsia-500/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-fuchsia-200">
+                <Sparkles className="size-3.5" /> Plataforma inteligente de prospecção
               </p>
               <h2 className="mt-5 font-display text-4xl font-bold leading-[1.08] tracking-tight xl:text-5xl">
-                Seu próximo cliente pode estar <span className="text-white/80">sem site.</span>
+                Transforme leads em clientes de forma <span className="text-fuchsia-400">inteligente.</span>
               </h2>
-              <p className="mt-4 max-w-lg text-base leading-7 text-white/70">
-                Encontre empresas, organize os contatos e acompanhe cada oportunidade até a criação do site.
+              <p className="mt-4 max-w-lg text-base leading-7 text-white/65">
+                Encontre empresas, gerencie seu negócio e impulsione suas vendas em um só lugar.
               </p>
-              <div className="mt-8 grid gap-3 sm:grid-cols-3">
-                {[
-                  ["01", "Encontrar", "Busque por cidade e nicho."],
-                  ["02", "Acompanhar", "Organize contatos e retornos."],
-                  ["03", "Apresentar", "Crie sites para seus leads."],
-                ].map(([number, title, detail]) => (
-                  <div key={number} className="rounded-2xl border border-white/10 bg-white/[0.07] p-3">
-                    <span className="text-xs font-extrabold tracking-[0.14em] text-sky-300">{number}</span>
-                    <p className="mt-2 text-sm font-bold text-white">{title}</p>
-                    <p className="mt-1 text-xs leading-5 text-white/55">{detail}</p>
+              <div className="mt-8 grid grid-cols-2 gap-3 xl:grid-cols-4">
+                {LOGIN_FEATURES.map(([Icon, title, detail]) => (
+                  <div key={title} className="login-feature rounded-2xl border border-fuchsia-500/20 bg-[#10091b]/75 p-3 text-center backdrop-blur">
+                    <Icon className="mx-auto size-7 text-fuchsia-400" />
+                    <p className="mt-2 text-sm font-semibold text-white">{title}</p>
+                    <p className="mt-1 text-xs leading-4 text-white/55">{detail}</p>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="login-demo-card relative z-10 ml-auto mt-8 w-full max-w-sm rounded-2xl border border-white/10 p-4 shadow-xl backdrop-blur-xl">
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-xl bg-white/10 text-white/80">
+            <div className="login-demo-card relative z-10 mt-8 max-w-lg rounded-2xl border border-fuchsia-500/25 p-4 shadow-xl backdrop-blur-xl">
+              <div className="flex items-center gap-4">
+                <div className="flex size-11 items-center justify-center rounded-xl bg-fuchsia-500/15 text-fuchsia-300">
                   <Building2 className="size-5" />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/50">Exemplo de oportunidade</p>
-                  <p className="mt-0.5 truncate text-sm font-bold text-white">Negócio local</p>
+                <div>
+                  <p className="text-sm font-bold text-white">Da prospecção ao site profissional</p>
+                  <p className="mt-1 text-xs text-white/60">Encontre, acompanhe e conquiste clientes.</p>
                 </div>
-                <span className="rounded-full bg-amber-300/15 px-2.5 py-1 text-[10px] font-bold text-amber-200">Sem site</span>
-              </div>
-              <div className="mt-4 flex items-center justify-between text-xs">
-                <span className="text-white/60">Prioridade de contato</span>
-                <span className="font-bold text-sky-200">84 / 100</span>
-              </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#e7e9ed]">
-                <div className="h-full w-[84%] rounded-full bg-gradient-to-r from-violet-300 to-slate-300" />
               </div>
             </div>
           </section>
@@ -2632,16 +2625,19 @@ export function LeadApp() {
                 <p className="text-xs text-muted">Prospecção local</p>
               </div>
             </div>
-            <div className="mb-6">
+            <div className="mb-4 hidden justify-center lg:flex">
+              <BrandMark className="size-16" />
+            </div>
+            <div className="mb-6 text-center">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">
                 {mode === "login" ? "Bem-vinda de volta" : "Primeiro acesso"}
               </p>
               <h1 className="mt-2 font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
-                {mode === "login" ? "Acesse seu painel" : "Ative seu acesso"}
+                {mode === "login" ? "Bem-vindo de volta!" : "Ative seu acesso"}
               </h1>
               <p className="mt-2 max-w-md text-sm leading-6 text-muted">
                 {mode === "login"
-                  ? "Entre para encontrar novos leads e acompanhar seus contatos."
+                  ? "Faça login na sua conta para continuar."
                   : "Informe seu nome e a chave recebida para ativar sua conta."}
               </p>
             </div>
