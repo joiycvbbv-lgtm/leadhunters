@@ -1767,3 +1767,366 @@ html[data-theme="light"] .login-panel {
 }
 .login-panel h1, .login-panel label, .login-panel strong { color: #17324d !important; }
 .login-panel .text-muted { color: #5e7890 !important; }
+
+/* Visual de referência: interface noturna com acentos violeta neon. */
+:root,
+html[data-theme="light"],
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #07050d;
+  --color-surface: #100b1b;
+  --color-surface-2: #171027;
+  --color-fg: #f7f1ff;
+  --color-muted: #ad9bc9;
+  --color-primary: #8b24ff;
+  --color-primary-deep: #5b0ec9;
+  --color-primary-soft: #24133d;
+  --color-primary-fg: #ffffff;
+  --color-accent: #d0a0ff;
+  --color-danger: #ff7189;
+  --color-border: #352052;
+  --lh-bg: #07050d;
+  --lh-panel: #100b1b;
+  --lh-panel-strong: #130d21;
+  --lh-border: #352052;
+  --lh-text: #f7f1ff;
+  --lh-muted: #ad9bc9;
+}
+html, body {
+  color-scheme: dark !important;
+  color: #f7f1ff;
+  background: #07050d !important;
+}
+body {
+  background-image:
+    radial-gradient(ellipse 60% 38% at 90% 0%, rgba(126, 34, 255, .2), transparent 70%),
+    radial-gradient(ellipse 34% 36% at 0% 90%, rgba(91, 14, 201, .15), transparent 72%),
+    linear-gradient(180deg, #0b0714 0%, #07050d 60%, #05040a 100%) !important;
+  background-attachment: fixed;
+}
+.glass-panel,
+.app-card,
+html[data-theme="light"] .glass-panel,
+html[data-theme="dark"] .glass-panel,
+html[data-theme="light"] .app-card,
+html[data-theme="dark"] .app-card {
+  color: #f7f1ff !important;
+  background: linear-gradient(145deg, rgba(20, 12, 34, .98), rgba(9, 6, 16, .99)) !important;
+  border: 1px solid #39205f !important;
+  box-shadow: 0 18px 54px -36px rgba(109, 28, 235, .4), inset 0 1px 0 rgba(192, 132, 252, .07) !important;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+.glass-panel::before { display: none !important; }
+header.glass-panel {
+  background: rgba(12, 8, 20, .96) !important;
+  border-color: #42236e !important;
+}
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  color: #f7f1ff !important;
+  background: #0c0815 !important;
+  border: 1px solid #402369 !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, .35) !important;
+}
+input::placeholder, textarea::placeholder { color: #9c88bb !important; }
+input:focus, select:focus, textarea:focus {
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 0 3px rgba(139, 36, 255, .2) !important;
+}
+.text-primary, .text-accent { color: #c084fc !important; }
+.bg-primary-soft { color: #ddc3ff !important; background: #24133d !important; }
+.lead-app-shell,
+html[data-theme="light"] .lead-app-shell,
+html[data-theme="dark"] .lead-app-shell {
+  color: #f7f1ff !important;
+  background: #07050d !important;
+}
+.lead-app-shell aside,
+.lead-app-shell header,
+.lead-app-shell [class~="bg-white"],
+.lead-app-shell [class*="bg-[#"] {
+  color: #f7f1ff !important;
+  background-color: #100b1b !important;
+  border-color: #352052 !important;
+}
+.lead-app-shell aside {
+  background: linear-gradient(180deg, #100b1b, #0a0712) !important;
+  box-shadow: 0 20px 60px -32px rgba(95, 20, 210, .48) !important;
+}
+.lead-app-shell header {
+  background: rgba(13, 8, 22, .96) !important;
+  border-color: #352052 !important;
+}
+.lead-app-shell [class*="text-[#"]:not([class*="text-white"]) {
+  color: #efe5ff !important;
+}
+.lead-app-shell [class*="text-[#929"],
+.lead-app-shell [class*="text-[#9aa"],
+.lead-app-shell [class*="text-[#8a9"],
+.lead-app-shell [class*="text-[#687"],
+.lead-app-shell [class*="text-[#8b9"] {
+  color: #ad9bc9 !important;
+}
+.lead-app-shell [class*="border-[#"] { border-color: #39205f !important; }
+.lead-app-shell aside nav button[aria-current="page"] {
+  color: #ffffff !important;
+  background: linear-gradient(100deg, #7118ea, #4c10aa) !important;
+  border: 1px solid #9b4dff !important;
+  box-shadow: 0 0 24px rgba(126, 34, 255, .38) !important;
+}
+.lead-app-shell aside nav button:not([aria-current="page"]) {
+  color: #c4b5da !important;
+  background: transparent !important;
+  border-color: transparent !important;
+}
+.lead-app-shell aside nav button:not([aria-current="page"]):hover {
+  color: #ffffff !important;
+  background: #1a102a !important;
+}
+.lead-app-shell button,
+html[data-theme="light"] .lead-app-shell button {
+  color: #e9ddfb !important;
+  background-color: #130d21 !important;
+  border-color: #39205f !important;
+}
+.lead-app-shell button[class*="bg-primary"],
+.lead-app-shell button[class*="bg-gradient"],
+.lead-app-shell button[class*="from-[#"],
+.lead-app-shell button[type="submit"],
+html[data-theme="light"] .lead-app-shell button[class*="bg-primary"],
+html[data-theme="light"] .lead-app-shell button[class*="bg-gradient"],
+html[data-theme="light"] .lead-app-shell button[type="submit"] {
+  color: #ffffff !important;
+  background: linear-gradient(110deg, #8b24ff, #5b0ec9) !important;
+  border: 1px solid #a855f7 !important;
+  box-shadow: 0 0 20px rgba(139, 36, 255, .28) !important;
+}
+.lead-app-shell button:hover:not(:disabled) {
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 18px rgba(139, 36, 255, .2) !important;
+}
+.lead-app-shell nav.fixed.inset-x-0.bottom-0 {
+  background: rgba(12, 8, 20, .97) !important;
+  border-color: #39205f !important;
+  box-shadow: 0 -10px 36px rgba(0, 0, 0, .45) !important;
+}
+.lead-app-shell nav.fixed.inset-x-0.bottom-0 > button {
+  color: #b9a9d2 !important;
+  background: transparent !important;
+}
+.lead-app-shell nav.fixed.inset-x-0.bottom-0 > button.text-primary {
+  color: #fff !important;
+  background: #24133d !important;
+}
+.login-shell {
+  background:
+    radial-gradient(ellipse 60% 45% at 10% 0%, rgba(126, 34, 255, .18), transparent 72%),
+    #07050d !important;
+}
+.login-story {
+  color: #ffffff !important;
+  background:
+    radial-gradient(ellipse at 82% 12%, rgba(139, 36, 255, .38), transparent 46%),
+    linear-gradient(145deg, #160b2a, #0b0714 65%, #1c0d32) !important;
+}
+.login-panel, html[data-theme="light"] .login-panel {
+  color: #f7f1ff !important;
+  background: linear-gradient(145deg, #140d21, #0d0816) !important;
+  border-color: #43266d !important;
+}
+.login-panel h1, .login-panel label, .login-panel strong { color: #f7f1ff !important; }
+.login-panel .text-muted { color: #ad9bc9 !important; }
+.login-panel input:not([type="checkbox"]):not([type="radio"]) {
+  color: #f7f1ff !important;
+  background: #0c0815 !important;
+}
+
+/* Login: proporção, brilho e contraste da referência enviada. */
+.login-shell,
+html[data-theme="light"] .login-shell {
+  min-height: 100svh !important;
+  padding-block: clamp(16px, 3vh, 32px) !important;
+  background:
+    radial-gradient(ellipse 55% 70% at 3% 8%, rgba(107, 33, 168, .28), transparent 68%),
+    radial-gradient(ellipse 46% 70% at 97% 92%, rgba(126, 34, 255, .2), transparent 70%),
+    #06040c !important;
+}
+.login-layout {
+  width: min(100%, 1540px) !important;
+  max-width: 1540px !important;
+  min-height: min(900px, calc(100svh - 36px)) !important;
+  align-items: center !important;
+  gap: clamp(28px, 5vw, 84px) !important;
+  grid-template-columns: minmax(0, 1.05fr) minmax(420px, .9fr) !important;
+}
+.login-story,
+html[data-theme="light"] .login-story {
+  min-height: min(850px, calc(100svh - 52px)) !important;
+  padding: clamp(20px, 3vw, 52px) !important;
+  color: #f8f3ff !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.login-story::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: -12%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 56% 16%, rgba(126, 34, 255, .22), transparent 34%),
+    radial-gradient(ellipse at 18% 76%, rgba(91, 14, 201, .18), transparent 42%),
+    linear-gradient(138deg, transparent 0 32%, rgba(155, 64, 255, .13) 32.2%, transparent 33.2% 72%, rgba(109, 40, 217, .14) 72.2%, transparent 73%);
+  filter: blur(1px);
+}
+.login-orb-one, .login-orb-two {
+  background: rgba(139, 36, 255, .2) !important;
+  filter: blur(50px);
+}
+.login-feature {
+  background: rgba(15, 9, 27, .78) !important;
+  border-color: rgba(168, 85, 247, .25) !important;
+  box-shadow: inset 0 1px 0 rgba(192, 132, 252, .06), 0 10px 24px rgba(0, 0, 0, .25);
+}
+.login-demo-card {
+  background: rgba(17, 10, 30, .82) !important;
+  border-color: rgba(168, 85, 247, .3) !important;
+}
+.login-panel,
+html[data-theme="light"] .login-panel {
+  min-height: 690px;
+  border: 1px solid #7136b9 !important;
+  border-radius: 28px !important;
+  background: linear-gradient(145deg, rgba(18, 11, 31, .99), rgba(8, 5, 15, .99)) !important;
+  box-shadow: 0 0 0 1px rgba(168, 85, 247, .12), 0 0 46px rgba(126, 34, 255, .2), 0 24px 72px rgba(0, 0, 0, .58) !important;
+}
+.login-panel h1,
+.login-panel label,
+.login-panel strong,
+html[data-theme="light"] .login-panel h1,
+html[data-theme="light"] .login-panel label,
+html[data-theme="light"] .login-panel strong {
+  color: #f7f1ff !important;
+}
+.login-panel .text-muted,
+html[data-theme="light"] .login-panel .text-muted {
+  color: #ad9bc9 !important;
+}
+.login-panel input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="light"] .login-panel input:not([type="checkbox"]):not([type="radio"]) {
+  color: #f7f1ff !important;
+  background: #0c0815 !important;
+  border-color: #43266d !important;
+  border-radius: 999px !important;
+}
+.login-panel button[type="submit"],
+html[data-theme="light"] .login-panel button[type="submit"] {
+  min-height: 54px;
+  color: #ffffff !important;
+  background: linear-gradient(100deg, #8b24ff, #5b0ec9) !important;
+  border: 1px solid #c084fc !important;
+  border-radius: 999px !important;
+  box-shadow: 0 0 24px rgba(139, 36, 255, .42) !important;
+}
+.login-panel button:not([type="submit"]),
+html[data-theme="light"] .login-panel button:not([type="submit"]) {
+  color: #e9ddfb !important;
+}
+.login-panel button:not([type="submit"]):hover,
+html[data-theme="light"] .login-panel button:not([type="submit"]):hover {
+  color: #ffffff !important;
+  border-color: #a855f7 !important;
+}
+html[data-theme="light"] .lead-app-shell aside {
+  color: #f7f1ff !important;
+  background: linear-gradient(180deg, #100b1b, #0a0712) !important;
+  border-color: #39205f !important;
+  box-shadow: 0 20px 60px -32px rgba(95, 20, 210, .48) !important;
+}
+html[data-theme="light"] .lead-app-shell header {
+  color: #f7f1ff !important;
+  background: rgba(13, 8, 22, .96) !important;
+  border-color: #352052 !important;
+}
+html[data-theme="light"] .lead-app-shell aside nav button[aria-current="page"] {
+  color: #ffffff !important;
+  background: linear-gradient(100deg, #7118ea, #4c10aa) !important;
+  border-color: #9b4dff !important;
+  box-shadow: 0 0 24px rgba(126, 34, 255, .38) !important;
+}
+html[data-theme="light"] .lead-app-shell aside nav button:not([aria-current="page"]) {
+  color: #c4b5da !important;
+  background: transparent !important;
+  border-color: transparent !important;
+}
+html[data-theme="light"] .lead-app-shell .text-primary,
+html[data-theme="light"] .lead-app-shell .text-accent { color: #c084fc !important; }
+html[data-theme="light"] .lead-app-shell .bg-primary-soft {
+  color: #ddc3ff !important;
+  background: #24133d !important;
+}
+html[data-theme="light"] .lead-app-shell [class*="text-[#"]:not([class*="text-white"]) {
+  color: #efe5ff !important;
+}
+html[data-theme="light"] .lead-app-shell [class*="text-[#929"],
+html[data-theme="light"] .lead-app-shell [class*="text-[#9aa"],
+html[data-theme="light"] .lead-app-shell [class*="text-[#8a9"],
+html[data-theme="light"] .lead-app-shell [class*="text-[#687"],
+html[data-theme="light"] .lead-app-shell [class*="text-[#8b9"] { color: #ad9bc9 !important; }
+html[data-theme="light"] .lead-app-shell [class*="bg-[#"],
+html[data-theme="light"] .lead-app-shell [class~="bg-white"] {
+  color: #f7f1ff !important;
+  background-color: #100b1b !important;
+  border-color: #352052 !important;
+}
+@media (max-width: 1023px) {
+  .login-shell, html[data-theme="light"] .login-shell {
+    align-items: flex-start !important;
+    padding: max(14px, env(safe-area-inset-top)) 12px !important;
+  }
+  .login-layout {
+    min-height: auto !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .login-panel, html[data-theme="light"] .login-panel {
+    min-height: min(720px, calc(100svh - 28px));
+    padding: clamp(20px, 6vw, 36px) !important;
+  }
+}
+@media (max-width: 520px) {
+  .login-panel, html[data-theme="light"] .login-panel { border-radius: 22px !important; }
+}
+
+/* Reaplica o tema escuro sobre os seletores legados de tema claro. */
+html[data-theme="light"] .lead-app-shell .glass-panel,
+html[data-theme="light"] .lead-app-shell .app-card,
+html[data-theme="dark"] .lead-app-shell .glass-panel,
+html[data-theme="dark"] .lead-app-shell .app-card {
+  color: #f7f1ff !important;
+  background: linear-gradient(145deg, rgba(20, 12, 34, .98), rgba(9, 6, 16, .99)) !important;
+  border-color: #39205f !important;
+}
+html[data-theme="light"] input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="light"] select,
+html[data-theme="light"] textarea,
+html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+  color: #f7f1ff !important;
+  background: #0c0815 !important;
+  border-color: #43266d !important;
+}
+html[data-theme="light"] .lead-app-shell input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="light"] .lead-app-shell select,
+html[data-theme="light"] .lead-app-shell textarea,
+html[data-theme="dark"] .lead-app-shell input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="dark"] .lead-app-shell select,
+html[data-theme="dark"] .lead-app-shell textarea {
+  color: #f7f1ff !important;
+  background: #0c0815 !important;
+  border-color: #43266d !important;
+}

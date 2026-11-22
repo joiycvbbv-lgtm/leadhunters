@@ -82,7 +82,7 @@ function MiniBars({ title, values, labels, format }: { title: string; values: nu
         {values.map((value, index) => (
           <div key={labels[index]} className="flex flex-1 flex-col items-center justify-end gap-1" title={`${labels[index]}: ${format ? format(value) : value}`}>
             <div
-              className="w-full rounded-t bg-gradient-to-t from-primary to-sky-300"
+              className="w-full rounded-t bg-gradient-to-t from-primary to-violet-300"
               style={{ height: `${Math.max(3, Math.round((value / peak) * 80))}px`, opacity: value ? 1 : 0.25 }}
             />
             <span className="text-[9px] text-muted">{labels[index]}</span>
