@@ -36,7 +36,7 @@ const card = "glass-panel rounded-2xl";
 const field =
   "w-full rounded-xl border border-border bg-surface-2 px-3 py-2.5 text-sm text-fg outline-none placeholder:text-muted/70 focus:border-primary";
 const btnPrimary =
-  "inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-primary to-primary-deep px-4 py-2.5 text-sm font-semibold text-primary-fg shadow-[0_6px_16px_-6px_rgba(29,111,224,0.6)] transition hover:brightness-105 disabled:opacity-60";
+  "inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-primary to-primary-deep px-4 py-2.5 text-sm font-semibold text-primary-fg shadow-[0_6px_16px_-6px_rgba(17,124,104,0.2)] transition hover:brightness-105 disabled:opacity-60";
 const btnGhost =
   "inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold text-fg transition hover:border-primary hover:text-primary";
 const TOKEN = "lh_admin_token";
@@ -82,7 +82,7 @@ function MiniBars({ title, values, labels, format }: { title: string; values: nu
         {values.map((value, index) => (
           <div key={labels[index]} className="flex flex-1 flex-col items-center justify-end gap-1" title={`${labels[index]}: ${format ? format(value) : value}`}>
             <div
-              className="w-full rounded-t bg-gradient-to-t from-primary to-sky-300"
+              className="w-full rounded-t bg-gradient-to-t from-primary to-emerald-300"
               style={{ height: `${Math.max(3, Math.round((value / peak) * 80))}px`, opacity: value ? 1 : 0.25 }}
             />
             <span className="text-[9px] text-muted">{labels[index]}</span>
