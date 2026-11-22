@@ -155,10 +155,11 @@ export function getDeviceId() {
 export type Theme = "light" | "dark";
 export function loadTheme(): Theme {
   try {
-    // O tema escuro é o padrão; uma escolha explícita de tema claro continua sendo respeitada.
-    return localStorage.getItem(THEME) === "dark" ? "dark" : "light";
+    // LeadHunter usa o tema neon escuro como identidade visual padrão.
+    localStorage.setItem(THEME, "dark");
+    return "dark";
   } catch {
-    return "light";
+    return "dark";
   }
 }
 export function saveTheme(value: Theme) {
