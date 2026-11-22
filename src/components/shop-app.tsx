@@ -7,7 +7,7 @@ const card = "glass-panel rounded-[1.5rem]";
 const field =
   "w-full rounded-xl border border-border bg-surface-2 px-3.5 py-3 text-fg outline-none placeholder:text-muted/70 focus:border-primary";
 const btnPrimary =
-  "inline-flex items-center justify-center gap-2 rounded-full border border-sky-200/50 bg-gradient-to-r from-[#1766bd]/90 via-[#2788d8]/90 to-[#4aa9e8]/90 font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,.42),0_12px_30px_-14px_rgba(14,116,200,.8)] backdrop-blur-2xl transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[inset_0_1px_0_rgba(255,255,255,.55),0_16px_34px_-14px_rgba(14,116,200,.9)] disabled:pointer-events-none disabled:opacity-60";
+  "inline-flex items-center justify-center gap-2 rounded-full border border-emerald-700/15 bg-gradient-to-r from-[#0b5f52] via-[#117c68] to-[#26947b] font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,.28),0_10px_24px_-14px_rgba(17,124,104,.58)] transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[inset_0_1px_0_rgba(255,255,255,.35),0_14px_28px_-14px_rgba(17,124,104,.68)] disabled:pointer-events-none disabled:opacity-60";
 const ORDER = "lh_order";
 
 const BENEFITS = [
@@ -250,8 +250,8 @@ export function ShopApp() {
                 }}
                 className={`group relative flex min-h-[190px] flex-col overflow-hidden rounded-[1.5rem] border p-4 text-left transition duration-200 hover:-translate-y-1 ${
                   planId === item.id
-                    ? "border-sky-300/80 bg-gradient-to-br from-[#dff2ff]/95 via-[#edf8ff]/90 to-[#d5eaff]/95 text-[#12345a] shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_18px_38px_-22px_rgba(20,116,200,.55)] ring-2 ring-sky-300/45"
-                    : "border-sky-200/70 bg-white/70 text-[#183b61] shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_12px_28px_-22px_rgba(20,116,200,.35)] backdrop-blur-xl hover:border-sky-300 hover:bg-sky-50/90"
+                    ? "border-emerald-500 bg-gradient-to-br from-[#e1f3ee]/95 via-[#f3faf7]/95 to-[#d5eee5]/95 text-[#145447] shadow-[inset_0_1px_0_rgba(255,255,255,.92),0_18px_38px_-22px_rgba(17,124,104,.28)] ring-2 ring-emerald-500/30"
+                    : "border-[#dfe8e5] bg-white text-[#31534a] shadow-[inset_0_1px_0_rgba(255,255,255,.95),0_10px_26px_-20px_rgba(18,78,63,.22)] hover:border-emerald-300 hover:bg-[#f3faf7]"
                 }`}
               >
                 {item.highlight && (
@@ -261,7 +261,7 @@ export function ShopApp() {
                 )}
                 <div className="flex items-center justify-between gap-2 pr-1">
                   <p className="font-semibold">{item.name}</p>
-                  <span className={`size-2 rounded-full ${planId === item.id ? "bg-sky-600 shadow-[0_0_0_4px_rgba(14,165,233,.18)]" : "bg-sky-200"}`} />
+                  <span className={`size-2 rounded-full ${planId === item.id ? "bg-emerald-600 shadow-[0_0_0_4px_rgba(17,124,104,.18)]" : "bg-emerald-200"}`} />
                 </div>
                 <p className="mt-4 font-display text-[1.8rem] font-semibold tracking-tight">{brl(item.priceCents)}</p>
                 <p className="mt-1 text-xs text-muted">{item.days === null ? "pagamento único · acesso vitalício" : `acesso por ${item.days} dias`}</p>
