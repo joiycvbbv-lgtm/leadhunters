@@ -2920,38 +2920,7 @@ export function LeadApp() {
           </h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <nav className="flex max-w-[50vw] items-center gap-1 overflow-x-auto rounded-2xl border border-border bg-surface-2 p-1 sm:flex lg:hidden">
-            {(
-              [
-                ["inicio", "Resumo"],
-                ["buscar", "Buscar"],
-                ["hoje", "Hoje"],
-                ["pipeline", "CRM"],
-                ["mensagens", "Mensagens"],
-                ["atividades", "Atividades"],
-                ["relatorios", "Relatórios"],
-                ["oportunidades", "Inteligência"],
-                ["integracoes", "Integrações"],
-                ["configuracoes", "Configurações"],
-                ["vendas", "Vendas"],
-              ] as const
-            ).map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setTab(id)}
-                className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                  tab === id ? "bg-primary text-primary-fg shadow-sm" : "text-muted hover:bg-surface hover:text-fg"
-                }`}
-              >
-                {label}
-                {id === "hoje" && dueCount > 0 && (
-                  <span className="ml-1.5 rounded-full bg-danger px-1.5 py-0.5 text-[10px] font-bold text-white">{dueCount}</span>
-                )}
-              </button>
-            ))}
-          </nav>
-          <button
+         <button
             type="button"
             onClick={() => setMySitesOpen(true)}
             aria-label="Meus sites"
