@@ -112,6 +112,7 @@ const FIELD_MASK = [
   "places.googleMapsUri",
   "places.businessStatus",
   "places.currentOpeningHours",
+  "places.photos",
   "nextPageToken",
 ].join(",");
 
