@@ -1328,3 +1328,336 @@ html[data-theme="light"] .lead-app-shell button.app-card {
     transition: none !important;
   }
 }
+
+
+/* LeadHunter — identidade profissional e responsiva */
+:root {
+  --lh-bg: #f4f7f6;
+  --lh-panel: #ffffff;
+  --lh-panel-strong: #ffffff;
+  --lh-border: #dfe8e5;
+  --lh-text: #172b27;
+  --lh-muted: #667873;
+  --color-bg: #f4f7f6;
+  --color-surface: #ffffff;
+  --color-surface-2: #f1f6f4;
+  --color-fg: #172b27;
+  --color-muted: #667873;
+  --color-primary: #117c68;
+  --color-primary-deep: #0b5f52;
+  --color-primary-soft: #e1f3ee;
+  --color-primary-fg: #ffffff;
+  --color-accent: #c18b42;
+  --color-border: #dfe8e5;
+  --radius-lg: 1.25rem;
+  --radius-md: .875rem;
+}
+html, body, html[data-theme="light"] body {
+  min-height: 100%;
+  background: #f4f7f6 !important;
+  color: #172b27;
+}
+body { background-image: none !important; }
+html[data-theme="light"] .lead-app-shell {
+  background: #f4f7f6 !important;
+  color: #172b27 !important;
+}
+html[data-theme="light"] .lead-app-shell aside {
+  background: #fff !important;
+  border: 1px solid #e1e9e6 !important;
+  box-shadow: 0 10px 32px -26px rgba(18,53,44,.3) !important;
+}
+html[data-theme="light"] .lead-app-shell aside nav button,
+html[data-theme="light"] .lead-app-shell aside nav button:not([aria-current="page"]) {
+  color: #667873 !important;
+  background: transparent !important;
+}
+html[data-theme="light"] .lead-app-shell aside nav button:hover:not([aria-current="page"]) {
+  color: #174a3f !important;
+  background: #f1f7f5 !important;
+}
+html[data-theme="light"] .lead-app-shell aside nav button[aria-current="page"] {
+  color: #0b5f52 !important;
+  background: #e8f4f0 !important;
+  border-color: #d4eae3 !important;
+}
+html[data-theme="light"] .lead-app-shell aside nav button[aria-current="page"]::before {
+  background: #117c68 !important;
+}
+html[data-theme="light"] .lead-app-shell > header,
+html[data-theme="light"] .lead-app-shell header.glass-panel {
+  background: rgba(255,255,255,.94) !important;
+  border: 1px solid #e1e9e6 !important;
+  box-shadow: 0 8px 28px -25px rgba(18,53,44,.28) !important;
+}
+html[data-theme="light"] .lead-app-shell .app-card,
+html[data-theme="light"] .lead-app-shell .glass-panel,
+html[data-theme="light"] .app-card,
+html[data-theme="light"] .glass-panel {
+  color: #172b27 !important;
+  background: #fff !important;
+  border: 1px solid #e1e9e6 !important;
+  border-radius: 18px !important;
+  box-shadow: 0 8px 28px -24px rgba(18,53,44,.26) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html[data-theme="light"] .lead-app-shell .app-card:hover,
+html[data-theme="light"] .lead-app-shell .glass-panel:hover {
+  border-color: #c4ddd5 !important;
+  box-shadow: 0 14px 32px -24px rgba(18,78,63,.3) !important;
+}
+html[data-theme="light"] .lead-app-shell .dashboard-hero {
+  color: #f5fbf9 !important;
+  background:
+    radial-gradient(ellipse 55% 110% at 100% 0%, rgba(108,207,175,.23), transparent 65%),
+    linear-gradient(125deg, #124b40 0%, #0d6958 58%, #13836d 100%) !important;
+  border: 1px solid rgba(15,91,74,.12) !important;
+  box-shadow: 0 22px 44px -30px rgba(13,76,62,.52) !important;
+}
+html[data-theme="light"] .lead-app-shell .dashboard-hero h2,
+html[data-theme="light"] .lead-app-shell .dashboard-hero p,
+html[data-theme="light"] .lead-app-shell .dashboard-hero span {
+  color: inherit;
+}
+html[data-theme="light"] .lead-app-shell .dashboard-hero .text-white\\/75,
+html[data-theme="light"] .lead-app-shell .dashboard-hero .text-blue-100\\/70,
+html[data-theme="light"] .lead-app-shell .dashboard-hero > div:first-child p,
+html[data-theme="light"] .lead-app-shell .dashboard-hero > div:first-child span {
+  color: rgba(245,251,249,.76) !important;
+}
+html[data-theme="light"] .lead-app-shell .dashboard-hero .grid > div,
+html[data-theme="light"] .lead-app-shell .dashboard-hero > div > div:last-child > div {
+  color: #fff !important;
+  background: rgba(255,255,255,.09) !important;
+  border: 1px solid rgba(255,255,255,.16) !important;
+  box-shadow: none !important;
+}
+html[data-theme="light"] .lead-app-shell .dashboard-hero .grid > div p {
+  color: rgba(245,251,249,.68) !important;
+}
+html[data-theme="light"] .lead-app-shell .dashboard-hero-action,
+html[data-theme="light"] .lead-app-shell .dashboard-hero-action:first-child {
+  color: #fff !important;
+  background: rgba(255,255,255,.12) !important;
+  border: 1px solid rgba(255,255,255,.3) !important;
+  box-shadow: none !important;
+}
+html[data-theme="light"] .lead-app-shell .dashboard-hero-action:not(:first-child) {
+  color: #0b5f52 !important;
+  background: #fff !important;
+  border: 1px solid rgba(255,255,255,.8) !important;
+  box-shadow: 0 4px 12px rgba(6,42,33,.12) !important;
+}
+html[data-theme="light"] .lead-app-shell .dashboard-hero-action:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+}
+html[data-theme="light"] .lead-app-shell button,
+html[data-theme="light"] .login-panel button {
+  min-height: 40px;
+  padding-inline: 14px;
+  border: 1px solid #d8e4df !important;
+  border-radius: 11px !important;
+  color: #31534a !important;
+  background: #fff !important;
+  box-shadow: 0 2px 5px rgba(18,53,44,.04) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease, transform .16s ease !important;
+}
+html[data-theme="light"] .lead-app-shell button:hover:not(:disabled),
+html[data-theme="light"] .login-panel button:hover:not(:disabled) {
+  color: #174a3f !important;
+  background: #f4f9f7 !important;
+  border-color: #b9d8ce !important;
+  box-shadow: 0 5px 12px rgba(18,78,63,.09) !important;
+  transform: translateY(-1px);
+}
+html[data-theme="light"] .lead-app-shell button:active:not(:disabled),
+html[data-theme="light"] .login-panel button:active:not(:disabled) {
+  transform: translateY(0) scale(.985);
+}
+html[data-theme="light"] .lead-app-shell button[class*="bg-primary"],
+html[data-theme="light"] .lead-app-shell button[class*="bg-gradient"],
+html[data-theme="light"] .lead-app-shell button[class*="bg-black"],
+html[data-theme="light"] .login-panel button[type="submit"] {
+  color: #fff !important;
+  background: #117c68 !important;
+  border: 1px solid #117c68 !important;
+  box-shadow: 0 5px 13px rgba(17,124,104,.2) !important;
+}
+html[data-theme="light"] .lead-app-shell button[class*="bg-primary"]:hover:not(:disabled),
+html[data-theme="light"] .lead-app-shell button[class*="bg-gradient"]:hover:not(:disabled),
+html[data-theme="light"] .login-panel button[type="submit"]:hover:not(:disabled) {
+  color: #fff !important;
+  background: #0b6857 !important;
+  border-color: #0b6857 !important;
+  box-shadow: 0 7px 16px rgba(17,124,104,.25) !important;
+}
+html[data-theme="light"] .lead-app-shell button:disabled,
+html[data-theme="light"] .login-panel button:disabled {
+  opacity: .5 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+html[data-theme="light"] .lead-app-shell input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="light"] .lead-app-shell select,
+html[data-theme="light"] .lead-app-shell textarea,
+html[data-theme="light"] .login-panel input:not([type="checkbox"]):not([type="radio"]) {
+  min-height: 43px;
+  color: #203b34 !important;
+  background: #fff !important;
+  border: 1px solid #d6e3de !important;
+  border-radius: 11px !important;
+  box-shadow: inset 0 1px 2px rgba(18,53,44,.025) !important;
+}
+html[data-theme="light"] .lead-app-shell input:focus,
+html[data-theme="light"] .lead-app-shell select:focus,
+html[data-theme="light"] .lead-app-shell textarea:focus,
+html[data-theme="light"] .login-panel input:focus {
+  border-color: #48a48e !important;
+  box-shadow: 0 0 0 3px rgba(17,124,104,.12) !important;
+}
+html[data-theme="light"] .lead-app-shell input::placeholder,
+html[data-theme="light"] .lead-app-shell textarea::placeholder {
+  color: #82948e !important;
+}
+html[data-theme="light"] .lead-app-shell [class*="text-primary"],
+html[data-theme="light"] .lead-app-shell .text-accent {
+  color: #117c68 !important;
+}
+html[data-theme="light"] .lead-app-shell [class*="bg-primary-soft"] {
+  color: #0b6857 !important;
+  background: #e5f3ef !important;
+}
+html[data-theme="light"] .lead-app-shell nav.fixed.inset-x-0.bottom-0 {
+  background: rgba(255,255,255,.97) !important;
+  border: 1px solid #dfe8e5 !important;
+  box-shadow: 0 -8px 28px -20px rgba(18,53,44,.24) !important;
+}
+html[data-theme="light"] .lead-app-shell nav.fixed.inset-x-0.bottom-0 > button {
+  min-height: 48px;
+  color: #667873 !important;
+  background: transparent !important;
+}
+html[data-theme="light"] .lead-app-shell nav.fixed.inset-x-0.bottom-0 > button.text-primary {
+  color: #0b6857 !important;
+  background: #e8f4f0 !important;
+}
+html[data-theme="light"] .lead-app-shell .login-shell {
+  background:
+    radial-gradient(ellipse 48% 44% at 0% 0%, rgba(92,181,151,.15), transparent 70%),
+    #f4f7f6 !important;
+}
+html[data-theme="light"] .login-story {
+  background:
+    radial-gradient(ellipse at 86% 8%, rgba(108,207,175,.24), transparent 45%),
+    linear-gradient(145deg,#124b40 0%,#0d6958 65%,#13836d 100%) !important;
+}
+html[data-theme="light"] .login-panel {
+  color: #172b27 !important;
+  background: #fff !important;
+  border: 1px solid #dfe8e5 !important;
+  box-shadow: 0 20px 60px -42px rgba(18,53,44,.32) !important;
+}
+html[data-theme="light"] .login-panel h1,
+html[data-theme="light"] .login-panel label,
+html[data-theme="light"] .login-panel strong { color: #172b27 !important; }
+html[data-theme="light"] .login-panel .text-muted { color: #667873 !important; }
+html[data-theme="light"] .login-panel input:not([type="checkbox"]):not([type="radio"]) {
+  color: #203b34 !important;
+}
+html[data-theme="light"] .lead-app-shell :focus-visible,
+html[data-theme="light"] .login-panel :focus-visible {
+  outline: 3px solid rgba(17,124,104,.38) !important;
+  outline-offset: 2px;
+}
+@media (min-width: 1024px) {
+  html[data-theme="light"] .lead-app-shell {
+    padding-left: 292px !important;
+    padding-right: clamp(24px, 3vw, 52px) !important;
+    padding-top: 28px !important;
+  }
+  html[data-theme="light"] .lead-app-shell > header {
+    min-height: 72px;
+    margin-bottom: 26px;
+  }
+  html[data-theme="light"] .lead-app-shell main {
+    max-width: 1440px;
+    margin-inline: auto;
+  }
+  html[data-theme="light"] .lead-app-shell aside {
+    width: 256px;
+    padding: 22px 18px !important;
+    border-radius: 18px !important;
+  }
+}
+@media (max-width: 1023px) {
+  html[data-theme="light"] .lead-app-shell {
+    padding-top: max(12px, env(safe-area-inset-top)) !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+    padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+  }
+  html[data-theme="light"] .lead-app-shell > header {
+    position: sticky;
+    top: max(8px, env(safe-area-inset-top));
+    z-index: 30;
+    min-height: 60px;
+    margin-bottom: 18px;
+  }
+  html[data-theme="light"] .lead-app-shell nav.fixed.inset-x-0.bottom-0 {
+    bottom: max(10px, env(safe-area-inset-bottom)) !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto;
+    padding: 6px !important;
+    border-radius: 16px !important;
+  }
+  html[data-theme="light"] .lead-app-shell nav.fixed.inset-x-0.bottom-0 > button {
+    min-width: 0;
+    min-height: 48px;
+    padding: 6px 4px !important;
+    font-size: 11px;
+  }
+  html[data-theme="light"] .lead-app-shell .dashboard-hero {
+    padding: 22px !important;
+    border-radius: 18px !important;
+  }
+  html[data-theme="light"] .lead-app-shell .app-card,
+  html[data-theme="light"] .lead-app-shell .glass-panel {
+    border-radius: 16px !important;
+  }
+  html[data-theme="light"] .lead-app-shell button {
+    min-height: 44px;
+  }
+  html[data-theme="light"] .lead-app-shell input:not([type="checkbox"]):not([type="radio"]),
+  html[data-theme="light"] .lead-app-shell select,
+  html[data-theme="light"] .lead-app-shell textarea {
+    font-size: 16px;
+  }
+  html[data-theme="light"] .lead-app-shell .overflow-x-auto {
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+@media (max-width: 420px) {
+  html[data-theme="light"] .lead-app-shell {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+  html[data-theme="light"] .lead-app-shell nav.fixed.inset-x-0.bottom-0 {
+    left: 8px !important;
+    right: 8px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="light"] .lead-app-shell *,
+  html[data-theme="light"] .lead-app-shell *::before,
+  html[data-theme="light"] .lead-app-shell *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
