@@ -1420,8 +1420,8 @@ html[data-theme="light"] .lead-app-shell .dashboard-hero p,
 html[data-theme="light"] .lead-app-shell .dashboard-hero span {
   color: inherit;
 }
-html[data-theme="light"] .lead-app-shell .dashboard-hero .text-white\\/75,
-html[data-theme="light"] .lead-app-shell .dashboard-hero .text-blue-100\\/70,
+html[data-theme="light"] .lead-app-shell .dashboard-hero .text-white\/75,
+html[data-theme="light"] .lead-app-shell .dashboard-hero .text-blue-100\/70,
 html[data-theme="light"] .lead-app-shell .dashboard-hero > div:first-child p,
 html[data-theme="light"] .lead-app-shell .dashboard-hero > div:first-child span {
   color: rgba(245,251,249,.76) !important;
