@@ -1933,13 +1933,21 @@ export function LeadApp() {
   const pipelineRef = useRef(pipeline);
   pipelineRef.current = pipeline;
 
+  function withoutTemporaryPhoto(lead: Lead) {
+    const saved = { ...lead };
+    delete saved.photoUrl;
+    delete saved.photoAttribution;
+    delete saved.photoName;
+    return saved;
+  }
+
   const keep = useCallback(
     (lead: Lead) => {
       setPipeline((rows) => {
         if (rows.some((row) => row.id === lead.id || (row.phone && row.phone === lead.phone))) return rows;
         return [
           {
-            ...lead,
+            ...withoutTemporaryPhoto(lead),
             city,
             status: "novo",
             notes: "",
@@ -1963,7 +1971,7 @@ export function LeadApp() {
     }
     setPipeline((rows) => [
       ...fresh.map((lead) => ({
-        ...lead,
+        ...withoutTemporaryPhoto(lead),
         city,
         status: "novo" as Status,
         notes: "",
