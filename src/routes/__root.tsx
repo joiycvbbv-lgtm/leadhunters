@@ -15,7 +15,7 @@ export const Route = createRootRoute({
     scripts: [
       {
         children:
-          "try{var t=localStorage.getItem('lh_theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark')}catch(e){}",
+          "try{document.documentElement.setAttribute('data-theme','dark')}catch(e){}",
       },
     ],
     links: [
