@@ -1767,3 +1767,178 @@ html[data-theme="light"] .login-panel {
 }
 .login-panel h1, .login-panel label, .login-panel strong { color: #17324d !important; }
 .login-panel .text-muted { color: #5e7890 !important; }
+
+/* Visual de referência: interface noturna com acentos violeta neon. */
+:root,
+html[data-theme="light"],
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #07050d;
+  --color-surface: #100b1b;
+  --color-surface-2: #171027;
+  --color-fg: #f7f1ff;
+  --color-muted: #ad9bc9;
+  --color-primary: #8b24ff;
+  --color-primary-deep: #5b0ec9;
+  --color-primary-soft: #24133d;
+  --color-primary-fg: #ffffff;
+  --color-accent: #d0a0ff;
+  --color-danger: #ff7189;
+  --color-border: #352052;
+  --lh-bg: #07050d;
+  --lh-panel: #100b1b;
+  --lh-panel-strong: #130d21;
+  --lh-border: #352052;
+  --lh-text: #f7f1ff;
+  --lh-muted: #ad9bc9;
+}
+html, body {
+  color-scheme: dark !important;
+  color: #f7f1ff;
+  background: #07050d !important;
+}
+body {
+  background-image:
+    radial-gradient(ellipse 60% 38% at 90% 0%, rgba(126, 34, 255, .2), transparent 70%),
+    radial-gradient(ellipse 34% 36% at 0% 90%, rgba(91, 14, 201, .15), transparent 72%),
+    linear-gradient(180deg, #0b0714 0%, #07050d 60%, #05040a 100%) !important;
+  background-attachment: fixed;
+}
+.glass-panel,
+.app-card,
+html[data-theme="light"] .glass-panel,
+html[data-theme="dark"] .glass-panel,
+html[data-theme="light"] .app-card,
+html[data-theme="dark"] .app-card {
+  color: #f7f1ff !important;
+  background: linear-gradient(145deg, rgba(20, 12, 34, .98), rgba(9, 6, 16, .99)) !important;
+  border: 1px solid #39205f !important;
+  box-shadow: 0 18px 54px -36px rgba(109, 28, 235, .4), inset 0 1px 0 rgba(192, 132, 252, .07) !important;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+.glass-panel::before { display: none !important; }
+header.glass-panel {
+  background: rgba(12, 8, 20, .96) !important;
+  border-color: #42236e !important;
+}
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  color: #f7f1ff !important;
+  background: #0c0815 !important;
+  border: 1px solid #402369 !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, .35) !important;
+}
+input::placeholder, textarea::placeholder { color: #9c88bb !important; }
+input:focus, select:focus, textarea:focus {
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 0 3px rgba(139, 36, 255, .2) !important;
+}
+.text-primary, .text-accent { color: #c084fc !important; }
+.bg-primary-soft { color: #ddc3ff !important; background: #24133d !important; }
+.lead-app-shell,
+html[data-theme="light"] .lead-app-shell,
+html[data-theme="dark"] .lead-app-shell {
+  color: #f7f1ff !important;
+  background: #07050d !important;
+}
+.lead-app-shell aside,
+.lead-app-shell header,
+.lead-app-shell [class~="bg-white"],
+.lead-app-shell [class*="bg-[#"] {
+  color: #f7f1ff !important;
+  background-color: #100b1b !important;
+  border-color: #352052 !important;
+}
+.lead-app-shell aside {
+  background: linear-gradient(180deg, #100b1b, #0a0712) !important;
+  box-shadow: 0 20px 60px -32px rgba(95, 20, 210, .48) !important;
+}
+.lead-app-shell header {
+  background: rgba(13, 8, 22, .96) !important;
+  border-color: #352052 !important;
+}
+.lead-app-shell [class*="text-[#"]:not([class*="text-white"]) {
+  color: #efe5ff !important;
+}
+.lead-app-shell [class*="text-[#929"],
+.lead-app-shell [class*="text-[#9aa"],
+.lead-app-shell [class*="text-[#8a9"],
+.lead-app-shell [class*="text-[#687"],
+.lead-app-shell [class*="text-[#8b9"] {
+  color: #ad9bc9 !important;
+}
+.lead-app-shell [class*="border-[#"] { border-color: #39205f !important; }
+.lead-app-shell aside nav button[aria-current="page"] {
+  color: #ffffff !important;
+  background: linear-gradient(100deg, #7118ea, #4c10aa) !important;
+  border: 1px solid #9b4dff !important;
+  box-shadow: 0 0 24px rgba(126, 34, 255, .38) !important;
+}
+.lead-app-shell aside nav button:not([aria-current="page"]) {
+  color: #c4b5da !important;
+  background: transparent !important;
+  border-color: transparent !important;
+}
+.lead-app-shell aside nav button:not([aria-current="page"]):hover {
+  color: #ffffff !important;
+  background: #1a102a !important;
+}
+.lead-app-shell button,
+html[data-theme="light"] .lead-app-shell button {
+  color: #e9ddfb !important;
+  background-color: #130d21 !important;
+  border-color: #39205f !important;
+}
+.lead-app-shell button[class*="bg-primary"],
+.lead-app-shell button[class*="bg-gradient"],
+.lead-app-shell button[class*="from-[#"],
+.lead-app-shell button[type="submit"],
+html[data-theme="light"] .lead-app-shell button[class*="bg-primary"],
+html[data-theme="light"] .lead-app-shell button[class*="bg-gradient"],
+html[data-theme="light"] .lead-app-shell button[type="submit"] {
+  color: #ffffff !important;
+  background: linear-gradient(110deg, #8b24ff, #5b0ec9) !important;
+  border: 1px solid #a855f7 !important;
+  box-shadow: 0 0 20px rgba(139, 36, 255, .28) !important;
+}
+.lead-app-shell button:hover:not(:disabled) {
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 18px rgba(139, 36, 255, .2) !important;
+}
+.lead-app-shell nav.fixed.inset-x-0.bottom-0 {
+  background: rgba(12, 8, 20, .97) !important;
+  border-color: #39205f !important;
+  box-shadow: 0 -10px 36px rgba(0, 0, 0, .45) !important;
+}
+.lead-app-shell nav.fixed.inset-x-0.bottom-0 > button {
+  color: #b9a9d2 !important;
+  background: transparent !important;
+}
+.lead-app-shell nav.fixed.inset-x-0.bottom-0 > button.text-primary {
+  color: #fff !important;
+  background: #24133d !important;
+}
+.login-shell {
+  background:
+    radial-gradient(ellipse 60% 45% at 10% 0%, rgba(126, 34, 255, .18), transparent 72%),
+    #07050d !important;
+}
+.login-story {
+  color: #ffffff !important;
+  background:
+    radial-gradient(ellipse at 82% 12%, rgba(139, 36, 255, .38), transparent 46%),
+    linear-gradient(145deg, #160b2a, #0b0714 65%, #1c0d32) !important;
+}
+.login-panel, html[data-theme="light"] .login-panel {
+  color: #f7f1ff !important;
+  background: linear-gradient(145deg, #140d21, #0d0816) !important;
+  border-color: #43266d !important;
+}
+.login-panel h1, .login-panel label, .login-panel strong { color: #f7f1ff !important; }
+.login-panel .text-muted { color: #ad9bc9 !important; }
+.login-panel input:not([type="checkbox"]):not([type="radio"]) {
+  color: #f7f1ff !important;
+  background: #0c0815 !important;
+}
