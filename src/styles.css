@@ -2100,3 +2100,33 @@ html[data-theme="light"] .lead-app-shell [class~="bg-white"] {
 @media (max-width: 520px) {
   .login-panel, html[data-theme="light"] .login-panel { border-radius: 22px !important; }
 }
+
+/* Reaplica o tema escuro sobre os seletores legados de tema claro. */
+html[data-theme="light"] .lead-app-shell .glass-panel,
+html[data-theme="light"] .lead-app-shell .app-card,
+html[data-theme="dark"] .lead-app-shell .glass-panel,
+html[data-theme="dark"] .lead-app-shell .app-card {
+  color: #f7f1ff !important;
+  background: linear-gradient(145deg, rgba(20, 12, 34, .98), rgba(9, 6, 16, .99)) !important;
+  border-color: #39205f !important;
+}
+html[data-theme="light"] input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="light"] select,
+html[data-theme="light"] textarea,
+html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+  color: #f7f1ff !important;
+  background: #0c0815 !important;
+  border-color: #43266d !important;
+}
+html[data-theme="light"] .lead-app-shell input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="light"] .lead-app-shell select,
+html[data-theme="light"] .lead-app-shell textarea,
+html[data-theme="dark"] .lead-app-shell input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="dark"] .lead-app-shell select,
+html[data-theme="dark"] .lead-app-shell textarea {
+  color: #f7f1ff !important;
+  background: #0c0815 !important;
+  border-color: #43266d !important;
+}
