@@ -204,6 +204,7 @@ export function SiteStudio({
   onWon,
 }: Props) {
   const [site, setSite] = useState<SiteData>(() => initialSite(lead));
+  const [sitePurpose, setSitePurpose] = useState<"cardapio" | "landing" | "catalogo" | "agendamento" | "existente" | null>(null);
   const [hoursText, setHoursText] = useState("");
   const [itemsText, setItemsText] = useState("");
   const [hlText, setHlText] = useState("");
@@ -238,6 +239,7 @@ export function SiteStudio({
         if (!res.ok) {
           if (ACCESS_ERRORS.includes(res.error)) onAccessError(res.error);
         } else if (res.found) {
+          setSitePurpose("existente");
           setSite({ ...initialSite(lead), ...res.site });
           setHoursText(res.site.hours.join("\n"));
           setItemsText(itemsToText(res.site.items));
@@ -264,6 +266,12 @@ export function SiteStudio({
   const link = slug ? `${window.location.origin}/s/${slug}` : "";
   const photosSize = site.photos.reduce((sum, p) => sum + p.length, 0) + site.logo.length;
   const tooHeavy = photosSize > 3_000_000;
+
+  function chooseSitePurpose(purpose: "cardapio" | "landing" | "catalogo" | "agendamento", label: string) {
+    setSitePurpose(purpose);
+    setView(initialPane === "prompt" ? "prompt" : "site");
+    setSitePrompt("Crie um(a) " + label + " profissional para " + lead.name + ". Use apenas dados confirmados, sem inventar preços, serviços ou horários.");
+  }
 
   function facts() {
     return {
@@ -507,6 +515,20 @@ export function SiteStudio({
         <p className="flex items-center justify-center gap-2 p-10 text-muted">
           <Loader2 className="size-4 animate-spin" /> Carregando…
         </p>
+      ) : !sitePurpose ? (
+        <section className="mx-auto max-w-4xl space-y-5 p-5 sm:p-8">
+          <div className="space-y-2 text-center">
+            <p className="text-sm font-semibold uppercase tracking-wide text-primary">Antes de criar</p>
+            <h2 className="font-display text-2xl font-bold sm:text-3xl">Que tipo de site o estabelecimento precisa?</h2>
+            <p className="mx-auto max-w-2xl text-sm text-muted">Escolha um formato para orientar a estrutura e os textos. Você revisa tudo antes de publicar.</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button type="button" onClick={() => chooseSitePurpose("cardapio", "cardápio digital")} className="rounded-2xl border border-border bg-surface p-5 text-left transition hover:border-primary hover:bg-primary-soft focus:outline-none focus:ring-2 focus:ring-primary"><span className="block font-semibold">Cardápio digital</span><span className="mt-1 block text-sm text-muted">Produtos, preços e pedidos por WhatsApp</span></button>
+            <button type="button" onClick={() => chooseSitePurpose("landing", "landing page")} className="rounded-2xl border border-border bg-surface p-5 text-left transition hover:border-primary hover:bg-primary-soft focus:outline-none focus:ring-2 focus:ring-primary"><span className="block font-semibold">Landing page</span><span className="mt-1 block text-sm text-muted">Apresentação do negócio com contato em destaque</span></button>
+            <button type="button" onClick={() => chooseSitePurpose("catalogo", "catálogo de produtos e serviços")} className="rounded-2xl border border-border bg-surface p-5 text-left transition hover:border-primary hover:bg-primary-soft focus:outline-none focus:ring-2 focus:ring-primary"><span className="block font-semibold">Catálogo</span><span className="mt-1 block text-sm text-muted">Vitrine organizada para mostrar opções</span></button>
+            <button type="button" onClick={() => chooseSitePurpose("agendamento", "site de agendamento")} className="rounded-2xl border border-border bg-surface p-5 text-left transition hover:border-primary hover:bg-primary-soft focus:outline-none focus:ring-2 focus:ring-primary"><span className="block font-semibold">Agendamento</span><span className="mt-1 block text-sm text-muted">Serviços e chamada para marcar horário</span></button>
+          </div>
+        </section>
       ) : (
         <div className="mx-auto grid max-w-7xl gap-5 p-4 lg:grid-cols-2">
           <div className={`space-y-5 ${pane === "previa" ? "hidden lg:block" : ""}`}>
