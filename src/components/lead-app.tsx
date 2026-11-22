@@ -812,7 +812,20 @@ const LeadCard = memo(function LeadCard({
   return (
     <article className={`lead-card fade-up p-4 ${card}`}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
+        <div className="flex min-w-0 flex-1 items-start gap-3">
+          <figure className="relative size-20 shrink-0 overflow-hidden rounded-xl bg-primary-soft sm:size-24">
+            {lead.photoUrl ? (
+              <img src={lead.photoUrl} alt={"Estabelecimento " + lead.name} loading="lazy" referrerPolicy="no-referrer" className="size-full object-cover" />
+            ) : (
+              <Building2 className="absolute inset-0 m-auto size-8 text-primary/50" />
+            )}
+            {lead.photoAttribution && (
+              <figcaption className="absolute inset-x-0 bottom-0 truncate bg-black/65 px-1 py-0.5 text-center text-[9px] text-white">
+                {lead.photoAttribution.url ? <a href={lead.photoAttribution.url} target="_blank" rel="noreferrer">{lead.photoAttribution.label}</a> : lead.photoAttribution.label}
+              </figcaption>
+            )}
+          </figure>
+          <div className="min-w-0 flex-1">
           <h3 className="truncate text-lg font-semibold">{lead.name}</h3>
           <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
             <span className="inline-flex items-center gap-1">
@@ -859,6 +872,7 @@ const LeadCard = memo(function LeadCard({
             <span className="inline-flex items-center gap-1 text-xs text-muted" title="Sugestão geral para este tipo de negócio">
               <PhoneCall className="size-3.5" /> Melhor horário: {bestContactTime(lead.category)}
             </span>
+          </div>
           </div>
         </div>
         <div className="flex shrink-0 gap-2">
