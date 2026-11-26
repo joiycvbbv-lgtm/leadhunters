@@ -298,26 +298,16 @@ export const searchPlaces = createServerFn({ method: "POST" })
       return { ok: false, error: "Não consegui falar com o Google. Tente de novo." };
     }
 
-    // Resolve URLs only for visible search results; photo resource names can expire.
-    let photoIndex = 0;
-    const workers = Array.from({ length: Math.min(4, leads.length) }, async () => {
-      while (photoIndex < leads.length) {
-        const lead = leads[photoIndex++];
-        if (!lead.photoName) continue;
-        try {
-          const photoResponse = await fetch(
-            "https://places.googleapis.com/v1/" + lead.photoName + "/media?maxWidthPx=720&skipHttpRedirect=true&key=" + encodeURIComponent(placesKey),
-            { signal: AbortSignal.timeout(8_000) },
-          );
-          const photo = (await photoResponse.json().catch(() => null)) as { photoUri?: string } | null;
-          lead.photoUrl = photoResponse.ok ? photo?.photoUri || null : null;
-        } catch {
-          lead.photoUrl = null;
-        }
-        delete lead.photoName;
-      }
-    });
-    await Promise.all(workers);
+    // Photo names and media URLs are temporary; issue short-lived signed same-origin URLs for the live results.
+    const photoExpires = Date.now() + 30 * 60 * 1000;
+    const { signPlacePhoto } = await import("./place-photo-signature.server");
+    for (const lead of leads) {
+      if (!lead.photoName) continue;
+      const photoName = lead.photoName;
+      const signature = signPlacePhoto(photoName, photoExpires, placesKey);
+      lead.photoUrl = `/api/place-photo?name=${encodeURIComponent(photoName)}&expires=${photoExpires}&signature=${signature}`;
+      delete lead.photoName;
+    }
     return { ok: true, leads, scanned, withSite, asked: data.quantity, usage: { used, limit } };
   });
 
