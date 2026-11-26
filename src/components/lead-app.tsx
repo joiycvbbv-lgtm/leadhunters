@@ -814,13 +814,14 @@ const LeadCard = memo(function LeadCard({
   onAudit?: (lead: Lead) => void;
   onPrompt?: (lead: Lead) => void;
 }) {
+  const [photoFailed, setPhotoFailed] = useState(false);
   return (
     <article className={`lead-card fade-up p-4 ${card}`}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 flex-1 items-start gap-3">
           <figure className="relative size-20 shrink-0 overflow-hidden rounded-xl bg-primary-soft sm:size-24">
-            {lead.photoUrl ? (
-              <img src={lead.photoUrl} alt={"Estabelecimento " + lead.name} loading="lazy" referrerPolicy="no-referrer" className="size-full object-cover" />
+            {(lead.photoName || lead.photoUrl) && !photoFailed ? (
+              <img src={lead.photoName ? `/api/place-photo?name=${encodeURIComponent(lead.photoName)}` : lead.photoUrl!} alt={"Estabelecimento " + lead.name} loading="lazy" referrerPolicy="no-referrer" onError={() => setPhotoFailed(true)} className="size-full object-cover" />
             ) : (
               <Building2 className="absolute inset-0 m-auto size-8 text-primary/50" />
             )}
