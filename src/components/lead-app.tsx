@@ -535,14 +535,14 @@ function BrandMark({ className = "size-6" }: { className?: string }) {
     <svg className={className} viewBox="0 0 48 48" fill="none" aria-hidden="true">
       <defs>
         <linearGradient id="leadHunterMark" x1="4" y1="6" x2="44" y2="42" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#d946ef" />
-          <stop offset=".52" stopColor="#9333ea" />
-          <stop offset="1" stopColor="#6d28d9" />
+          <stop stopColor="#6dc1ed" />
+          <stop offset=".52" stopColor="#258bc8" />
+          <stop offset="1" stopColor="#0d5f96" />
         </linearGradient>
       </defs>
       <path d="M3.5 25.1C10.3 13.8 20.9 7.6 32 8.7c4.5.4 8.7 2.2 12.4 5.4-4.1.5-7 2-8.8 4.3 3.8 2.7 6.2 6.1 7.1 10.1-4.4-1.3-8.5-1.6-12.1-.8-4 6.4-10 9.7-17.1 9.1-6.2-.5-10.1-3.4-11.7-8.6l1.7-3.1Z" fill="url(#leadHunterMark)" />
-      <path d="M20.4 35.9c-3.7 5.4-7.9 8.1-12.7 8 2.2-3.8 3.1-7.1 2.7-9.8M18.3 13.4 15 6l10.9 4.6" stroke="#c084fc" strokeWidth="2.1" strokeLinejoin="round" />
-      <path d="M38.2 19.7c-1.4 1.1-3.1 1.5-5.1 1.1" stroke="#f5d0fe" strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M20.4 35.9c-3.7 5.4-7.9 8.1-12.7 8 2.2-3.8 3.1-7.1 2.7-9.8M18.3 13.4 15 6l10.9 4.6" stroke="#70b9e0" strokeWidth="2.1" strokeLinejoin="round" />
+      <path d="M38.2 19.7c-1.4 1.1-3.1 1.5-5.1 1.1" stroke="#e5f3fd" strokeWidth="1.3" strokeLinecap="round" />
       <circle cx="34.8" cy="16.5" r="1.35" fill="#fff" />
     </svg>
   );
@@ -559,7 +559,7 @@ const card = "app-card rounded-2xl";
 const field =
   "w-full rounded-2xl border border-border bg-surface-2 px-4 py-3 text-sm text-fg outline-none placeholder:text-muted/70 focus:border-primary focus:ring-4 focus:ring-primary/10";
 const btnPrimary =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/20 bg-gradient-to-b from-[#303640] to-[#171b22] px-5 py-3 text-sm font-semibold text-white shadow-[0_8px_22px_-14px_rgba(15,23,42,.55)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_26px_-14px_rgba(15,23,42,.6)] active:translate-y-0 disabled:pointer-events-none disabled:opacity-55";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-primary/20 bg-gradient-to-b from-primary to-primary-deep px-5 py-3 text-sm font-semibold text-white shadow-[0_8px_18px_-12px_rgba(25,118,181,.3)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_24px_-12px_rgba(25,118,181,.35)] active:translate-y-0 disabled:pointer-events-none disabled:opacity-55";
 const btnGhost =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#d9dee5] bg-white/80 px-5 py-2.5 text-sm font-semibold text-[#303640] shadow-[0_2px_8px_rgba(15,23,42,.04)] backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-[#aeb6c2] hover:bg-white hover:shadow-[0_8px_18px_rgba(15,23,42,.08)] active:translate-y-0 disabled:pointer-events-none disabled:opacity-55";
 
@@ -1272,7 +1272,7 @@ export function LeadApp() {
   const [ticket, setTicket] = useState(1500);
   const [message, setMessage] = useState(DEFAULT_MSG);
   const [followMessage, setFollowMessage] = useState(DEFAULT_FOLLOW_MSG);
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [theme, setTheme] = useState<Theme>("light");
   const [deviceId, setDeviceId] = useState("");
   const [info, setInfo] = useState<AccessInfo | null>(null);
   const [cloudReady, setCloudReady] = useState(false);
@@ -2573,23 +2573,23 @@ export function LeadApp() {
             <div className="relative z-10 flex items-center gap-4">
               <BrandMark className="size-20 shrink-0 sm:size-24" />
               <div>
-                <p className="font-display text-4xl font-extrabold tracking-tight xl:text-5xl">Lead<span className="text-fuchsia-500">Hunter</span></p>
+                <p className="font-display text-4xl font-extrabold tracking-tight xl:text-5xl">Lead<span className="text-primary">Hunter</span></p>
                 <p className="mt-1 text-base font-medium text-white/65">Encontre. Conquiste. Venda.</p>
               </div>
             </div>
             <div className="relative z-10 mt-10 max-w-2xl">
-              <p className="inline-flex items-center gap-2 rounded-full border border-fuchsia-400/25 bg-fuchsia-500/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-fuchsia-200">
+              <p className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-primary-deep">
                 <Sparkles className="size-3.5" /> Plataforma inteligente de prospecção
               </p>
               <h2 className="mt-5 font-display text-4xl font-bold leading-[1.08] tracking-tight xl:text-5xl">
-                Transforme leads em clientes de forma <span className="text-fuchsia-400">inteligente.</span>
+                Transforme leads em clientes de forma <span className="text-primary">inteligente.</span>
               </h2>
               <p className="mt-4 max-w-lg text-base leading-7 text-white/65">
                 Encontre empresas, gerencie seu negócio e impulsione suas vendas em um só lugar.
               </p>
               <div className="mt-8 grid grid-cols-2 gap-3 xl:grid-cols-4">
                 {LOGIN_FEATURES.map(([Icon, title, detail]) => (
-                  <div key={title} className="login-feature rounded-2xl border border-fuchsia-500/20 bg-[#10091b]/75 p-3 text-center backdrop-blur">
+                  <div key={title} className="login-feature rounded-2xl border border-primary/15 bg-surface p-3 text-center backdrop-blur">
                     <Icon className="mx-auto size-7 text-fuchsia-400" />
                     <p className="mt-2 text-sm font-semibold text-white">{title}</p>
                     <p className="mt-1 text-xs leading-4 text-white/55">{detail}</p>
@@ -2597,9 +2597,9 @@ export function LeadApp() {
                 ))}
               </div>
             </div>
-            <div className="login-demo-card relative z-10 mt-8 max-w-lg rounded-2xl border border-fuchsia-500/25 p-4 shadow-xl backdrop-blur-xl">
+            <div className="login-demo-card relative z-10 mt-8 max-w-lg rounded-2xl border border-border p-4 shadow-xl backdrop-blur-xl">
               <div className="flex items-center gap-4">
-                <div className="flex size-11 items-center justify-center rounded-xl bg-fuchsia-500/15 text-fuchsia-300">
+                <div className="flex size-11 items-center justify-center rounded-xl bg-primary-soft text-primary">
                   <Building2 className="size-5" />
                 </div>
                 <div>
