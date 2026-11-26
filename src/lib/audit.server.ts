@@ -1,4 +1,7 @@
 import { lookup } from "node:dns/promises";
+import type { LookupFunction } from "node:dns";
+import { request as httpRequest, type IncomingMessage, type RequestOptions } from "node:http";
+import { request as httpsRequest } from "node:https";
 import { isIP } from "node:net";
 
 export type AuditItem = { ok: boolean; label: string; detail?: string };
@@ -72,49 +75,79 @@ function isPrivateIp(ip: string): boolean {
   );
 }
 
-async function assertPublic(raw: string) {
+async function assertPublic(raw: string): Promise<{ url: URL; address: string }> {
   const url = new URL(raw);
   if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error("protocolo");
   if (url.port && url.port !== "80" && url.port !== "443") throw new Error("porta");
   if (url.username || url.password) throw new Error("credenciais");
-  const host = url.hostname.replace(/^\[|\]$/g, "");
+  const host = url.hostname.replace(/^\\[|\\]$/g, "");
   if (isIP(host)) {
     if (isPrivateIp(host)) throw new Error("privado");
-    return url;
+    return { url, address: host };
   }
   const addresses = await lookup(host, { all: true });
   if (!addresses.length || addresses.some((entry) => isPrivateIp(entry.address))) throw new Error("privado");
-  return url;
+  // Fixar o IP validado evita que uma segunda resolução DNS aponte para um endereço interno.
+  return { url, address: addresses[0].address };
+}
+
+function requestPinned(url: URL, address: string): Promise<IncomingMessage> {
+  const family = isIP(address);
+  const pinnedLookup: LookupFunction = (_hostname, options, callback) => {
+    const wantsAll = typeof options === "object" && options !== null && "all" in options && options.all;
+    callback(null, wantsAll ? [{ address, family }] : address, family);
+  };
+  const options: RequestOptions = {
+    method: "GET",
+    lookup: pinnedLookup,
+    signal: AbortSignal.timeout(7000),
+    headers: {
+      "user-agent": "Mozilla/5.0 (compatible; LeadHunterAudit)",
+      "accept-language": "pt-BR,pt;q=0.9",
+      accept: "text/html",
+    },
+  };
+  return new Promise((resolve, reject) => {
+    const send = url.protocol === "https:" ? httpsRequest : httpRequest;
+    const request = send(url, options, resolve);
+    request.on("error", reject);
+    request.end();
+  });
 }
 
 async function fetchPage(raw: string, hops = 0): Promise<{ finalUrl: string; html: string; ms: number; status: number }> {
-  const url = await assertPublic(raw);
+  const { url, address } = await assertPublic(raw);
   const started = Date.now();
-  const response = await fetch(url.toString(), {
-    redirect: "manual",
-    signal: AbortSignal.timeout(7000),
-    headers: { "user-agent": "Mozilla/5.0 (compatible; LeadHunterAudit)", "accept-language": "pt-BR,pt;q=0.9", accept: "text/html" },
-  });
-  if (response.status >= 300 && response.status < 400) {
-    const location = response.headers.get("location");
+  const response = await requestPinned(url, address);
+  const status = response.statusCode || 0;
+  if (status >= 300 && status < 400) {
+    const location = response.headers.location;
+    response.resume();
     if (!location || hops >= 4) throw new Error("redirecionamentos");
     return fetchPage(new URL(location, url).toString(), hops + 1);
   }
-  const reader = response.body?.getReader();
-  const chunks: Uint8Array[] = [];
+  const chunks: Buffer[] = [];
   let received = 0;
-  while (reader) {
-    const { done, value } = await reader.read();
-    if (done || !value) break;
-    chunks.push(value);
-    received += value.length;
-    if (received > 400_000) {
-      await reader.cancel();
-      break;
+  let truncated = false;
+  try {
+    for await (const value of response) {
+      const chunk = Buffer.from(value);
+      const remaining = 400_000 - received;
+      if (remaining > 0) {
+        chunks.push(chunk.subarray(0, remaining));
+        received += Math.min(chunk.length, remaining);
+      }
+      if (chunk.length > remaining) {
+        truncated = true;
+        response.destroy();
+        break;
+      }
     }
+  } catch (error) {
+    if (!truncated) throw error;
   }
   const html = new TextDecoder("utf-8").decode(Buffer.concat(chunks));
-  return { finalUrl: url.toString(), html, ms: Date.now() - started, status: response.status };
+  return { finalUrl: url.toString(), html, ms: Date.now() - started, status };
 }
 
 export async function auditUrl(raw: string): Promise<AuditData> {
