@@ -1,38 +1,30 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-/** Diagnóstico rápido: abra /api/saude para ver se banco e variáveis estão certos. Não mostra segredos. */
+/** Readiness pública: confirma somente que o serviço e o banco respondem. */
 async function handle() {
-  const has = (name: string) => Boolean((process.env[name] || "").trim());
-  const out: Record<string, unknown> = {
-    banco: has("DATABASE_URL") || has("POSTGRES_URL") ? "neon (conexão encontrada)" : "SEM DATABASE_URL — conecte o Neon na Vercel",
-    variaveis: {
-      ADMIN_PASSWORD: has("ADMIN_PASSWORD"),
-      SESSION_SECRET: has("SESSION_SECRET"),
-      GOOGLE_PLACES_KEY: has("GOOGLE_PLACES_KEY"),
-      ABACATEPAY_API_KEY: has("ABACATEPAY_API_KEY"),
-      GOOGLE_CLIENT_ID: has("GOOGLE_CLIENT_ID"),
-      GOOGLE_CLIENT_SECRET: has("GOOGLE_CLIENT_SECRET"),
-      GEMINI_API_KEY: has("GEMINI_API_KEY"),
-      GOOGLE_API_KEY: has("GOOGLE_API_KEY"),
-      GEMINI_MODEL: has("GEMINI_MODEL"),
-      ANTHROPIC_API_KEY: has("ANTHROPIC_API_KEY"),
-      TELEGRAM_BOT_TOKEN: has("TELEGRAM_BOT_TOKEN"),
-      TELEGRAM_CHAT_ID: has("TELEGRAM_CHAT_ID"),
-      MERCADOPAGO_ACCESS_TOKEN: has("MERCADOPAGO_ACCESS_TOKEN"),
-    },
-  };
   try {
     const { getDb } = await import("@/lib/db-app.server");
     const sql = await getDb();
-    const keys = await sql.query<{ n: number }>("select count(*) as n from access_keys");
-    out.tabelas = "ok";
-    out.keysNoBanco = keys[0]?.n ?? 0;
+    await sql.query("select 1");
+    return new Response(JSON.stringify({ status: "ok" }), {
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-store",
+        "x-content-type-options": "nosniff",
+      },
+    });
   } catch (error) {
-    out.tabelas = `ERRO: ${String((error as Error)?.message || error).slice(0, 160)}`;
+    // A causa detalhada fica apenas nos logs do servidor.
+    console.error("[health-check]", error);
+    return new Response(JSON.stringify({ status: "indisponivel" }), {
+      status: 503,
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-store",
+        "x-content-type-options": "nosniff",
+      },
+    });
   }
-  return new Response(JSON.stringify(out, null, 2), {
-    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
-  });
 }
 
 export const Route = createFileRoute("/api/saude")({
