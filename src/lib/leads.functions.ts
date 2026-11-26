@@ -298,26 +298,7 @@ export const searchPlaces = createServerFn({ method: "POST" })
       return { ok: false, error: "Não consegui falar com o Google. Tente de novo." };
     }
 
-    // Resolve URLs only for visible search results; photo resource names can expire.
-    let photoIndex = 0;
-    const workers = Array.from({ length: Math.min(4, leads.length) }, async () => {
-      while (photoIndex < leads.length) {
-        const lead = leads[photoIndex++];
-        if (!lead.photoName) continue;
-        try {
-          const photoResponse = await fetch(
-            "https://places.googleapis.com/v1/" + lead.photoName + "/media?maxWidthPx=720&skipHttpRedirect=true&key=" + encodeURIComponent(placesKey),
-            { signal: AbortSignal.timeout(8_000) },
-          );
-          const photo = (await photoResponse.json().catch(() => null)) as { photoUri?: string } | null;
-          lead.photoUrl = photoResponse.ok ? photo?.photoUri || null : null;
-        } catch {
-          lead.photoUrl = null;
-        }
-        delete lead.photoName;
-      }
-    });
-    await Promise.all(workers);
+    // Photo names stay in memory for live search results only; Google does not allow caching them.
     return { ok: true, leads, scanned, withSite, asked: data.quantity, usage: { used, limit } };
   });
 
