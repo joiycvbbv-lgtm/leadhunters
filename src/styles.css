@@ -2110,3 +2110,32 @@ html[data-theme] .lead-app-shell [class~="text-primary"],
 html[data-theme] .lead-app-shell .text-accent { color: #2788d8 !important; }
 html[data-theme] .lead-app-shell [class*="bg-primary-soft"] { color: #176db7 !important; background: #e5f3ff !important; }
 html[data-theme] .lead-app-shell nav.fixed.inset-x-0.bottom-0 { background: rgba(255,255,255,.97) !important; border-color: #d9e8f4 !important; }
+
+
+/* Keep every interactive hover state in the LeadHunter blue palette. */
+html[data-theme] button:not(:disabled):hover,
+html[data-theme] [role="button"]:not([aria-disabled="true"]):hover,
+html[data-theme] a[role="button"]:hover {
+  color: #176db7 !important;
+  background: #eaf5ff !important;
+  background-image: none !important;
+  border-color: #a8d1ef !important;
+  box-shadow: 0 5px 14px rgba(39,136,216,.13) !important;
+  filter: none !important;
+}
+html[data-theme] button[class*="bg-primary"]:hover:not(:disabled),
+html[data-theme] button[class*="bg-gradient"]:hover:not(:disabled),
+html[data-theme] button[class*="bg-green"]:hover:not(:disabled),
+html[data-theme] button[class*="bg-emerald"]:hover:not(:disabled),
+html[data-theme] button[class*="from-primary"]:hover:not(:disabled),
+html[data-theme] button[type="submit"]:hover:not(:disabled),
+html[data-theme] a[role="button"][class*="bg-primary"]:hover,
+html[data-theme] a[role="button"][class*="bg-gradient"]:hover,
+html[data-theme] .dashboard-hero-action:first-child:hover {
+  color: #ffffff !important;
+  background: #176db7 !important;
+  background-image: none !important;
+  border-color: #176db7 !important;
+  box-shadow: 0 6px 16px rgba(39,136,216,.22) !important;
+  filter: none !important;
+}
