@@ -25,7 +25,7 @@ export const Route = createFileRoute("/api/place-photo")({
           segments[2] !== "photos" ||
           !segments[1] ||
           !segments[3] ||
-          !segments.slice(1).every((segment) => /^[A-Za-z0-9_-]+$/.test(segment))
+          !segments.slice(1).every((segment) => segment !== "." && segment !== ".." && /^[A-Za-z0-9._~=-]+$/.test(segment))
         ) {
           return imageResponse(400);
         }
