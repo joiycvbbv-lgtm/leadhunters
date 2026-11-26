@@ -128,6 +128,7 @@ async function fetchPage(raw: string, hops = 0): Promise<{ finalUrl: string; htm
   }
   const chunks: Buffer[] = [];
   let received = 0;
+  let truncated = false;
   try {
     for await (const value of response) {
       const chunk = Buffer.from(value);
@@ -137,12 +138,13 @@ async function fetchPage(raw: string, hops = 0): Promise<{ finalUrl: string; htm
         received += Math.min(chunk.length, remaining);
       }
       if (chunk.length > remaining) {
+        truncated = true;
         response.destroy();
         break;
       }
     }
   } catch (error) {
-    if (received <= 400_000) throw error;
+    if (!truncated) throw error;
   }
   const html = new TextDecoder("utf-8").decode(Buffer.concat(chunks));
   return { finalUrl: url.toString(), html, ms: Date.now() - started, status };
