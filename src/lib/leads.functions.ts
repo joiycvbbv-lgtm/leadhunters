@@ -298,7 +298,16 @@ export const searchPlaces = createServerFn({ method: "POST" })
       return { ok: false, error: "Não consegui falar com o Google. Tente de novo." };
     }
 
-    // Photo names stay in memory for live search results only; Google does not allow caching them.
+    // Photo names and media URLs are temporary; issue short-lived signed same-origin URLs for the live results.
+    const photoExpires = Date.now() + 30 * 60 * 1000;
+    const { signPlacePhoto } = await import("./place-photo-signature.server");
+    for (const lead of leads) {
+      if (!lead.photoName) continue;
+      const photoName = lead.photoName;
+      const signature = signPlacePhoto(photoName, photoExpires, placesKey);
+      lead.photoUrl = `/api/place-photo?name=${encodeURIComponent(photoName)}&expires=${photoExpires}&signature=${signature}`;
+      delete lead.photoName;
+    }
     return { ok: true, leads, scanned, withSite, asked: data.quantity, usage: { used, limit } };
   });
 
