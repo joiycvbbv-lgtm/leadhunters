@@ -20,12 +20,13 @@ export const Route = createFileRoute("/api/place-photo")({
         const signature = params.get("signature") || "";
         const segments = photoName.split("/");
         if (
+          photoName.length > 2048 ||
           segments.length !== 4 ||
           segments[0] !== "places" ||
           segments[2] !== "photos" ||
           !segments[1] ||
           !segments[3] ||
-          !segments.slice(1).every((segment) => segment !== "." && segment !== ".." && /^[A-Za-z0-9._~=-]+$/.test(segment))
+          !segments.slice(1).every((segment) => segment !== "." && segment !== ".." && !segment.includes("\\") && !/[\u0000-\u0020\u007f]/.test(segment))
         ) {
           return imageResponse(400);
         }
@@ -43,8 +44,9 @@ export const Route = createFileRoute("/api/place-photo")({
         }
 
         try {
+          const resourcePath = segments.map((segment) => encodeURIComponent(segment)).join("/");
           const upstream = await fetch(
-            `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=720`,
+            `https://places.googleapis.com/v1/${resourcePath}/media?maxWidthPx=720`,
             {
               headers: { "X-Goog-Api-Key": apiKey, Accept: "image/*" },
               signal: AbortSignal.timeout(10_000),
