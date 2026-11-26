@@ -33,7 +33,7 @@ export const Route = createFileRoute("/api/place-photo")({
         const apiKey = process.env.GOOGLE_PLACES_KEY?.trim();
         if (!apiKey) return imageResponse(503);
         const now = Date.now();
-        if (!Number.isFinite(expires) || expires <= now || expires > now + 31 * 60 * 1000) {
+        if (!Number.isFinite(expires) || expires <= now || expires > now + 25 * 60 * 60 * 1000) {
           return imageResponse(403);
         }
 
