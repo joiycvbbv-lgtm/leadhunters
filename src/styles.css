@@ -2000,3 +2000,113 @@ html[data-theme="dark"] .login-panel button:not([type="submit"]) { color: #31536
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+
+/* LeadHunter final white and blue palette */
+:root {
+  --lh-bg: #f5faff;
+  --lh-panel: #ffffff;
+  --lh-panel-strong: #ffffff;
+  --lh-border: #d9e8f4;
+  --lh-text: #18324a;
+  --lh-muted: #60788e;
+  --color-bg: #f5faff;
+  --color-surface: #ffffff;
+  --color-surface-2: #f2f8fd;
+  --color-fg: #18324a;
+  --color-muted: #60788e;
+  --color-primary: #2788d8;
+  --color-primary-deep: #176db7;
+  --color-primary-soft: #e5f3ff;
+  --color-primary-fg: #ffffff;
+  --color-accent: #328ed6;
+  --color-border: #d9e8f4;
+}
+html, body, html[data-theme] body {
+  background: #f5faff !important;
+  color: #18324a !important;
+}
+body { background-image: none !important; }
+html[data-theme] .lead-app-shell { background: #f5faff !important; color: #18324a !important; }
+html[data-theme] .lead-app-shell aside,
+html[data-theme] .lead-app-shell > header,
+html[data-theme] .lead-app-shell header.glass-panel,
+html[data-theme] .lead-app-shell .app-card,
+html[data-theme] .lead-app-shell .glass-panel,
+html[data-theme] .admin-app-shell .app-card,
+html[data-theme] .shop-app-shell .app-card {
+  color: #18324a !important;
+  background: #fff !important;
+  border-color: #d9e8f4 !important;
+  box-shadow: 0 8px 28px -24px rgba(31,91,139,.24) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html[data-theme] .lead-app-shell aside nav button[aria-current="page"] {
+  color: #176db7 !important; background: #e7f4ff !important; border-color: #cce6fa !important;
+}
+html[data-theme] .lead-app-shell aside nav button[aria-current="page"]::before { background: #2788d8 !important; }
+html[data-theme] .lead-app-shell .dashboard-hero {
+  color: #18324a !important;
+  background: linear-gradient(125deg, #f0f8ff 0%, #ffffff 56%, #e9f5ff 100%) !important;
+  border: 1px solid #d2e7f7 !important;
+  box-shadow: 0 18px 42px -30px rgba(34,111,173,.26) !important;
+}
+html[data-theme] .lead-app-shell .dashboard-hero h2,
+html[data-theme] .lead-app-shell .dashboard-hero p,
+html[data-theme] .lead-app-shell .dashboard-hero span { color: #18324a !important; }
+html[data-theme] .lead-app-shell .dashboard-hero > div:first-child p,
+html[data-theme] .lead-app-shell .dashboard-hero .text-white\/75,
+html[data-theme] .lead-app-shell .dashboard-hero .text-blue-100\/70,
+html[data-theme] .lead-app-shell .dashboard-hero .grid > div p { color: #60788e !important; }
+html[data-theme] .lead-app-shell .dashboard-hero > div:first-child span {
+  color: #176db7 !important; background: #e5f3ff !important; border-color: #cce6fa !important;
+}
+html[data-theme] .lead-app-shell .dashboard-hero .grid > div,
+html[data-theme] .lead-app-shell .dashboard-hero > div > div:last-child > div {
+  color: #18324a !important; background: #fff !important; border: 1px solid #d9e8f4 !important; box-shadow: 0 4px 14px rgba(36,103,157,.06) !important;
+}
+html[data-theme] .lead-app-shell .dashboard-hero-action,
+html[data-theme] .lead-app-shell .dashboard-hero-action:first-child {
+  color: #fff !important; background: #2788d8 !important; border: 1px solid #2788d8 !important; box-shadow: 0 5px 14px rgba(39,136,216,.18) !important;
+}
+html[data-theme] .lead-app-shell .dashboard-hero-action:not(:first-child) {
+  color: #176db7 !important; background: #fff !important; border: 1px solid #cfe3f3 !important; box-shadow: 0 3px 10px rgba(36,103,157,.06) !important;
+}
+html[data-theme] .lead-app-shell button,
+html[data-theme] .login-panel button,
+html[data-theme] .admin-app-shell button,
+html[data-theme] .shop-app-shell button {
+  border-color: #d2e3f1 !important; border-radius: 11px !important; color: #31536d !important; background: #fff !important;
+  box-shadow: 0 2px 5px rgba(31,91,139,.04) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+  transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease, transform .16s ease !important;
+}
+html[data-theme] .lead-app-shell button:hover:not(:disabled),
+html[data-theme] .login-panel button:hover:not(:disabled),
+html[data-theme] .admin-app-shell button:hover:not(:disabled),
+html[data-theme] .shop-app-shell button:hover:not(:disabled) {
+  color: #176db7 !important; background: #f0f8ff !important; border-color: #aed4f0 !important; box-shadow: 0 5px 12px rgba(31,91,139,.09) !important; transform: translateY(-1px);
+}
+html[data-theme] .lead-app-shell button[class*="bg-primary"],
+html[data-theme] .lead-app-shell button[class*="bg-gradient"],
+html[data-theme] .lead-app-shell button[class*="bg-black"],
+html[data-theme] .lead-app-shell button[class*="bg-blue-"],
+html[data-theme] .login-panel button[type="submit"],
+html[data-theme] .admin-app-shell button[class*="bg-primary"],
+html[data-theme] .admin-app-shell button[class*="bg-gradient"],
+html[data-theme] .shop-app-shell button[class*="bg-primary"],
+html[data-theme] .shop-app-shell button[class*="bg-gradient"] {
+  color: #fff !important; background: #2788d8 !important; border-color: #2788d8 !important; box-shadow: 0 5px 13px rgba(39,136,216,.18) !important;
+}
+html[data-theme] .lead-app-shell input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme] .lead-app-shell select,
+html[data-theme] .lead-app-shell textarea,
+html[data-theme] .login-panel input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme] .admin-app-shell input,
+html[data-theme] .admin-app-shell select,
+html[data-theme] .admin-app-shell textarea,
+html[data-theme] .shop-app-shell input { color: #203b54 !important; background: #fff !important; border-color: #d2e3f1 !important; }
+html[data-theme] .lead-app-shell [class~="text-primary"],
+html[data-theme] .lead-app-shell .text-accent { color: #2788d8 !important; }
+html[data-theme] .lead-app-shell [class*="bg-primary-soft"] { color: #176db7 !important; background: #e5f3ff !important; }
+html[data-theme] .lead-app-shell nav.fixed.inset-x-0.bottom-0 { background: rgba(255,255,255,.97) !important; border-color: #d9e8f4 !important; }
