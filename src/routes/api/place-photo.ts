@@ -14,7 +14,10 @@ export const Route = createFileRoute("/api/place-photo")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const photoName = new URL(request.url).searchParams.get("name") || "";
+        const params = new URL(request.url).searchParams;
+        const photoName = params.get("name") || "";
+        const expires = Number(params.get("expires"));
+        const signature = params.get("signature") || "";
         const segments = photoName.split("/");
         if (
           segments.length !== 4 ||
@@ -29,6 +32,15 @@ export const Route = createFileRoute("/api/place-photo")({
 
         const apiKey = process.env.GOOGLE_PLACES_KEY?.trim();
         if (!apiKey) return imageResponse(503);
+        const now = Date.now();
+        if (!Number.isFinite(expires) || expires <= now || expires > now + 31 * 60 * 1000) {
+          return imageResponse(403);
+        }
+
+        const { verifyPlacePhotoSignature } = await import("@/lib/place-photo-signature.server");
+        if (!verifyPlacePhotoSignature(photoName, expires, signature, apiKey)) {
+          return imageResponse(403);
+        }
 
         try {
           const upstream = await fetch(
