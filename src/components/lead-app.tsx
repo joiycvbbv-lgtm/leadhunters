@@ -3169,10 +3169,42 @@ export function LeadApp() {
       )}
 
       {tab === "buscar" && (
-        <section className="fade-up space-y-4">
-          <div className={`grid gap-3 p-4 sm:grid-cols-2 sm:p-5 ${card}`}>
+        <section className="fade-up space-y-5">
+          <div className="rounded-3xl border border-sky-200/80 bg-gradient-to-br from-white via-white to-sky-50 p-5 shadow-sm sm:p-6">
+            <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+              <div className="max-w-2xl">
+                <span className="inline-flex items-center gap-2 rounded-full bg-sky-100 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-sky-800">
+                  <Search className="size-3.5" /> Busca inteligente
+                </span>
+                <h2 className="mt-3 font-display text-2xl font-bold tracking-tight sm:text-3xl">Encontre empresas para abordar</h2>
+                <p className="mt-2 text-sm leading-relaxed text-muted sm:text-base">
+                  Escolha um segmento e uma região. O buscador organiza oportunidades com telefone, avaliações e sinais de presença online.
+                </p>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center lg:min-w-[360px]">
+                <div className="rounded-2xl border border-sky-100 bg-white/90 px-2 py-3">
+                  <strong className="block text-lg font-bold text-primary">60</strong>
+                  <span className="text-[11px] text-muted">máx. por busca</span>
+                </div>
+                <div className="rounded-2xl border border-sky-100 bg-white/90 px-2 py-3">
+                  <strong className="block text-lg font-bold text-primary">Google</strong>
+                  <span className="text-[11px] text-muted">fonte dos dados</span>
+                </div>
+                <div className="rounded-2xl border border-sky-100 bg-white/90 px-2 py-3">
+                  <strong className="block text-lg font-bold text-primary">Fotos</strong>
+                  <span className="text-[11px] text-muted">quando disponíveis</span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-5 grid gap-2 border-t border-sky-100 pt-4 sm:grid-cols-3">
+              <div className="flex items-center gap-2 text-sm text-slate-600"><span className="grid size-6 place-items-center rounded-full bg-primary text-xs font-bold text-white">1</span> Defina o segmento</div>
+              <div className="flex items-center gap-2 text-sm text-slate-600"><span className="grid size-6 place-items-center rounded-full bg-primary text-xs font-bold text-white">2</span> Escolha a região</div>
+              <div className="flex items-center gap-2 text-sm text-slate-600"><span className="grid size-6 place-items-center rounded-full bg-primary text-xs font-bold text-white">3</span> Revise e salve os leads</div>
+            </div>
+          </div>
+          <div className={`grid gap-4 p-4 sm:grid-cols-2 sm:p-5 ${card}`}>
             <label className="block text-sm sm:col-span-2">
-              <span className="mb-1.5 block font-semibold">País da prospecção</span>
+              <span className="mb-1.5 block font-semibold">País</span>
               <select
                 value={countryCode}
                 onChange={(event) => {
@@ -3428,6 +3460,33 @@ export function LeadApp() {
               <p className="mt-2 text-sm text-muted">
                 O Google entrega no máximo 60 lugares por busca. Só entram os que não têm site, e empresas fechadas de vez ficam de fora.
               </p>
+            </div>
+          </div>
+
+          <div className="grid gap-3 lg:grid-cols-[1.1fr_.9fr]">
+            <div className={`flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center sm:p-5 ${card}`}>
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">Território da busca</p>
+                <h3 className="mt-1 truncate font-display text-xl font-bold">{neighborhood.trim() ? `${neighborhood.trim()}, ` : ""}{city || "Escolha uma cidade"}</h3>
+                <p className="mt-1 text-sm text-muted">{niche || "Todos os segmentos"} · {countryCode}</p>
+              </div>
+              <a
+                href={city.trim() ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([niche, neighborhood, city].filter(Boolean).join(", "))}` : undefined}
+                target="_blank"
+                rel="noreferrer"
+                aria-disabled={!city.trim()}
+                className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-xl border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-800 transition hover:bg-sky-100 aria-disabled:pointer-events-none aria-disabled:opacity-50"
+              >
+                <MapPin className="mr-2 size-4" /> Explorar no mapa
+              </a>
+            </div>
+            <div className={`p-4 sm:p-5 ${card}`}>
+              <h3 className="font-semibold">Dicas para encontrar melhores leads</h3>
+              <ul className="mt-2 space-y-1.5 text-sm text-muted">
+                <li>Combine nicho, cidade e bairro para reduzir resultados genéricos.</li>
+                <li>Use “Sem site ou só redes sociais” para priorizar oportunidades de criação de site.</li>
+                <li>Ative “Busca ampla” quando a primeira busca trouxer poucos contatos.</li>
+              </ul>
             </div>
           </div>
 
