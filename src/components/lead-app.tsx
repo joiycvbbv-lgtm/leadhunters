@@ -2590,7 +2590,7 @@ export function LeadApp() {
               <div className="mt-8 grid grid-cols-2 gap-3 xl:grid-cols-4">
                 {LOGIN_FEATURES.map(([Icon, title, detail]) => (
                   <div key={title} className="login-feature rounded-2xl border border-primary/15 bg-surface p-3 text-center backdrop-blur">
-                    <Icon className="mx-auto size-7 text-fuchsia-400" />
+                    <Icon className="mx-auto size-7 text-primary" />
                     <p className="mt-2 text-sm font-semibold text-white">{title}</p>
                     <p className="mt-1 text-xs leading-4 text-white/55">{detail}</p>
                   </div>
