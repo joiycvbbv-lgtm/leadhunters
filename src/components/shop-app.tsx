@@ -7,7 +7,7 @@ const card = "glass-panel rounded-[1.5rem]";
 const field =
   "w-full rounded-xl border border-border bg-surface-2 px-3.5 py-3 text-fg outline-none placeholder:text-muted/70 focus:border-primary";
 const btnPrimary =
-  "inline-flex items-center justify-center gap-2 rounded-full border border-primary/40 bg-gradient-to-r from-primary via-primary to-primary-deep font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,.28),0_10px_24px_-14px_rgba(139,36,255,.42)] transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[inset_0_1px_0_rgba(255,255,255,.35),0_14px_28px_-14px_rgba(139,36,255,.5)] disabled:pointer-events-none disabled:opacity-60";
+  "inline-flex items-center justify-center gap-2 rounded-full border border-primary/40 bg-gradient-to-r from-primary via-primary to-primary-deep font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,.28),0_10px_24px_-14px_rgba(25,118,181,.24)] transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[inset_0_1px_0_rgba(255,255,255,.35),0_14px_28px_-14px_rgba(25,118,181,.3)] disabled:pointer-events-none disabled:opacity-60";
 const ORDER = "lh_order";
 
 const BENEFITS = [
@@ -250,7 +250,7 @@ export function ShopApp() {
                 }}
                 className={`group relative flex min-h-[190px] flex-col overflow-hidden rounded-[1.5rem] border p-4 text-left transition duration-200 hover:-translate-y-1 ${
                   planId === item.id
-                    ? "border-primary bg-gradient-to-br from-[#281343] via-[#1b102d] to-[#120b1d] text-white shadow-[0_12px_32px_-18px_rgba(139,36,255,.5)] ring-2 ring-primary/40"
+                    ? "border-primary bg-gradient-to-br from-[#eaf6fd] via-[#ffffff] to-[#f1f8fd] text-[#17324d] shadow-[0_12px_30px_-20px_rgba(25,118,181,.28)] ring-2 ring-primary/25"
                     : "border-border bg-surface text-fg shadow-[0_8px_24px_-18px_rgba(0,0,0,.6)] hover:border-primary hover:bg-surface-2"
                 }`}
               >
@@ -261,7 +261,7 @@ export function ShopApp() {
                 )}
                 <div className="flex items-center justify-between gap-2 pr-1">
                   <p className="font-semibold">{item.name}</p>
-                  <span className={`size-2 rounded-full ${planId === item.id ? "bg-primary shadow-[0_0_0_4px_rgba(139,36,255,.25)]" : "bg-primary-soft"}`} />
+                  <span className={`size-2 rounded-full ${planId === item.id ? "bg-primary shadow-[0_0_0_4px_rgba(25,118,181,.14)]" : "bg-primary-soft"}`} />
                 </div>
                 <p className="mt-4 font-display text-[1.8rem] font-semibold tracking-tight">{brl(item.priceCents)}</p>
                 <p className="mt-1 text-xs text-muted">{item.days === null ? "pagamento único · acesso vitalício" : `acesso por ${item.days} dias`}</p>
