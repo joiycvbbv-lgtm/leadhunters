@@ -13,15 +13,48 @@ export type AuditData = {
 
 function isPrivateIp(ip: string): boolean {
   if (isIP(ip) === 6) {
-    const lower = ip.toLowerCase();
-    if (lower === "::1" || lower === "::") return true;
-    if (lower.startsWith("fc") || lower.startsWith("fd") || lower.startsWith("fe8") || lower.startsWith("fe9") || lower.startsWith("fea") || lower.startsWith("feb")) return true;
-    const mapped = lower.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-    return mapped ? isPrivateIp(mapped[1]) : false;
+    const lower = ip.toLowerCase().split("%", 1)[0] || "";
+    let normalized = lower;
+    const ipv4Tail = lower.match(/(\d+\.\d+\.\d+\.\d+)$/)?.[1];
+    if (ipv4Tail) {
+      if (isIP(ipv4Tail) !== 4) return true;
+      const octets = ipv4Tail.split(".").map(Number);
+      const high = (octets[0] << 8) | octets[1];
+      const low = (octets[2] << 8) | octets[3];
+      normalized = lower.slice(0, -ipv4Tail.length) + high.toString(16) + ":" + low.toString(16);
+    }
+
+    const halves = normalized.split("::");
+    if (halves.length > 2) return true;
+    const left = halves[0] ? halves[0].split(":") : [];
+    const right = halves[1] ? halves[1].split(":") : [];
+    const zeroCount = 8 - left.length - right.length;
+    if (zeroCount < 0 || (halves.length === 1 && zeroCount !== 0)) return true;
+    const words = [...left, ...Array(zeroCount).fill("0"), ...right].map((part) => Number.parseInt(part || "0", 16));
+    if (words.length !== 8 || words.some((word) => !Number.isFinite(word) || word < 0 || word > 0xffff)) return true;
+
+    if (words.every((word) => word === 0) || (words.slice(0, 7).every((word) => word === 0) && words[7] === 1)) return true;
+    if ((words[0] & 0xfe00) === 0xfc00) return true; // unique-local
+    if ((words[0] & 0xffc0) === 0xfe80) return true; // link-local
+    if ((words[0] & 0xff00) === 0xff00) return true; // multicast
+    if (words[0] === 0x2001 && words[1] === 0x0db8) return true; // documentation range
+    if (words[0] === 0x2001 && words[1] === 0) return true; // Teredo transition range
+
+    const embeddedIpv4 =
+      words.slice(0, 5).every((word) => word === 0) && words[5] === 0xffff
+        ? [words[6] >> 8, words[6] & 0xff, words[7] >> 8, words[7] & 0xff].join(".")
+        : words.slice(0, 6).every((word) => word === 0)
+          ? [words[6] >> 8, words[6] & 0xff, words[7] >> 8, words[7] & 0xff].join(".")
+          : words[0] === 0x2002
+            ? [words[1] >> 8, words[1] & 0xff, words[2] >> 8, words[2] & 0xff].join(".")
+            : words[0] === 0x0064 && words[1] === 0xff9b && words.slice(2, 6).every((word) => word === 0)
+              ? [words[6] >> 8, words[6] & 0xff, words[7] >> 8, words[7] & 0xff].join(".")
+              : null;
+    return embeddedIpv4 ? isPrivateIp(embeddedIpv4) : false;
   }
   const p = ip.split(".").map(Number);
-  if (p.length !== 4 || p.some((n) => Number.isNaN(n))) return true;
-  const [a, b] = p;
+  if (p.length !== 4 || p.some((n) => Number.isNaN(n) || n < 0 || n > 255)) return true;
+  const [a, b, c] = p;
   return (
     a === 0 ||
     a === 10 ||
@@ -30,6 +63,11 @@ function isPrivateIp(ip: string): boolean {
     (a === 169 && b === 254) ||
     (a === 172 && b >= 16 && b <= 31) ||
     (a === 192 && b === 168) ||
+    (a === 192 && b === 0 && c === 0) ||
+    (a === 192 && b === 0 && c === 2) ||
+    (a === 192 && b === 88 && c === 99) ||
+    (a === 198 && (b === 18 || b === 19)) ||
+    (a === 203 && b === 0 && c === 113) ||
     a >= 224
   );
 }
