@@ -14,6 +14,19 @@ export type OrderView = {
 };
 export type ShopFail = { ok: false; error: string };
 
+/** Usa somente o domínio definido no servidor para callbacks de pagamento. */
+function configuredAppOrigin() {
+  const configured = process.env.APP_URL?.trim() || (process.env.VERCEL_URL?.trim() ? `https://${process.env.VERCEL_URL.trim()}` : "");
+  try {
+    const url = new URL(configured);
+    if (url.username || url.password) return "";
+    if (url.protocol !== "https:" && !(process.env.NODE_ENV !== "production" && url.hostname === "localhost")) return "";
+    return url.origin;
+  } catch {
+    return "";
+  }
+}
+
 export const createPix = createServerFn({ method: "POST" })
   .validator((data: { plan: string; name: string; email: string; whatsapp: string; origin?: string; coupon?: string }) => ({
     plan: String(data?.plan || ""),
@@ -65,7 +78,8 @@ export const createPix = createServerFn({ method: "POST" })
       [orderId, plan.id, amountCents, data.name, data.email, data.whatsapp, couponCode],
     );
 
-    const notificationUrl = /^https:\/\/[^\s/]+$/.test(data.origin) ? `${data.origin}/api/mp-webhook` : undefined;
+    const serverOrigin = configuredAppOrigin();
+    const notificationUrl = serverOrigin ? `${serverOrigin}/api/mp-webhook` : undefined;
     const pix = await createPixCharge({
       orderId,
       amountCents,

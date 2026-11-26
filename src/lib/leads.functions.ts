@@ -299,7 +299,7 @@ export const searchPlaces = createServerFn({ method: "POST" })
     }
 
     // Photo names and media URLs are temporary; issue short-lived signed same-origin URLs for the live results.
-    const photoExpires = Date.now() + 30 * 60 * 1000;
+    const photoExpires = Date.now() + 24 * 60 * 60 * 1000;
     const { signPlacePhoto } = await import("./place-photo-signature.server");
     for (const lead of leads) {
       if (!lead.photoName) continue;
