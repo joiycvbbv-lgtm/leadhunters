@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="LeadHunter">
-  <defs><linearGradient id="purple" x1="8" y1="12" x2="55" y2="54" gradientUnits="userSpaceOnUse"><stop stop-color="#d946ef"/><stop offset=".55" stop-color="#9333ea"/><stop offset="1" stop-color="#6d28d9"/></linearGradient></defs>
-  <rect width="64" height="64" rx="18" fill="#090612"/>
-  <path d="M7 33c8-13 20-20 33-18 6 1 11 3 17 8-5 1-8 2-11 5 4 3 7 7 8 12-6-2-11-2-15-1-5 7-12 10-20 8-7-2-11-5-13-11L7 33Z" fill="url(#purple)"/>
-  <path d="M28 45c-4 7-9 11-16 10 3-4 4-8 3-12M22 20l-4-8 12 6" fill="#a855f7"/>
-  <circle cx="47" cy="27" r="2" fill="#fff"/>
-  <path d="M48 31c-2 1-4 1-6 0" fill="none" stroke="#f5d0fe" stroke-width="1.7" stroke-linecap="round"/>
+  <defs><linearGradient id="blue" x1="8" y1="12" x2="55" y2="54" gradientUnits="userSpaceOnUse"><stop stop-color="#65bde8"/><stop offset=".55" stop-color="#258bc8"/><stop offset="1" stop-color="#0d5f96"/></linearGradient></defs>
+  <rect width="64" height="64" rx="18" fill="#ffffff"/>
+  <path d="M7 33c8-13 20-20 33-18 6 1 11 3 17 8-5 1-8 2-11 5 4 3 7 7 8 12-6-2-11-2-15-1-5 7-12 10-20 8-7-2-11-5-13-11L7 33Z" fill="url(#blue)"/>
+  <path d="M28 45c-4 7-9 11-16 10 3-4 4-8 3-12M22 20l-4-8 12 6" fill="#258bc8"/>
+  <circle cx="47" cy="27" r="2" fill="#ffffff"/>
+  <path d="M48 31c-2 1-4 1-6 0" fill="none" stroke="#e5f3fd" stroke-width="1.7" stroke-linecap="round"/>
 </svg>
