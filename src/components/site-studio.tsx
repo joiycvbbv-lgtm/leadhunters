@@ -185,6 +185,7 @@ function initialSite(lead: SavedLead): SiteData {
     kind,
     design: preset.design,
     color: preset.color,
+    purpose: "landing",
   };
 }
 
@@ -269,6 +270,7 @@ export function SiteStudio({
 
   function chooseSitePurpose(purpose: "cardapio" | "landing" | "catalogo" | "agendamento", label: string) {
     setSitePurpose(purpose);
+    patch({ purpose });
     setView(initialPane === "prompt" ? "prompt" : "site");
     setSitePrompt("Crie um(a) " + label + " profissional para " + lead.name + ". Use apenas dados confirmados, sem inventar preços, serviços ou horários.");
   }
@@ -277,6 +279,7 @@ export function SiteStudio({
     return {
       name: data.name,
       kindLabel: KIND_LABELS[data.kind],
+      purpose: data.purpose,
       category: data.category,
       city: data.city,
       address: data.address,
@@ -540,13 +543,13 @@ export function SiteStudio({
                 <Sparkles className="size-5 text-primary" />
                 <h3 className="font-semibold">Criador de sites com IA</h3>
               </div>
-              <p className="text-sm text-muted">Escreva como você imagina o site. A IA interpreta seu briefing, cria os textos, escolhe a direção visual e monta uma prévia responsiva para você revisar antes de entregar ao cliente.</p>
+              <p className="text-sm text-muted">Descreva a marca e o objetivo. A IA prepara textos com base nos dados informados; o formato escolhido define a estrutura da página. Revise a prévia, fotos, preços e contatos antes de publicar.</p>
               <textarea
                 value={sitePrompt}
                 onChange={(event) => setSitePrompt(event.target.value.slice(0, 2500))}
                 rows={4}
                 maxLength={2500}
-                placeholder="Ex.: Crie um site premium para uma sorveteria em Belo Horizonte. Quero uma identidade visual própria, cores inspiradas nos sabores, uma capa marcante, cardápio organizado, localização, botão de WhatsApp bem visível e layout impecável no celular. Não use frases genéricas nem invente preços, produtos ou informações."
+                placeholder="Ex.: Visual leve em azul e creme, fotos grandes dos produtos, cardápio fácil de ler no celular e pedido direto pelo WhatsApp. Não invente preços, produtos ou informações."
                 className={field}
               />
               <div className="flex flex-wrap items-center justify-between gap-2">

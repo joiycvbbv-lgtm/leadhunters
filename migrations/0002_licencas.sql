@@ -6,6 +6,7 @@ create table if not exists access_keys (
   key_hash text not null unique,
   key_plain text,
   kind text not null default 'full',
+  plan_id text not null default 'pro',
   status text not null default 'ativa',
   buyer text not null default '',
   note text not null default '',

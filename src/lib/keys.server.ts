@@ -107,7 +107,8 @@ export function checkAdminPassword(password: string) {
 /* ---------- acesso por key (banco de dados) ---------- */
 
 export type AccessInfo = {
-  kind: "full" | "test";
+  kind: "full" | "test" | "free";
+  planId: string;
   buyer: string;
   expiresAt: string | null;
   dailyLimit: number;
@@ -121,6 +122,7 @@ export type AccessResult =
 type KeyRow = {
   id: number;
   kind: string;
+  plan_id: string;
   status: string;
   buyer: string;
   daily_limit: number;
@@ -154,7 +156,7 @@ export async function checkAccess(rawKey: string, deviceId: string, bind: boolea
   if (isSessionToken(rawKey) ? !sessionKeyId : key.length !== 18) return { ok: false, code: "KEY_INVALIDA" };
 
   const sql = await getSql();
-  const columns = `id, kind, status, buyer, daily_limit, max_devices, valid_days, valid_minutes,
+  const columns = `id, kind, plan_id, status, buyer, daily_limit, max_devices, valid_days, valid_minutes,
             activated_at::text as activated_at, to_char(expires_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as expires_at`;
   const rows = sessionKeyId
     ? await sql.query<KeyRow>(`select ${columns} from access_keys where id = $1`, [sessionKeyId])
@@ -205,7 +207,8 @@ export async function checkAccess(rawKey: string, deviceId: string, bind: boolea
     ok: true,
     keyId: row.id,
     info: {
-      kind: row.kind === "test" ? "test" : "full",
+      kind: row.kind === "test" ? "test" : row.kind === "free" ? "free" : "full",
+      planId: row.plan_id || (row.kind === "free" ? "free" : "pro"),
       buyer: row.buyer,
       expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
       dailyLimit: row.daily_limit,

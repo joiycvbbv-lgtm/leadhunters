@@ -19,6 +19,8 @@ export type Kind =
 
 export type DesignId = "editorial" | "urbano" | "limpo" | "vitrine";
 
+export type SitePurpose = "cardapio" | "landing" | "catalogo" | "agendamento";
+
 export type SiteItem = { name: string; desc: string; price: string };
 
 export type SiteData = {
@@ -42,6 +44,7 @@ export type SiteData = {
   kind: Kind;
   design: DesignId;
   color: string;
+  purpose: SitePurpose;
 };
 
 export const EMPTY_SITE: SiteData = {
@@ -65,6 +68,7 @@ export const EMPTY_SITE: SiteData = {
   kind: "generico",
   design: "limpo",
   color: "#1d6fe0",
+  purpose: "landing",
 };
 
 /* ---------------- Tipo de negócio ---------------- */
@@ -218,6 +222,7 @@ export function sanitizeSite(raw: Partial<SiteData>): SiteData {
     kind,
     design,
     color,
+    purpose: (["cardapio", "landing", "catalogo", "agendamento"] as const).includes(raw.purpose as SitePurpose) ? raw.purpose as SitePurpose : "landing",
   };
 }
 
@@ -274,7 +279,14 @@ export function buildSite(input: SiteData): string {
   const cityShort = d.city.split(",")[0].trim();
   const category = d.category || KIND_LABELS[d.kind].split(" / ")[0];
   const digits = waNumber(d.phone);
-  const wa = digits ? `https://wa.me/${digits}?text=${encodeURIComponent(preset.wa)}` : "";
+  const purposeCopy: Record<SitePurpose, { cta: string; message: string; itemLabel: string }> = {
+    cardapio: { cta: "Fazer pedido pelo WhatsApp", message: "Olá! Vi o cardápio e gostaria de fazer um pedido.", itemLabel: "Cardápio" },
+    landing: { cta: preset.cta, message: preset.wa, itemLabel: preset.itemsTitle },
+    catalogo: { cta: "Consultar disponibilidade", message: "Olá! Vi o catálogo e gostaria de saber mais.", itemLabel: "Produtos e serviços" },
+    agendamento: { cta: "Agendar pelo WhatsApp", message: "Olá! Vi o site e gostaria de agendar um horário.", itemLabel: "Serviços" },
+  };
+  const purpose = purposeCopy[d.purpose];
+  const wa = digits ? `https://wa.me/${digits}?text=${encodeURIComponent(purpose.message)}` : "";
   const ctaHref = wa || "#contato";
   const hasPhotos = d.photos.length > 0;
   const rating = d.rating > 0 && d.showRating;
@@ -297,7 +309,7 @@ export function buildSite(input: SiteData): string {
       </form>`
     : "";
   const sections: [string, string][] = [["sobre", "Sobre"]];
-  if (d.items.length) sections.push(["itens", preset.itemsTitle]);
+  if (d.items.length) sections.push(["itens", purpose.itemLabel]);
   if (hasPhotos && d.photos.length > 1) sections.push(["galeria", "Fotos"]);
   sections.push(["contato", "Contato"]);
 
@@ -335,8 +347,8 @@ export function buildSite(input: SiteData): string {
     .join("");
 
   const heroActions = `<div class="actions">${
-    wa ? `<a class="btn" href="${wa}" target="_blank" rel="noopener">${ICON.wa}<span>${esc(preset.cta)}</span></a>` : ""
-  }${d.items.length ? `<a class="btn ghost" href="#itens">${esc(preset.itemsTitle)}${ICON.arrow}</a>` : `<a class="btn ghost" href="#contato">Como chegar${ICON.arrow}</a>`}</div>`;
+    wa ? `<a class="btn" href="${wa}" target="_blank" rel="noopener">${ICON.wa}<span>${esc(purpose.cta)}</span></a>` : ""
+  }${d.items.length ? `<a class="btn ghost" href="#itens">${esc(purpose.itemLabel)}${ICON.arrow}</a>` : `<a class="btn ghost" href="#contato">Como chegar${ICON.arrow}</a>`}</div>`;
 
   const facts = `<aside class="facts">
 ${d.address ? `<p>${ICON.pin}<span>${esc(d.address)}</span></p>` : ""}
@@ -365,12 +377,12 @@ ${hours.length ? `<p>${ICON.clock}<span data-today>${esc(hours[0] ?? "")}</span>
   }</div></div></section>`;
 
   const items = d.items.length
-    ? `<section class="sec alt" id="itens"><div class="wrap"><p class="eyebrow">${esc(preset.itemsLabel)}</p><h2>${esc(preset.itemsTitle)}</h2><ul class="items">${d.items
+    ? `<section class="sec alt" id="itens"><div class="wrap"><p class="eyebrow">${esc(purpose.itemLabel)}</p><h2>${esc(purpose.itemLabel)}</h2><ul class="items">${d.items
         .map(
           (item) =>
             `<li><div class="it-top"><h3>${esc(item.name)}</h3><span class="dots"></span>${item.price ? `<strong>${esc(item.price)}</strong>` : ""}</div>${item.desc ? `<p>${esc(item.desc)}</p>` : ""}</li>`,
         )
-        .join("")}</ul>${wa ? `<p class="after"><a class="btn" href="${wa}" target="_blank" rel="noopener">${ICON.wa}<span>${esc(preset.cta)}</span></a></p>` : ""}</div></section>`
+        .join("")}</ul>${wa ? `<p class="after"><a class="btn" href="${wa}" target="_blank" rel="noopener">${ICON.wa}<span>${esc(purpose.cta)}</span></a></p>` : ""}</div></section>`
     : "";
 
   const gallery =
@@ -386,7 +398,7 @@ ${d.address ? `<p>${ICON.pin}<span>${esc(d.address)}</span></p>` : ""}
 ${d.phone ? `<p>${ICON.phone}<a href="tel:+${digits}">${esc(formatPhone(d.phone))}</a></p>` : ""}
 </div>
 ${hours.length ? `<ul class="hours">${hours.map((line, i) => `<li data-day="${i}">${esc(line)}</li>`).join("")}</ul>` : ""}
-<p class="links">${wa ? `<a class="btn" href="${wa}" target="_blank" rel="noopener">${ICON.wa}<span>${esc(preset.cta)}</span></a>` : ""}${d.mapsUrl ? `<a class="btn ghost" href="${d.mapsUrl}" target="_blank" rel="noopener">Abrir no Google Maps</a>` : ""}${d.instagram ? `<a class="btn ghost" href="${d.instagram}" target="_blank" rel="noopener">Instagram</a>` : ""}</p>${whatsappForm}</div>
+<p class="links">${wa ? `<a class="btn" href="${wa}" target="_blank" rel="noopener">${ICON.wa}<span>${esc(purpose.cta)}</span></a>` : ""}${d.mapsUrl ? `<a class="btn ghost" href="${d.mapsUrl}" target="_blank" rel="noopener">Abrir no Google Maps</a>` : ""}${d.instagram ? `<a class="btn ghost" href="${d.instagram}" target="_blank" rel="noopener">Instagram</a>` : ""}</p>${whatsappForm}</div>
 <div class="map"><iframe loading="lazy" title="Mapa" src="https://www.google.com/maps?q=${mapQuery}&output=embed"></iframe></div></div></section>`;
 
   const footer = `<footer><div class="wrap"><span>${name}</span><span>${d.address ? esc(d.address) : ""}</span></div></footer>`;
@@ -449,6 +461,62 @@ ${d.design === "editorial" ? `.hero h1{font-weight:500;letter-spacing:-.035em}.h
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}.hero-copy>*{animation:rise .7s both}.hero-copy>*:nth-child(2){animation-delay:.08s}.hero-copy>*:nth-child(3){animation-delay:.16s}.hero-copy>*:nth-child(4){animation-delay:.24s}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto!important}}
 
+/* Direção visual refinada: hierarquia consistente, cartões legíveis e foco na ação. */
+body{background:#fbfcfe;color:#172334;line-height:1.68}
+.top{background:rgba(255,255,255,.94);border-color:#e6ebf2;box-shadow:0 4px 24px rgba(24,44,72,.04)}
+.top .wrap{height:76px}
+.top nav{font-size:14px;font-weight:600;gap:clamp(14px,2.4vw,30px)}
+.brand{font-size:20px;color:#14253b}
+.hero.type{background:radial-gradient(ellipse at 88% 8%,color-mix(in srgb,var(--accent) 15%,white),transparent 38%),linear-gradient(135deg,#fff 4%,#f5f8fc 100%);border-bottom:1px solid #e5ebf3}
+.hero.type:after{font-size:clamp(70px,13vw,164px);font-weight:800;letter-spacing:-.08em;color:color-mix(in srgb,var(--accent) 8%,transparent);opacity:1}
+.hero.type .hero-in{gap:clamp(28px,6vw,80px);padding-block:clamp(76px,11vw,132px)}
+.hero h1{max-width:12ch;font-size:clamp(44px,7vw,88px);letter-spacing:-.055em;line-height:.98}
+.hero .meta{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+.hero .meta>span,.chip{border-radius:999px;padding:7px 12px;background:#fff;border:1px solid #e4eaf2;color:#52647a;font-size:13px;font-weight:600}
+.hero .lead{max-width:56ch;font-size:clamp(18px,2vw,22px);line-height:1.55;color:#52647a}
+.hero.type .facts{border:1px solid #e5ebf2;border-left:3px solid var(--accent);border-radius:20px;background:#fff;box-shadow:0 20px 55px rgba(31,54,82,.08)}
+.hero.photo .hero-img{object-position:center 48%}
+.hero.photo .shade{background:linear-gradient(90deg,rgba(9,19,32,.78),rgba(9,19,32,.2) 80%),linear-gradient(0deg,rgba(9,19,32,.42),transparent 72%)}
+.actions{gap:12px}
+.btn{border-radius:999px!important;padding:14px 22px;box-shadow:0 8px 22px -12px color-mix(in srgb,var(--accent) 70%,transparent);font-weight:700}
+.btn.ghost{background:#fff;color:#26374c;border-color:#dce4ed}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 28px -12px color-mix(in srgb,var(--accent) 75%,transparent)}
+.sec{padding-block:clamp(64px,9vw,112px)}
+.sec.alt{background:linear-gradient(180deg,#f5f8fc,#f9fbfd);border-block:1px solid #eaf0f6}
+.eyebrow{color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.sec h2{font-size:clamp(34px,5vw,54px);letter-spacing:-.045em;line-height:1.05;margin-top:10px;max-width:15ch}
+.two{gap:clamp(28px,6vw,88px)}
+.prose{padding:clamp(22px,3vw,34px);border:1px solid #e6ecf3;border-radius:24px;background:#fff;box-shadow:0 18px 48px rgba(31,54,82,.055);color:#52647a}
+.prose p+p{margin-top:14px}
+.hl{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:24px}
+.hl li{padding:14px;border:1px solid #e8edf3;border-radius:15px;background:#f9fbfd;color:#24354a;font-weight:600}
+.hl li span{display:block;color:var(--accent);font-size:11px;letter-spacing:.12em;margin-bottom:7px}
+.items{gap:14px}
+.items li{padding:22px;border:1px solid #e4eaf1;border-radius:20px;background:#fff;box-shadow:0 12px 30px rgba(31,54,82,.045)}
+.items h3{font-size:20px;letter-spacing:-.02em}
+.items li p{color:#69798c;margin-top:8px}
+.items strong{color:var(--accent);font-size:17px}
+.gal{gap:14px}
+.gal img{border-radius:22px}
+.info p,.facts p{color:#506176}
+.map{overflow:hidden;border:1px solid #e3eaf2;border-radius:24px;box-shadow:0 16px 44px rgba(31,54,82,.08)}
+.map iframe{border:0;width:100%;min-height:420px}
+footer{border-top:1px solid #e6ebf2;background:#fff;color:#65758a}
+body[data-purpose="cardapio"] .items li{border-radius:16px}
+body[data-purpose="catalogo"] .items{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+body[data-purpose="agendamento"] .hero.type{background:radial-gradient(ellipse at 90% 8%,color-mix(in srgb,var(--accent) 18%,white),transparent 40%),linear-gradient(135deg,#fff,#f2f7fb)}
+@media(max-width:820px){.hero.type .hero-in{gap:26px}.sec h2{max-width:none}.map iframe{min-height:320px}}
+@media(max-width:560px){.top .wrap{height:64px}.hero h1{font-size:clamp(42px,13vw,64px)}.hero.type .hero-in{padding-block:64px}.hero .meta>span{font-size:12px}.actions .btn{min-height:52px;padding:13px 15px}.sec{padding-block:58px}.prose{padding:20px;border-radius:18px}.items li{padding:18px}.map iframe{min-height:280px}}
+
+html[data-mode="dark"] body{background:#101827;color:#e8eef7}
+html[data-mode="dark"] .top,html[data-mode="dark"] footer{background:rgba(16,24,39,.96);color:#d0d9e5;border-color:#26364b}
+html[data-mode="dark"] .brand,html[data-mode="dark"] .top nav,html[data-mode="dark"] .sec h2{color:#e8eef7}
+html[data-mode="dark"] .hero.type{background:radial-gradient(ellipse at 88% 8%,color-mix(in srgb,var(--accent) 18%,#101827),transparent 38%),linear-gradient(135deg,#111c2d,#172338);border-color:#26364b}
+html[data-mode="dark"] .hero.type .facts,html[data-mode="dark"] .prose,html[data-mode="dark"] .items li,html[data-mode="dark"] .privacy-details{background:#172338;border-color:#2a3a50;color:#d0d9e5}
+html[data-mode="dark"] .hero .meta>span,html[data-mode="dark"] .chip,html[data-mode="dark"] .btn.ghost{background:#172338;border-color:#34455d;color:#e8eef7}
+html[data-mode="dark"] .sec.alt{background:#131f31;border-color:#26364b}
+html[data-mode="dark"] .hl li{background:#1b2940;border-color:#2a3a50;color:#e8eef7}
+html[data-mode="dark"] .items li p,html[data-mode="dark"] .prose,html[data-mode="dark"] .info p{color:#bfcbda}
 .privacy-note{position:fixed;z-index:60;left:20px;right:20px;bottom:20px;max-width:600px;margin-inline:auto;display:flex;align-items:center;gap:16px;padding:16px 18px;border:1px solid color-mix(in srgb,var(--accent) 32%,var(--line));border-radius:20px;background:color-mix(in srgb,var(--card) 78%,transparent);color:var(--fg);box-shadow:0 16px 50px rgba(0,0,0,.2);backdrop-filter:blur(22px) saturate(1.3)}
 .privacy-note[hidden]{display:none}.privacy-note p{font-size:13px;color:var(--muted);line-height:1.45}.privacy-note button{flex:none;border:0;border-radius:999px;padding:10px 15px;background:var(--accent);color:var(--accent-fg);font:600 13px var(--body)}
 .privacy-details{width:min(1120px,100% - 40px);margin:24px auto;padding:16px 18px;border:1px solid var(--line);border-radius:18px;background:var(--card);color:var(--muted);font-size:14px}
@@ -488,8 +556,8 @@ if(m&&o){var n=new Date(),a=+m[1]*60+ +m[2],b=+m[3]*60+ +m[4],c=n.getHours()*60+
 <script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>
 <style>${css}</style>
 </head>
-<body>
-<div class="top"><div class="wrap">${logo}<nav>${nav}</nav><button class="theme-toggle" type="button" id="theme-toggle" aria-label="Alternar tema claro e escuro">◐ Tema</button>${wa ? `<a class="btn" href="${wa}" target="_blank" rel="noopener">${esc(preset.cta)}</a>` : ""}</div></div>
+<body data-purpose="${d.purpose}" class="site-${d.kind} design-${d.design}">
+<div class="top"><div class="wrap">${logo}<nav>${nav}</nav><button class="theme-toggle" type="button" id="theme-toggle" aria-label="Alternar tema claro e escuro">◐ Tema</button>${wa ? `<a class="btn" href="${wa}" target="_blank" rel="noopener">${esc(purpose.cta)}</a>` : ""}</div></div>
 ${hero}
 ${about}
 ${items}
@@ -498,7 +566,7 @@ ${contact}
 ${footer}
 ${privacyNotice}
 <!--LH_METRICS-->
-${wa ? `<a class="wa" href="${wa}" target="_blank" rel="noopener" aria-label="${esc(preset.cta)}">${ICON.wa}</a>` : ""}
+${wa ? `<a class="wa" href="${wa}" target="_blank" rel="noopener" aria-label="${esc(purpose.cta)}">${ICON.wa}</a>` : ""}
 <!--LH_BAR-->
 <script>${script}</script>
 </body>

@@ -14,6 +14,7 @@ type Auth = { key: string; deviceId: string };
 export type AiFacts = {
   name: string;
   kindLabel: string;
+  purpose: "cardapio" | "landing" | "catalogo" | "agendamento";
   category: string;
   city: string;
   address: string;
@@ -32,6 +33,7 @@ function validFacts(data: Partial<AiFacts> | undefined): AiFacts {
   return {
     name: clean(data?.name, 90),
     kindLabel: clean(data?.kindLabel, 80),
+    purpose: (["cardapio", "landing", "catalogo", "agendamento"] as const).includes(data?.purpose as AiFacts["purpose"]) ? data!.purpose! : "landing",
     category: clean(data?.category, 80),
     city: clean(data?.city, 80),
     address: clean(data?.address, 200),
@@ -54,7 +56,7 @@ async function guardAi(auth: Auth) {
   if (!access.ok) return { ok: false, error: access.code as string } as const;
   const configuredLimit = Math.max(1, Number(process.env.AI_DAILY_LIMIT) || 8);
   // O teste gratuito pode experimentar o criador, mas com apenas uma geração por dia.
-  const limit = access.info.kind === "test" ? Math.min(1, configuredLimit) : configuredLimit;
+  const limit = access.info.kind === "test" ? Math.min(1, configuredLimit) : access.info.planId === "free" ? 2 : configuredLimit;
   const sql = await getDb();
   const rows = await sql.query<{ count: number }>(
     `insert into ai_usage (key_id, day, count) values ($1, (now() at time zone 'America/Sao_Paulo')::date, 1)
@@ -97,7 +99,7 @@ DIREÇÃO CRIATIVA E QUALIDADE VISUAL
 - O texto deve ter ritmo editorial: títulos curtos, descrições naturais, sem repetir o nome da empresa em toda seção.
 - Selecione o layout mais adequado entre editorial, urbano, limpo ou vitrine e uma cor hexadecimal de seis dígitos com contraste acessível.
 - Os destaques devem ser úteis para conversão, não frases genéricas. Itens e preços somente quando informados.
-- Não invente informação da empresa nem gere código HTML; o painel constrói a prévia responsiva com segurança.
+- Não invente informação da empresa nem gere código HTML; o painel constrói a prévia responsiva com segurança.\n- Adapte a frase de destaque, texto e chamadas ao formato escolhido (cardapio, landing, catalogo ou agendamento).\n- Para cardápio, priorize leitura de itens e pedido. Para catálogo, organize a vitrine. Para agendamento, priorize horários e contato. Para landing, mantenha uma ação principal clara.\n- Não force itens quando o vendedor não forneceu dados suficientes; não crie seções vazias nem títulos repetidos.
 
 FORMATO: responda APENAS com um JSON válido, sem comentários e sem markdown, neste formato:
 {"tagline": "até 70 caracteres, ou \\"\\" se não houver algo verdadeiro e específico para dizer",
@@ -121,7 +123,8 @@ export const aiCopy = createServerFn({ method: "POST" })
       try {
         const { callGemini, extractJson, AiError, AI_MESSAGES } = await import("./ai.server");
         const f = data.facts;
-        const user = `Crie a direção de conteúdo e identidade visual para um site profissional e responsivo desta empresa. O pedido criativo abaixo deve orientar a composição e a linguagem, sem ser tratado como fato:\n\nTom: ${TONES[f.tone]}.\n\nFATOS CONFIRMADOS\n- Nome: ${f.name}\n- Tipo de negócio: ${f.kindLabel}${f.category ? ` (categoria: ${f.category})` : ""}\n- Cidade: ${f.city || "não informada"}\n- Endereço: ${f.address || "não informado"}\n\nOBSERVAÇÕES DO VENDEDOR (o que a empresa vende ou faz, diferenciais, preços):\n${f.notes || "(nenhuma observação)"}`;
+        const user = `Crie a direção de conteúdo e identidade visual para um site profissional e responsivo desta empresa. O pedido criativo abaixo deve orientar a composição e a linguagem, sem ser tratado como fato:\n\nTom: ${TONES[f.tone]}.\n\nFATOS CONFIRMADOS\n- Nome: ${f.name}\n- Tipo de negócio: ${f.kindLabel}${f.category ? ` (categoria: ${f.category})` : ""}
+- Formato escolhido: ${f.purpose} (a estrutura e chamada principal devem servir a esse formato)\n- Cidade: ${f.city || "não informada"}\n- Endereço: ${f.address || "não informado"}\n\nOBSERVAÇÕES DO VENDEDOR (o que a empresa vende ou faz, diferenciais, preços):\n${f.notes || "(nenhuma observação)"}`;
         let text: string;
         try {
           text = await callGemini({ system: COPY_SYSTEM, user, maxTokens: 1500, temperature: 0.72 });

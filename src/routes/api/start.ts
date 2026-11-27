@@ -12,7 +12,7 @@ async function handle({ request }: { request: Request }) {
     const url = new URL(request.url);
     const clientId = process.env.GOOGLE_CLIENT_ID;
     if (!clientId || !process.env.GOOGLE_CLIENT_SECRET) {
-      return page("O login com Google ainda não foi configurado neste site. Entre com a sua key.", 503);
+      return page("O login com Google ainda não está configurado. O administrador precisa adicionar as credenciais OAuth na Vercel.", 503);
     }
     const { signBlob } = await import("@/lib/keys.server");
     const { randomBytes } = await import("node:crypto");
