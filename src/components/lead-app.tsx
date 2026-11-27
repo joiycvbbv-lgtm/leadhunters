@@ -1,4 +1,5 @@
-import { memo, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { memo, useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   BadgeCheck,
   Building2,
@@ -22,6 +23,8 @@ import {
   MapPin,
   Megaphone,
   MessageCircle,
+  Menu,
+  ChevronRight,
   Phone,
   PhoneCall,
   Plus,
@@ -292,6 +295,31 @@ const TAB_LABELS: Record<Tab, string> = {
   configuracoes: "Configurações",
 };
 
+const NAV_ITEMS = [
+  ["inicio", "Dashboard", LayoutDashboard],
+  ["buscar", "Buscar leads", Search],
+  ["hoje", "Hoje", CalendarClock],
+  ["pipeline", "CRM / Pipeline", Columns3],
+  ["mensagens", "Mensagens", MessageCircle],
+  ["atividades", "Atividades", Clock],
+  ["relatorios", "Relatórios", TrendingUp],
+  ["oportunidades", "Inteligência", Sparkles],
+  ["integracoes", "Integrações", Globe],
+  ["configuracoes", "Configurações", ShieldCheck],
+  ["vendas", "Vendas", Wallet],
+] as const;
+
+const MOBILE_TABS = [
+  ["inicio", "Início", LayoutDashboard],
+  ["buscar", "Buscar", Search],
+  ["hoje", "Hoje", CalendarClock],
+  ["pipeline", "CRM", Columns3],
+] as const;
+
+function isMobilePrimary(tab: Tab) {
+  return MOBILE_TABS.some(([id]) => id === tab);
+}
+
 const STATUSES: { id: Status; label: string }[] = [
   { id: "novo", label: "Novos leads" },
   { id: "contatado", label: "Primeiro contato" },
@@ -510,16 +538,17 @@ function money(value: number) {
 }
 
 function BrandMark({ className = "size-6" }: { className?: string }) {
+  const gradientId = useId();
   return (
     <svg className={className} viewBox="0 0 48 48" fill="none" aria-hidden="true">
       <defs>
-        <linearGradient id="leadHunterMark" x1="4" y1="6" x2="44" y2="42" gradientUnits="userSpaceOnUse">
+        <linearGradient id={gradientId} x1="4" y1="6" x2="44" y2="42" gradientUnits="userSpaceOnUse">
           <stop stopColor="#6dc1ed" />
           <stop offset=".52" stopColor="#258bc8" />
           <stop offset="1" stopColor="#0d5f96" />
         </linearGradient>
       </defs>
-      <path d="M3.5 25.1C10.3 13.8 20.9 7.6 32 8.7c4.5.4 8.7 2.2 12.4 5.4-4.1.5-7 2-8.8 4.3 3.8 2.7 6.2 6.1 7.1 10.1-4.4-1.3-8.5-1.6-12.1-.8-4 6.4-10 9.7-17.1 9.1-6.2-.5-10.1-3.4-11.7-8.6l1.7-3.1Z" fill="url(#leadHunterMark)" />
+      <path d="M3.5 25.1C10.3 13.8 20.9 7.6 32 8.7c4.5.4 8.7 2.2 12.4 5.4-4.1.5-7 2-8.8 4.3 3.8 2.7 6.2 6.1 7.1 10.1-4.4-1.3-8.5-1.6-12.1-.8-4 6.4-10 9.7-17.1 9.1-6.2-.5-10.1-3.4-11.7-8.6l1.7-3.1Z" fill={`url(#${gradientId})`} />
       <path d="M20.4 35.9c-3.7 5.4-7.9 8.1-12.7 8 2.2-3.8 3.1-7.1 2.7-9.8M18.3 13.4 15 6l10.9 4.6" stroke="#70b9e0" strokeWidth="2.1" strokeLinejoin="round" />
       <path d="M38.2 19.7c-1.4 1.1-3.1 1.5-5.1 1.1" stroke="#e5f3fd" strokeWidth="1.3" strokeLinecap="round" />
       <circle cx="34.8" cy="16.5" r="1.35" fill="#fff" />
@@ -607,6 +636,8 @@ function ObservationBadge({ observedAt, showMissing = false }: { observedAt?: st
 }
 
 type AccessInfo = Extract<KeyCheck, { ok: true }>["info"];
+
+const ACCESS_ERRORS = ["KEY_INVALIDA", "KEY_REVOGADA", "KEY_EXPIRADA", "APARELHOS", "NAO_VINCULADO"];
 
 function accessMessage(code: string) {
   switch (code) {
@@ -860,7 +891,7 @@ const LeadCard = memo(function LeadCard({
           </div>
           </div>
         </div>
-        <div className="flex shrink-0 gap-2">
+        <div className="lead-actions flex shrink-0 gap-2">
           <a
             href={waLink(lead.phone, lead.name, message, city)}
             target="_blank"
@@ -888,7 +919,7 @@ const LeadCard = memo(function LeadCard({
           </button>
         </div>
       </div>
-      <div className="mt-3 flex flex-wrap gap-4 text-sm">
+      <div className="lead-secondary-actions mt-3 flex flex-wrap gap-4 text-sm">
         {onPrompt && (
           <button type="button" onClick={() => onPrompt(lead)} className="font-semibold text-primary hover:underline">
             Criar com IA
@@ -1009,8 +1040,9 @@ const PipelineRow = memo(function PipelineRow({
             </div>
           ) : null}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="pipeline-row-actions flex flex-wrap items-center gap-2">
           <select
+            aria-label="Status do lead"
             value={lead.status}
             onChange={(event) => onStatus(lead.id, event.target.value as Status)}
             className="rounded-xl border border-border bg-surface-2 px-2.5 py-2 text-sm outline-none focus:border-primary"
@@ -1099,7 +1131,7 @@ const KanbanBoard = memo(function KanbanBoard({
 }) {
   const [over, setOver] = useState<Status | null>(null);
   return (
-    <div className="flex gap-3 overflow-x-auto pb-3">
+    <div className="pipeline-board flex gap-3 overflow-x-auto pb-3">
       {STATUSES.map((status) => {
         const column = rows.filter((row) => row.status === status.id);
         return (
@@ -1183,6 +1215,20 @@ const KanbanBoard = memo(function KanbanBoard({
 
 export function LeadApp() {
   const [tab, setTab] = useState<Tab>("inicio");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [tab]);
+
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const closeMenuOnDesktop = () => {
+      if (desktop.matches) setMobileMenuOpen(false);
+    };
+    desktop.addEventListener("change", closeMenuOnDesktop);
+    return () => desktop.removeEventListener("change", closeMenuOnDesktop);
+  }, []);
   const [ready, setReady] = useState(false);
   const [city, setCity] = useState(CITIES[0]);
   const [countryCode, setCountryCode] = useState("BR");
@@ -2530,7 +2576,7 @@ export function LeadApp() {
             </div>
           </section>
           <section className={`login-panel relative flex flex-col justify-center p-5 sm:p-8 lg:p-10 ${card}`}>
-            <div className="mb-7 flex items-center gap-3 lg:hidden">
+            <div className="login-mobile-brand mb-7 flex items-center gap-3 lg:hidden">
               <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-deep text-primary-fg shadow-lg">
                 <BrandMark className="size-5" />
               </div>
@@ -2542,7 +2588,7 @@ export function LeadApp() {
             <div className="mb-4 hidden justify-center lg:flex">
               <BrandMark className="size-16" />
             </div>
-            <div className="mb-6 text-center">
+            <div className="login-intro mb-6 text-center">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Acesso seguro</p>
               <h1 className="mt-2 font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl">{authMode === "signup" ? "Crie sua conta" : "Entre no LeadHunter"}</h1>
               <p className="mt-2 max-w-md text-sm leading-6 text-muted">
@@ -2567,7 +2613,7 @@ export function LeadApp() {
               <button className={btnPrimary + " w-full"} type="submit" disabled={authBusy || !deviceId}>
                 {authBusy ? "Aguarde..." : authMode === "signup" ? "Criar conta grátis" : "Entrar"}
               </button>
-              <button type="button" disabled={authBusy} className="w-full text-sm font-semibold text-primary hover:underline" onClick={() => { setAuthMode(authMode === "login" ? "signup" : "login"); setAuthError(""); setAuthPassword(""); }}>
+              <button type="button" disabled={authBusy} className="login-switch w-full text-sm font-semibold text-primary hover:underline" onClick={() => { setAuthMode(authMode === "login" ? "signup" : "login"); setAuthError(""); setAuthPassword(""); }}>
                 {authMode === "login" ? "Ainda não tem conta? Cadastre-se" : "Já tem conta? Entrar"}
               </button>
             </form>
@@ -2577,7 +2623,7 @@ export function LeadApp() {
               onClick={() => {
                 window.location.href = `/api/google/start?d=${encodeURIComponent(deviceId)}`;
               }}
-              className={`flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border bg-surface text-sm font-semibold text-fg transition hover:border-primary ${btnPrimary}`}
+              className="login-google flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border bg-surface text-sm font-semibold text-fg transition hover:border-primary"
             >
               <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
                 <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-8.9Z" />
@@ -2587,7 +2633,7 @@ export function LeadApp() {
               </svg>
               Entrar com Google
             </button>
-            <div className="mt-5 rounded-2xl border border-primary/20 bg-primary-soft/50 p-4">
+            <div className="login-plan mt-5 rounded-2xl border border-primary/20 bg-primary-soft/50 p-4">
               <p className="flex items-center gap-2 text-sm font-bold text-fg"><ShieldCheck className="size-4 text-primary" /> Plano grátis incluído</p>
               <p className="mt-2 text-sm leading-6 text-muted">3 buscas por dia · até 5 leads por busca · 2 gerações de IA por dia · 1 prévia de site.</p>
               <a href="/comprar" className="mt-3 inline-flex text-sm font-semibold text-primary hover:underline">Ver todos os planos</a>
@@ -2614,19 +2660,7 @@ export function LeadApp() {
         <div className="mt-9">
           <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#9aa1ab]">Menu principal</p>
           <nav aria-label="Navegação principal" className="max-h-[55vh] space-y-1 overflow-y-auto pr-1">
-            {([
-              ["inicio", "Dashboard", LayoutDashboard],
-              ["buscar", "Buscar leads", Search],
-              ["hoje", "Hoje", CalendarClock],
-              ["pipeline", "CRM / Pipeline", Columns3],
-              ["mensagens", "Mensagens", MessageCircle],
-              ["atividades", "Atividades", Clock],
-              ["relatorios", "Relatórios", TrendingUp],
-              ["oportunidades", "Inteligência", Sparkles],
-              ["integracoes", "Integrações", Globe],
-              ["configuracoes", "Configurações", ShieldCheck],
-              ["vendas", "Vendas", Wallet],
-            ] as const).map(([id, label, Icon]) => (
+            {NAV_ITEMS.map(([id, label, Icon]) => (
               <button
                 key={id}
                 type="button"
@@ -2675,16 +2709,14 @@ export function LeadApp() {
           </div>
         </div>
       </aside>
-      <header className={`sticky top-3 z-30 mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#e5e7eb] bg-white p-3 shadow-[0_8px_28px_-24px_rgba(15,23,42,.28)] sm:p-4 ${card}`}>
-        <div className="flex items-center gap-3 lg:hidden">
-          <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-b from-primary to-primary-deep text-primary-fg shadow-[0_8px_20px_-8px_rgba(79,70,229,0.45)]">
+      <header className={`app-topbar sticky top-3 z-30 mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#e5e7eb] bg-white p-3 shadow-[0_8px_28px_-24px_rgba(15,23,42,.28)] sm:p-4 ${card}`}>
+        <div className="app-mobile-heading flex min-w-0 flex-1 items-center gap-3 lg:hidden">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-b from-primary to-primary-deep text-primary-fg shadow-[0_8px_20px_-8px_rgba(79,70,229,0.45)]">
             <BrandMark className="size-5" />
           </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">LeadHunter</p>
-            <h1 className="font-display text-lg font-semibold leading-tight">
-              {userName ? `Olá, ${userName.split(" ")[0]}` : "Empresas sem site"}
-            </h1>
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">LeadHunter</p>
+            <h1 className="truncate font-display text-lg font-semibold leading-tight">{TAB_LABELS[tab]}</h1>
           </div>
         </div>
         <div className="hidden min-w-0 flex-1 lg:block">
@@ -2693,27 +2725,27 @@ export function LeadApp() {
             {TAB_LABELS[tab]}
           </h1>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="app-header-actions flex flex-wrap items-center gap-2">
          <button
             type="button"
             onClick={() => setMySitesOpen(true)}
             aria-label="Meus sites"
             title="Meus sites"
-            className={`${btnGhost} px-2.5`}
+            className={`app-header-sites ${btnGhost} px-2.5`}
           >
             <Globe className="size-4" />
           </button>
-          <button type="button" onClick={() => setHelpOpen(true)} aria-label="Ajuda" className={`${btnGhost} px-2.5`}>
+          <button type="button" onClick={() => setHelpOpen(true)} aria-label="Ajuda" className={`desktop-header-action hidden lg:inline-flex ${btnGhost} px-2.5`}>
             <HelpCircle className="size-4" />
           </button>
           {installEvent && (
-            <button type="button" onClick={() => void installApp()} className={`${btnGhost} inline-flex items-center gap-2`}>
+            <button type="button" onClick={() => void installApp()} className={`desktop-header-action hidden lg:inline-flex ${btnGhost} items-center gap-2`}>
               <Smartphone className="size-4" /> Instalar
             </button>
           )}
           <span
             title={sync === "error" ? "Sem conexão: seus dados estão só neste aparelho por enquanto" : sync === "saving" ? "Salvando na nuvem…" : "Salvo na nuvem"}
-            className="flex size-9 items-center justify-center text-muted"
+            className="app-sync-indicator flex size-9 shrink-0 items-center justify-center text-muted"
           >
             {sync === "saving" ? (
               <Loader2 className="size-4 animate-spin" />
@@ -2724,10 +2756,10 @@ export function LeadApp() {
             )}
           </span>
 
-          <a href="/comprar" className={`inline-flex items-center gap-2 ${btnGhost}`}>
+          <a href="/comprar" className={`desktop-header-action hidden lg:inline-flex items-center gap-2 ${btnGhost}`}>
             <Wallet className="size-4" /> Planos
           </a>
-          <button type="button" onClick={() => void logoutAndSave()} className={`inline-flex items-center gap-2 ${btnGhost}`}>
+          <button type="button" onClick={() => void logoutAndSave()} className={`desktop-header-action hidden lg:inline-flex items-center gap-2 ${btnGhost}`}>
             <LogOut className="size-4" /> Sair
           </button>
         </div>
@@ -2773,17 +2805,18 @@ export function LeadApp() {
       {tab === "inicio" && (
         <section className="fade-up space-y-5">
           <div className="dashboard-hero relative isolate overflow-hidden rounded-[2rem] p-6 text-white shadow-xl sm:p-8">
-            <div className="flex flex-col gap-7 xl:flex-row xl:items-end xl:justify-between">
+            <div className="dashboard-hero-content flex flex-col gap-7 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-2xl">
                 <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white">
                   <Sparkles className="size-3.5" /> Central de prospecção
                 </span>
                 <h2 className="mt-4 font-display text-3xl font-bold tracking-tight sm:text-4xl">Encontre oportunidades. Feche mais negócios.</h2>
                 <p className="mt-3 max-w-xl text-sm leading-6 text-white/75 sm:text-base">Seus contatos, retornos e sites em um só lugar. Escolha uma ação para continuar de onde parou.</p>
+                <p className="mt-3 text-xs font-semibold text-primary lg:hidden">{totalFound} empresas encontradas</p>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="dashboard-actions flex flex-wrap gap-2">
                 <button type="button" onClick={() => setTab("buscar")} className="dashboard-hero-action inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/20">
-                  <Search className="size-4" /> Buscar empresas
+                  <Search className="size-4" /> Buscar leads
                 </button>
                 {pipeline.length > 0 && (
                   <button type="button" onClick={() => openSiteEditor(pipeline[0].id)} className="dashboard-hero-action inline-flex items-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-slate-900 shadow-lg transition hover:-translate-y-0.5">
@@ -2795,7 +2828,7 @@ export function LeadApp() {
                 </button>
               </div>
             </div>
-            <div className="mt-7 grid grid-cols-2 gap-3 border-t border-white/15 pt-5 sm:grid-cols-5">
+            <div className="dashboard-hero-stats mt-7 hidden grid-cols-2 gap-3 border-t border-white/15 pt-5 lg:grid lg:grid-cols-5">
               {[
                 ["Empresas encontradas", totalFound],
                 ["Ativos", pipeline.filter((row) => row.status !== "fechado" && row.status !== "perdido").length],
@@ -2811,7 +2844,7 @@ export function LeadApp() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="dashboard-kpis grid grid-cols-2 gap-3 lg:grid-cols-4">
             {([
               ["Leads ativos", String(pipeline.filter((row) => row.status !== "fechado" && row.status !== "perdido").length), Users, "pipeline"],
               ["Retornos pendentes", String(dueCount), CalendarClock, "hoje"],
@@ -2946,20 +2979,21 @@ export function LeadApp() {
 
       {tab === "buscar" && (
         <section className="fade-up space-y-5">
-          <div className="rounded-3xl border border-sky-200/80 bg-gradient-to-br from-white via-white to-sky-50 p-5 shadow-sm sm:p-6">
+          <div className="search-intro rounded-3xl border border-sky-200/80 bg-gradient-to-br from-white via-white to-sky-50 p-5 shadow-sm sm:p-6">
             <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
               <div className="max-w-2xl">
-                <span className="inline-flex items-center gap-2 rounded-full bg-sky-100 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-sky-800">
+                <span className="hidden items-center gap-2 rounded-full bg-sky-100 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-sky-800 lg:inline-flex">
                   <Search className="size-3.5" /> Busca inteligente
                 </span>
-                <h2 className="mt-3 font-display text-2xl font-bold tracking-tight sm:text-3xl">Encontre empresas para abordar</h2>
+                <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl lg:mt-3">Encontre empresas para abordar</h2>
                 <p className="mt-2 text-sm leading-relaxed text-muted sm:text-base">
-                  Escolha um segmento e uma região. O buscador organiza oportunidades com telefone, avaliações e sinais de presença online.
+                  Escolha o segmento e a região para encontrar empresas com telefone, avaliações e presença online.
                 </p>
               </div>
-              <div className="grid grid-cols-3 gap-2 text-center lg:min-w-[360px]">
+              <p className="text-xs font-semibold text-primary lg:hidden">Até {info?.planId === "free" ? 5 : 60} leads por busca · Google Places</p>
+              <div className="hidden grid-cols-3 gap-2 text-center lg:grid lg:min-w-[360px]">
                 <div className="rounded-2xl border border-sky-100 bg-white/90 px-2 py-3">
-                  <strong className="block text-lg font-bold text-primary">60</strong>
+                  <strong className="block text-lg font-bold text-primary">{info?.planId === "free" ? 5 : 60}</strong>
                   <span className="text-[11px] text-muted">máx. por busca</span>
                 </div>
                 <div className="rounded-2xl border border-sky-100 bg-white/90 px-2 py-3">
@@ -2972,13 +3006,13 @@ export function LeadApp() {
                 </div>
               </div>
             </div>
-            <div className="mt-5 grid gap-2 border-t border-sky-100 pt-4 sm:grid-cols-3">
+            <div className="mt-5 hidden gap-2 border-t border-sky-100 pt-4 lg:grid lg:grid-cols-3">
               <div className="flex items-center gap-2 text-sm text-slate-600"><span className="grid size-6 place-items-center rounded-full bg-primary text-xs font-bold text-white">1</span> Defina o segmento</div>
               <div className="flex items-center gap-2 text-sm text-slate-600"><span className="grid size-6 place-items-center rounded-full bg-primary text-xs font-bold text-white">2</span> Escolha a região</div>
               <div className="flex items-center gap-2 text-sm text-slate-600"><span className="grid size-6 place-items-center rounded-full bg-primary text-xs font-bold text-white">3</span> Revise e salve os leads</div>
             </div>
           </div>
-          <div className={`grid gap-4 p-4 sm:grid-cols-2 sm:p-5 ${card}`}>
+          <div className={`search-form grid gap-4 p-4 sm:grid-cols-2 sm:p-5 ${card}`}>
             <label className="block text-sm sm:col-span-2">
               <span className="mb-1.5 block font-semibold">País</span>
               <select
@@ -3457,11 +3491,11 @@ export function LeadApp() {
 
       {tab === "pipeline" && (
         <section className="fade-up space-y-4">
-          <div className={`flex flex-wrap items-center gap-2 p-3 ${card}`}>
+          <div className={`pipeline-tools flex flex-wrap items-center gap-2 p-3 ${card}`}>
             <input
               value={pipeQuery}
               onChange={(event) => setPipeQuery(event.target.value)}
-              placeholder="Buscar no pipeline (nome, telefone, cidade, notas)"
+              placeholder="Buscar no CRM"
               className="min-w-0 flex-1 rounded-xl border border-border bg-surface-2 px-3.5 py-2.5 text-sm outline-none placeholder:text-muted/70 focus:border-primary"
             />
             <button
@@ -3519,6 +3553,7 @@ export function LeadApp() {
               <button
                 type="button"
                 aria-label="Ver em lista"
+                aria-pressed={view === "lista"}
                 onClick={() => setView("lista")}
                 className={`rounded-lg p-1.5 ${view === "lista" ? "bg-surface text-primary shadow-sm" : "text-muted"}`}
               >
@@ -3527,6 +3562,7 @@ export function LeadApp() {
               <button
                 type="button"
                 aria-label="Ver em quadro"
+                aria-pressed={view === "quadro"}
                 onClick={() => setView("quadro")}
                 className={`rounded-lg p-1.5 ${view === "quadro" ? "bg-surface text-primary shadow-sm" : "text-muted"}`}
               >
@@ -3534,7 +3570,7 @@ export function LeadApp() {
               </button>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="pipeline-filters flex flex-wrap gap-2" aria-label="Filtros do pipeline">
             <button type="button" onClick={() => setFilter("todos")} className={chip(filter === "todos")}>
               Todos ({pipeline.length})
             </button>
@@ -4052,14 +4088,14 @@ export function LeadApp() {
               <label className={btnGhost + " cursor-pointer"}>{profileBusy?"Preparando…":"Alterar foto"}<input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(event)=>{void updateProfilePhoto(event.target.files?.[0]);event.target.value="";}}/></label>
             </div>
             <label className="block text-sm">Nome<input value={profileNameDraft} onChange={(event)=>setProfileNameDraft(event.target.value)} maxLength={100} className={field + " mt-1"}/></label><button type="button" onClick={saveProfile} className={btnPrimary}>Salvar perfil</button>
-            <div className="rounded-xl bg-surface-2 p-3 text-sm"><p className="font-semibold">Conta Google</p><p className="mt-1 text-muted">Consulte a página Planos para ver seu limite e os próximos níveis.</p></div>
+            <div className="rounded-xl bg-surface-2 p-3 text-sm"><p className="font-semibold">Sua conta</p><p className="mt-1 text-muted">Consulte a página Planos para ver seu limite e os próximos níveis.</p></div>
             </div>
             <div className={"space-y-4 p-5 " + card}><h3 className="font-semibold">Pesquisa e aparência</h3>
               <label className="block text-sm">Cidade padrão<input value={city} onChange={(event)=>setCity(event.target.value)} placeholder="Cidade, UF" className={field + " mt-1"}/></label>
               <label className="block text-sm">Segmento padrão<select value={niche} onChange={(event)=>setNiche(event.target.value)} className={field + " mt-1"}>{ALL_NICHES.map((item)=><option key={item} value={item}>{item}</option>)}</select></label>
               <label className="block text-sm">Nota mínima<select value={minRating} onChange={(event)=>setMinRating(Number(event.target.value))} className={field + " mt-1"}>{[0,3,3.5,4,4.5].map((value)=><option key={value} value={value}>{value} estrelas</option>)}</select></label>
               <label className="block text-sm">Mínimo de avaliações<input type="number" min={0} value={minReviews} onChange={(event)=>setMinReviews(Math.max(0,Number(event.target.value)||0))} className={field + " mt-1"}/></label>
-              <label className="block text-sm">Quantidade por busca<select value={quantity} onChange={(event)=>setQuantity(Number(event.target.value))} className={field + " mt-1"}>{QUANTITIES.filter((value)=>accessInfo?.kind!=="free"||value<=5).map((value)=><option key={value} value={value}>{value} empresas</option>)}</select></label>
+              <label className="block text-sm">Quantidade por busca<select value={quantity} onChange={(event)=>setQuantity(Number(event.target.value))} className={field + " mt-1"}>{QUANTITIES.filter((value)=>info?.planId!=="free"||value<=5).map((value)=><option key={value} value={value}>{value} empresas</option>)}</select></label>
               <label className="block text-sm">Bairro preferido<input value={neighborhood} onChange={(event)=>setNeighborhood(event.target.value)} placeholder="Opcional" className={field + " mt-1"}/></label>
               <label className="block text-sm">Presença digital<select value={siteMode} onChange={(event)=>setSiteMode(event.target.value as typeof siteMode)} className={field + " mt-1"}><option value="sem">Somente sem site</option><option value="social">Sem site ou só redes sociais</option><option value="todas">Todas as empresas</option></select></label>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={broad} onChange={(event)=>setBroad(event.target.checked)} className="accent-[var(--color-primary)]"/>Ampliar termos da busca</label>
@@ -4222,35 +4258,69 @@ export function LeadApp() {
         </div>
       )}
       {aiLeadBusyId && <span className="sr-only" aria-live="polite">Gerando mensagem personalizada</span>}
-      <nav
-        className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-surface/95 backdrop-blur sm:hidden"
-        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
-      >
-        {(
-          [
-            ["inicio", "Resumo", LayoutDashboard],
-            ["buscar", "Buscar", Search],
-            ["hoje", "Hoje", CalendarClock],
-            ["pipeline", "Pipeline", Users],
-            ["vendas", "Vendas", Wallet],
-          ] as const
-        ).map(([id, label, Icon]) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTab(id)}
-            className={`relative flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold ${
-              tab === id ? "text-primary" : "text-muted"
-            }`}
-          >
-            <Icon className="size-5" />
-            {label}
-            {id === "hoje" && dueCount > 0 && (
-              <span className="absolute right-1/4 top-1.5 rounded-full bg-danger px-1.5 text-[9px] font-bold text-white">{dueCount}</span>
-            )}
-          </button>
-        ))}
-      </nav>
+      <Dialog.Root open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <nav className="mobile-tabbar lg:hidden" aria-label="Navegação do aplicativo">
+          {MOBILE_TABS.map(([id, label, Icon]) => (
+            <button
+              key={id}
+              type="button"
+              aria-current={tab === id ? "page" : undefined}
+              onClick={() => setTab(id)}
+              className="mobile-tab"
+            >
+              <span className="mobile-tab-icon">
+                <Icon className="size-5" />
+                {id === "hoje" && dueCount > 0 && <span className="mobile-tab-badge">{dueCount}</span>}
+              </span>
+              {label}
+            </button>
+          ))}
+          <Dialog.Trigger asChild>
+            <button type="button" className="mobile-tab" data-selected={!isMobilePrimary(tab)}>
+              <span className="mobile-tab-icon"><Menu className="size-5" /></span>
+              Mais
+            </button>
+          </Dialog.Trigger>
+        </nav>
+        <Dialog.Portal>
+          <Dialog.Overlay className="mobile-menu-overlay" />
+          <Dialog.Content className="mobile-menu" aria-describedby={undefined}>
+            <div className="mobile-menu-head">
+              <div className="min-w-0">
+                <Dialog.Title className="text-xl font-bold">Mais opções</Dialog.Title>
+                <p className="mt-0.5 truncate text-sm text-muted">{userName || "Sua conta LeadHunter"}</p>
+              </div>
+              <Dialog.Close asChild><button className="mobile-menu-close" aria-label="Fechar menu" type="button"><X className="size-5" /></button></Dialog.Close>
+            </div>
+            <div className="mobile-menu-list">
+              {NAV_ITEMS.filter(([id]) => !isMobilePrimary(id)).map(([id, label, Icon]) => (
+                <Dialog.Close asChild key={id}>
+                  <button type="button" onClick={() => setTab(id)} aria-current={tab === id ? "page" : undefined} className="mobile-menu-option">
+                    <Icon className="size-5 shrink-0" /><span>{label}</span><ChevronRight className="size-4 shrink-0" />
+                  </button>
+                </Dialog.Close>
+              ))}
+            </div>
+            <div className="mobile-menu-account">
+              <Dialog.Close asChild>
+                <button type="button" className="mobile-menu-option" onClick={() => setMySitesOpen(true)}><Globe className="size-5 shrink-0" /><span>Meus sites</span><ChevronRight className="size-4 shrink-0" /></button>
+              </Dialog.Close>
+              <Dialog.Close asChild>
+                <button type="button" className="mobile-menu-option" onClick={() => setHelpOpen(true)}><HelpCircle className="size-5 shrink-0" /><span>Ajuda</span><ChevronRight className="size-4 shrink-0" /></button>
+              </Dialog.Close>
+              {installEvent && (
+                <Dialog.Close asChild>
+                  <button type="button" className="mobile-menu-option" onClick={() => void installApp()}><Smartphone className="size-5 shrink-0" /><span>Instalar aplicativo</span><ChevronRight className="size-4 shrink-0" /></button>
+                </Dialog.Close>
+              )}
+              <a href="/comprar" className="mobile-menu-option"><Wallet className="size-5 shrink-0" /><span>Planos</span><ChevronRight className="size-4 shrink-0" /></a>
+              <Dialog.Close asChild>
+                <button type="button" className="mobile-menu-option mobile-menu-logout" onClick={() => void logoutAndSave()}><LogOut className="size-5 shrink-0" /><span>Sair da conta</span><ChevronRight className="size-4 shrink-0" /></button>
+              </Dialog.Close>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
       {siteLeadId &&
         (() => {
           const siteLead = pipeline.find((row) => row.id === siteLeadId) ?? siteExtra ?? undefined;
@@ -4597,7 +4667,7 @@ export function LeadApp() {
       {toast && (
         <div
           role="status"
-          className="fade-up fixed bottom-20 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full bg-fg px-5 py-2.5 text-sm font-semibold text-bg shadow-lg"
+          className="app-toast fade-up fixed bottom-20 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full bg-fg px-5 py-2.5 text-sm font-semibold text-bg shadow-lg"
         >
           {toast}
           {toastAction && (

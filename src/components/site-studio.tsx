@@ -494,10 +494,10 @@ export function SiteStudio({
   );
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-bg">
-      <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 border-b border-border bg-surface/95 px-4 py-3 backdrop-blur">
-        <p className="flex items-center gap-2 font-display text-lg font-semibold">
-          <Sparkles className="size-5 text-primary" /> Criador IA · {lead.name}
+    <div className="site-studio fixed inset-0 z-50 overflow-y-auto bg-bg">
+      <div className="site-studio-header sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 border-b border-border bg-surface/95 px-4 py-3 backdrop-blur">
+        <p className="flex min-w-0 items-center gap-2 font-display text-lg font-semibold">
+          <Sparkles className="size-5 shrink-0 text-primary" /><span className="truncate">Criador IA · {lead.name}</span>
         </p>
         <div className="flex items-center gap-2">
           <div className="flex gap-1 lg:hidden">
@@ -533,7 +533,7 @@ export function SiteStudio({
           </div>
         </section>
       ) : (
-        <div className="mx-auto grid max-w-7xl gap-5 p-4 lg:grid-cols-2">
+        <div className="site-studio-grid mx-auto grid max-w-7xl gap-5 p-4 lg:grid-cols-2">
           <div className={`space-y-5 ${pane === "previa" ? "hidden lg:block" : ""}`}>
             {error && <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm font-medium text-danger">{error}</p>}
 
@@ -564,7 +564,7 @@ export function SiteStudio({
           </div>
 
           <div className={`lg:sticky lg:top-20 lg:h-[calc(100vh-6rem)] ${pane === "editar" ? "hidden lg:block" : ""}`}>
-            <div className={`flex h-[78vh] min-h-[560px] flex-col overflow-hidden ${card} lg:h-full`}>
+            <div className={`site-studio-preview flex h-[78vh] min-h-[560px] flex-col overflow-hidden ${card} lg:h-full`}>
               <div className="space-y-3 border-b border-border p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
@@ -602,7 +602,7 @@ export function SiteStudio({
                     </div>
                   </div>
                 ) : (
-                  <div className="w-full min-w-[300px] overflow-hidden rounded-xl border border-border bg-[#17191f] p-1.5 shadow-[0_24px_70px_-24px_rgba(0,0,0,0.45)]">
+                  <div className="w-full min-w-0 overflow-hidden rounded-xl border border-border bg-[#17191f] p-1.5 shadow-[0_24px_70px_-24px_rgba(0,0,0,0.45)]">
                     <div className="flex h-8 items-center gap-1.5 rounded-t-lg bg-[#252832] px-3">
                       <span className="size-2 rounded-full bg-[#f87171]" />
                       <span className="size-2 rounded-full bg-[#fbbf24]" />
