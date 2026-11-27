@@ -29,6 +29,6 @@ async function handle() {
   });
 }
 
-export const Route = createFileRoute("/api/saude")({
+export const Route = createFileRoute("/saude")({
   server: { handlers: { GET: handle } },
 });

@@ -41,6 +41,7 @@ import {
   Zap,
 } from "lucide-react";
 import { checkAccessKey, searchPlaces, type KeyCheck, type Lead } from "@/lib/leads.functions";
+import { authenticateEmail } from "@/lib/email-auth.functions";
 import { aiLeadMessage } from "@/lib/ai.functions";
 import { loadCloud, saveCloud, type CloudData } from "@/lib/cloud.functions";
 import { getIntegrationStatus, type IntegrationStatus } from "@/lib/integrations.functions";
@@ -616,13 +617,13 @@ function accessMessage(code: string) {
     case "APARELHOS":
       return "Esta conta atingiu o limite de dispositivos.";
     case "NAO_VINCULADO":
-      return "Entre novamente com Google neste dispositivo.";
+      return "Entre novamente neste dispositivo.";
     case "SEM_BANCO":
       return "O servidor ainda não tem banco de dados. O dono precisa conectar o Neon na Vercel (veja /api/saude).";
     case "ERRO_SERVIDOR":
       return "Erro no servidor ao validar o acesso. Tente novamente em instantes.";
     default:
-      return "Não consegui validar sua conta Google. Entre novamente.";
+      return "Não consegui validar sua conta. Entre novamente.";
   }
 }
 
@@ -1253,6 +1254,11 @@ export function LeadApp() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [step, setStep] = useState<"login" | "app">("login");
   const [authError, setAuthError] = useState("");
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authName, setAuthName] = useState("");
+  const [authBusy, setAuthBusy] = useState(false);
   const [accessKey, setAccessKey] = useState("");
   const [userName, setUserName] = useState("");
   const [profileNameDraft, setProfileNameDraft] = useState("");
@@ -2348,6 +2354,36 @@ export function LeadApp() {
     setInstallEvent(null);
   }
 
+  async function submitEmailAuth() {
+    if (authBusy || !deviceId) return;
+    setAuthBusy(true);
+    setAuthError("");
+    try {
+      const result = await authenticateEmail({
+        data: { mode: authMode, email: authEmail, password: authPassword, name: authName, deviceId },
+      });
+      if (!result.ok) {
+        const messages: Record<string, string> = {
+          DADOS_INVALIDOS: "Confira os dados. A senha deve ter entre 8 e 128 caracteres.",
+          CREDENCIAIS_INVALIDAS: "E-mail ou senha incorretos.",
+          CADASTRO_INDISPONIVEL: "Não foi possível criar a conta. Tente entrar com seu e-mail.",
+          MUITAS_TENTATIVAS: "Muitas tentativas. Aguarde 15 minutos e tente novamente.",
+        };
+        setAuthError(messages[result.code] ?? accessMessage(result.code));
+        return;
+      }
+      saveAccessKey(result.token);
+      setAccessKey(result.token);
+      setInfo(result.info);
+      setAuthPassword("");
+      setStep("app");
+    } catch {
+      setAuthError("Não consegui acessar sua conta agora. Tente novamente.");
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+
   function logout(message = "") {
     clearAccessKey();
     clearLocalData();
@@ -2508,14 +2544,34 @@ export function LeadApp() {
             </div>
             <div className="mb-6 text-center">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Acesso seguro</p>
-              <h1 className="mt-2 font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl">Entre no LeadHunter</h1>
+              <h1 className="mt-2 font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl">{authMode === "signup" ? "Crie sua conta" : "Entre no LeadHunter"}</h1>
               <p className="mt-2 max-w-md text-sm leading-6 text-muted">
-                Use sua conta Google. Uma conta nova começa automaticamente no plano grátis.
+                Entre com e-mail e senha ou Google. Contas novas começam no plano grátis.
               </p>
             </div>
             {authError && (
               <p className="mb-4 rounded-lg bg-danger/10 px-3 py-2 text-sm font-medium text-danger">{authError}</p>
             )}
+            <form className="mb-4 space-y-3" onSubmit={(event) => { event.preventDefault(); void submitEmailAuth(); }}>
+              {authMode === "signup" && (
+                <label className="block text-sm font-semibold">Nome
+                  <input className={field + " mt-1"} value={authName} onChange={(event) => setAuthName(event.target.value)} autoComplete="name" minLength={2} maxLength={100} required />
+                </label>
+              )}
+              <label className="block text-sm font-semibold">E-mail
+                <input className={field + " mt-1"} type="email" value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} autoComplete="email" maxLength={254} required />
+              </label>
+              <label className="block text-sm font-semibold">Senha
+                <input className={field + " mt-1"} type="password" value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} autoComplete={authMode === "signup" ? "new-password" : "current-password"} minLength={8} maxLength={128} required />
+              </label>
+              <button className={btnPrimary + " w-full"} type="submit" disabled={authBusy || !deviceId}>
+                {authBusy ? "Aguarde..." : authMode === "signup" ? "Criar conta grátis" : "Entrar"}
+              </button>
+              <button type="button" disabled={authBusy} className="w-full text-sm font-semibold text-primary hover:underline" onClick={() => { setAuthMode(authMode === "login" ? "signup" : "login"); setAuthError(""); setAuthPassword(""); }}>
+                {authMode === "login" ? "Ainda não tem conta? Cadastre-se" : "Já tem conta? Entrar"}
+              </button>
+            </form>
+            <div className="mb-4 flex items-center gap-3 text-xs text-muted"><span className="h-px flex-1 bg-border"/>ou<span className="h-px flex-1 bg-border"/></div>
             <button
               type="button"
               onClick={() => {
@@ -3996,7 +4052,7 @@ export function LeadApp() {
               <label className={btnGhost + " cursor-pointer"}>{profileBusy?"Preparando…":"Alterar foto"}<input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(event)=>{void updateProfilePhoto(event.target.files?.[0]);event.target.value="";}}/></label>
             </div>
             <label className="block text-sm">Nome<input value={profileNameDraft} onChange={(event)=>setProfileNameDraft(event.target.value)} maxLength={100} className={field + " mt-1"}/></label><button type="button" onClick={saveProfile} className={btnPrimary}>Salvar perfil</button>
-            <div className="rounded-xl bg-surface-2 p-3 text-sm"><p className="font-semibold">Conta Google</p><p className="mt-1 text-muted">Entre com sua conta Google. Consulte a página Planos para ver seu limite e os próximos níveis.</p></div>
+            <div className="rounded-xl bg-surface-2 p-3 text-sm"><p className="font-semibold">Conta Google</p><p className="mt-1 text-muted">Consulte a página Planos para ver seu limite e os próximos níveis.</p></div>
             </div>
             <div className={"space-y-4 p-5 " + card}><h3 className="font-semibold">Pesquisa e aparência</h3>
               <label className="block text-sm">Cidade padrão<input value={city} onChange={(event)=>setCity(event.target.value)} placeholder="Cidade, UF" className={field + " mt-1"}/></label>
@@ -4013,7 +4069,7 @@ export function LeadApp() {
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={mobileOnly} onChange={(event)=>setMobileOnly(event.target.checked)} className="accent-[var(--color-primary)]"/>Priorizar celular</label>
             </div>
           </div>
-          <div className={"flex flex-col gap-4 p-5 " + card}><div><h3 className="font-semibold">Privacidade e conta</h3><p className="mt-1 text-sm text-muted">Exporte seus leads antes de sair. O acesso à sua conta é protegido pelo login Google.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={()=>exportCsv(pipeline)} className={btnGhost}><Download className="size-4"/>Exportar dados</button><a href="/privacidade" className={btnGhost}>Política de privacidade</a><a href="/termos" className={btnGhost}>Termos de uso</a><a href="/suporte" className={btnGhost}>Central de ajuda</a><button type="button" onClick={()=>void logoutAndSave()} className={btnGhost + " text-danger"}><LogOut className="size-4"/>Sair da conta</button></div></div>
+          <div className={"flex flex-col gap-4 p-5 " + card}><div><h3 className="font-semibold">Privacidade e conta</h3><p className="mt-1 text-sm text-muted">Exporte seus leads antes de sair. O acesso à sua conta é protegido pelo login.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={()=>exportCsv(pipeline)} className={btnGhost}><Download className="size-4"/>Exportar dados</button><a href="/privacidade" className={btnGhost}>Política de privacidade</a><a href="/termos" className={btnGhost}>Termos de uso</a><a href="/suporte" className={btnGhost}>Central de ajuda</a><button type="button" onClick={()=>void logoutAndSave()} className={btnGhost + " text-danger"}><LogOut className="size-4"/>Sair da conta</button></div></div>
         </section>
       )}
     </div>

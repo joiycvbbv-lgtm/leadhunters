@@ -11,76 +11,231 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
-import { Route as ApiMpWebhookRouteImport } from './routes/api/mp-webhook'
-import { Route as ApiSaudeRouteImport } from './routes/api/saude'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as ComprarRouteImport } from './routes/comprar'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
+import { Route as SaudeRouteImport } from './routes/saude'
+import { Route as SuporteRouteImport } from './routes/suporte'
+import { Route as TermosRouteImport } from './routes/termos'
+import { Route as ApiMpWebhookRouteImport } from './routes/api/mp-webhook'
+import { Route as ApiPlacePhotoRouteImport } from './routes/api/place-photo'
+import { Route as ApiSaudeRouteImport } from './routes/api/saude'
+import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe-webhook'
+import { Route as SSlugRouteImport } from './routes/s.$slug'
+import { Route as ApiGoogleCallbackRouteImport } from './routes/api/google/callback'
+import { Route as ApiGoogleStartRouteImport } from './routes/api/google/start'
+import { Route as MetricSlugEventRouteImport } from './routes/metric.$slug.$event'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComprarRoute = ComprarRouteImport.update({
+  id: '/comprar',
+  path: '/comprar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SaudeRoute = SaudeRouteImport.update({
+  id: '/saude',
+  path: '/saude',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuporteRoute = SuporteRouteImport.update({
+  id: '/suporte',
+  path: '/suporte',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiMpWebhookRoute = ApiMpWebhookRouteImport.update({
   id: '/api/mp-webhook',
   path: '/api/mp-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
-
+const ApiPlacePhotoRoute = ApiPlacePhotoRouteImport.update({
+  id: '/api/place-photo',
+  path: '/api/place-photo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSaudeRoute = ApiSaudeRouteImport.update({
   id: '/api/saude',
   path: '/api/saude',
   getParentRoute: () => rootRouteImport,
 } as any)
-
-const ComprarRoute = ComprarRouteImport.update({
-  id: '/comprar',
-  path: '/comprar',
+const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
+  id: '/api/stripe-webhook',
+  path: '/api/stripe-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SSlugRoute = SSlugRouteImport.update({
+  id: '/s/$slug',
+  path: '/s/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGoogleCallbackRoute = ApiGoogleCallbackRouteImport.update({
+  id: '/api/google/callback',
+  path: '/api/google/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGoogleStartRoute = ApiGoogleStartRouteImport.update({
+  id: '/api/google/start',
+  path: '/api/google/start',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MetricSlugEventRoute = MetricSlugEventRouteImport.update({
+  id: '/metric/$slug/$event',
+  path: '/metric/$slug/$event',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
-  '/api/mp-webhook': typeof ApiMpWebhookRoute
-  '/api/saude': typeof ApiSaudeRoute
+  '/app': typeof AppRoute
   '/comprar': typeof ComprarRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/saude': typeof SaudeRoute
+  '/suporte': typeof SuporteRoute
+  '/termos': typeof TermosRoute
+  '/api/mp-webhook': typeof ApiMpWebhookRoute
+  '/api/place-photo': typeof ApiPlacePhotoRoute
+  '/api/saude': typeof ApiSaudeRoute
+  '/api/stripe-webhook': typeof ApiStripeWebhookRoute
+  '/s/$slug': typeof SSlugRoute
+  '/api/google/callback': typeof ApiGoogleCallbackRoute
+  '/api/google/start': typeof ApiGoogleStartRoute
+  '/metric/$slug/$event': typeof MetricSlugEventRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
-  '/api/mp-webhook': typeof ApiMpWebhookRoute
-  '/api/saude': typeof ApiSaudeRoute
+  '/app': typeof AppRoute
   '/comprar': typeof ComprarRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/saude': typeof SaudeRoute
+  '/suporte': typeof SuporteRoute
+  '/termos': typeof TermosRoute
+  '/api/mp-webhook': typeof ApiMpWebhookRoute
+  '/api/place-photo': typeof ApiPlacePhotoRoute
+  '/api/saude': typeof ApiSaudeRoute
+  '/api/stripe-webhook': typeof ApiStripeWebhookRoute
+  '/s/$slug': typeof SSlugRoute
+  '/api/google/callback': typeof ApiGoogleCallbackRoute
+  '/api/google/start': typeof ApiGoogleStartRoute
+  '/metric/$slug/$event': typeof MetricSlugEventRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
-  '/api/mp-webhook': typeof ApiMpWebhookRoute
-  '/api/saude': typeof ApiSaudeRoute
+  '/app': typeof AppRoute
   '/comprar': typeof ComprarRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/saude': typeof SaudeRoute
+  '/suporte': typeof SuporteRoute
+  '/termos': typeof TermosRoute
+  '/api/mp-webhook': typeof ApiMpWebhookRoute
+  '/api/place-photo': typeof ApiPlacePhotoRoute
+  '/api/saude': typeof ApiSaudeRoute
+  '/api/stripe-webhook': typeof ApiStripeWebhookRoute
+  '/s/$slug': typeof SSlugRoute
+  '/api/google/callback': typeof ApiGoogleCallbackRoute
+  '/api/google/start': typeof ApiGoogleStartRoute
+  '/metric/$slug/$event': typeof MetricSlugEventRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/api/mp-webhook' | '/api/saude' | '/comprar'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/app'
+    | '/comprar'
+    | '/privacidade'
+    | '/saude'
+    | '/suporte'
+    | '/termos'
+    | '/api/mp-webhook'
+    | '/api/place-photo'
+    | '/api/saude'
+    | '/api/stripe-webhook'
+    | '/s/$slug'
+    | '/api/google/callback'
+    | '/api/google/start'
+    | '/metric/$slug/$event'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/api/mp-webhook' | '/api/saude' | '/comprar'
-  id: '__root__' | '/' | '/admin' | '/api/mp-webhook' | '/api/saude' | '/comprar'
+  to:
+    | '/'
+    | '/admin'
+    | '/app'
+    | '/comprar'
+    | '/privacidade'
+    | '/saude'
+    | '/suporte'
+    | '/termos'
+    | '/api/mp-webhook'
+    | '/api/place-photo'
+    | '/api/saude'
+    | '/api/stripe-webhook'
+    | '/s/$slug'
+    | '/api/google/callback'
+    | '/api/google/start'
+    | '/metric/$slug/$event'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/app'
+    | '/comprar'
+    | '/privacidade'
+    | '/saude'
+    | '/suporte'
+    | '/termos'
+    | '/api/mp-webhook'
+    | '/api/place-photo'
+    | '/api/saude'
+    | '/api/stripe-webhook'
+    | '/s/$slug'
+    | '/api/google/callback'
+    | '/api/google/start'
+    | '/metric/$slug/$event'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
-  ApiMpWebhookRoute: typeof ApiMpWebhookRoute
-  ApiSaudeRoute: typeof ApiSaudeRoute
+  AppRoute: typeof AppRoute
   ComprarRoute: typeof ComprarRoute
+  PrivacidadeRoute: typeof PrivacidadeRoute
+  SaudeRoute: typeof SaudeRoute
+  SuporteRoute: typeof SuporteRoute
+  TermosRoute: typeof TermosRoute
+  ApiMpWebhookRoute: typeof ApiMpWebhookRoute
+  ApiPlacePhotoRoute: typeof ApiPlacePhotoRoute
+  ApiSaudeRoute: typeof ApiSaudeRoute
+  ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
+  SSlugRoute: typeof SSlugRoute
+  ApiGoogleCallbackRoute: typeof ApiGoogleCallbackRoute
+  ApiGoogleStartRoute: typeof ApiGoogleStartRoute
+  MetricSlugEventRoute: typeof MetricSlugEventRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,18 +254,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/mp-webhook': {
-      id: '/api/mp-webhook'
-      path: '/api/mp-webhook'
-      fullPath: '/api/mp-webhook'
-      preLoaderRoute: typeof ApiMpWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/saude': {
-      id: '/api/saude'
-      path: '/api/saude'
-      fullPath: '/api/saude'
-      preLoaderRoute: typeof ApiSaudeRouteImport
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/comprar': {
@@ -120,15 +268,110 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComprarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/saude': {
+      id: '/saude'
+      path: '/saude'
+      fullPath: '/saude'
+      preLoaderRoute: typeof SaudeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/suporte': {
+      id: '/suporte'
+      path: '/suporte'
+      fullPath: '/suporte'
+      preLoaderRoute: typeof SuporteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/mp-webhook': {
+      id: '/api/mp-webhook'
+      path: '/api/mp-webhook'
+      fullPath: '/api/mp-webhook'
+      preLoaderRoute: typeof ApiMpWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/place-photo': {
+      id: '/api/place-photo'
+      path: '/api/place-photo'
+      fullPath: '/api/place-photo'
+      preLoaderRoute: typeof ApiPlacePhotoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/saude': {
+      id: '/api/saude'
+      path: '/api/saude'
+      fullPath: '/api/saude'
+      preLoaderRoute: typeof ApiSaudeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stripe-webhook': {
+      id: '/api/stripe-webhook'
+      path: '/api/stripe-webhook'
+      fullPath: '/api/stripe-webhook'
+      preLoaderRoute: typeof ApiStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/s/$slug': {
+      id: '/s/$slug'
+      path: '/s/$slug'
+      fullPath: '/s/$slug'
+      preLoaderRoute: typeof SSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/google/callback': {
+      id: '/api/google/callback'
+      path: '/api/google/callback'
+      fullPath: '/api/google/callback'
+      preLoaderRoute: typeof ApiGoogleCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/google/start': {
+      id: '/api/google/start'
+      path: '/api/google/start'
+      fullPath: '/api/google/start'
+      preLoaderRoute: typeof ApiGoogleStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/metric/$slug/$event': {
+      id: '/metric/$slug/$event'
+      path: '/metric/$slug/$event'
+      fullPath: '/metric/$slug/$event'
+      preLoaderRoute: typeof MetricSlugEventRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
-  ApiMpWebhookRoute: ApiMpWebhookRoute,
-  ApiSaudeRoute: ApiSaudeRoute,
+  AppRoute: AppRoute,
   ComprarRoute: ComprarRoute,
+  PrivacidadeRoute: PrivacidadeRoute,
+  SaudeRoute: SaudeRoute,
+  SuporteRoute: SuporteRoute,
+  TermosRoute: TermosRoute,
+  ApiMpWebhookRoute: ApiMpWebhookRoute,
+  ApiPlacePhotoRoute: ApiPlacePhotoRoute,
+  ApiSaudeRoute: ApiSaudeRoute,
+  ApiStripeWebhookRoute: ApiStripeWebhookRoute,
+  SSlugRoute: SSlugRoute,
+  ApiGoogleCallbackRoute: ApiGoogleCallbackRoute,
+  ApiGoogleStartRoute: ApiGoogleStartRoute,
+  MetricSlugEventRoute: MetricSlugEventRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
