@@ -45,13 +45,13 @@ export const Route = createFileRoute("/api/place-photo")({
 
         try {
           const resourcePath = segments.map((segment) => encodeURIComponent(segment)).join("/");
-          const upstream = await fetch(
-            `https://places.googleapis.com/v1/${resourcePath}/media?maxWidthPx=720`,
-            {
-              headers: { "X-Goog-Api-Key": apiKey, Accept: "image/*" },
-              signal: AbortSignal.timeout(10_000),
-            },
-          );
+          const photoUrl = new URL(`https://places.googleapis.com/v1/${resourcePath}/media`);
+          photoUrl.searchParams.set("maxWidthPx", "720");
+          photoUrl.searchParams.set("key", apiKey);
+          const upstream = await fetch(photoUrl, {
+            headers: { Accept: "image/*" },
+            signal: AbortSignal.timeout(10_000),
+          });
           const contentType = upstream.headers.get("content-type") || "";
           if (!upstream.ok || !contentType.startsWith("image/") || !upstream.body) {
             return imageResponse(502);
