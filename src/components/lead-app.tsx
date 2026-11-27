@@ -15,11 +15,9 @@ import {
   Flame,
   Globe,
   HelpCircle,
-  KeyRound,
   LayoutDashboard,
   List,
   Loader2,
-  LogIn,
   LogOut,
   MapPin,
   Megaphone,
@@ -37,7 +35,6 @@ import {
   Trash2,
   TrendingUp,
   Upload,
-  UserPlus,
   Users,
   Wallet,
   X,
@@ -47,13 +44,12 @@ import { checkAccessKey, searchPlaces, type KeyCheck, type Lead } from "@/lib/le
 import { aiLeadMessage } from "@/lib/ai.functions";
 import { loadCloud, saveCloud, type CloudData } from "@/lib/cloud.functions";
 import { getIntegrationStatus, type IntegrationStatus } from "@/lib/integrations.functions";
-import { getAnnouncement, requestTrial } from "@/lib/extras.functions";
+import { getAnnouncement } from "@/lib/extras.functions";
 import { SUPPORT_WHATSAPP } from "@/lib/plans";
 import { ALL_NICHES, NICHE_GROUPS } from "@/lib/niches";
 import { OBJECOES } from "@/lib/objecoes";
 import { MySitesModal, SiteStudio } from "@/components/site-studio";
 import { SiteAuditModal } from "@/components/site-audit";
-import { linkGoogle } from "@/lib/google.functions";
 import {
   FIRST_TEMPLATES,
   FOLLOW_TEMPLATES,
@@ -418,17 +414,6 @@ const TEMPS = [
   ["frio", "❄️ Frio"],
 ] as const;
 
-function readTicket(ticket: string): { email: string; name: string } {
-  try {
-    const body = ticket.split(".")[0].replace(/-/g, "+").replace(/_/g, "/");
-    const bytes = Uint8Array.from(atob(body + "=".repeat((4 - (body.length % 4)) % 4)), (ch) => ch.charCodeAt(0));
-    const data = JSON.parse(new TextDecoder().decode(bytes)) as { email?: string; name?: string };
-    return { email: data.email ?? "", name: data.name ?? "" };
-  } catch {
-    return { email: "", name: "" };
-  }
-}
-
 function daysSince(iso: string) {
   return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
 }
@@ -521,13 +506,6 @@ function leadsFromCsv(text: string, fallbackCity: string, ticket: number) {
 
 function money(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
-}
-
-function formatKey(raw: string) {
-  const c = raw.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 18);
-  return [c.slice(0, 2), c.slice(2, 6), c.slice(6, 10), c.slice(10, 14), c.slice(14, 18)]
-    .filter(Boolean)
-    .join("-");
 }
 
 function BrandMark({ className = "size-6" }: { className?: string }) {
@@ -632,19 +610,19 @@ type AccessInfo = Extract<KeyCheck, { ok: true }>["info"];
 function accessMessage(code: string) {
   switch (code) {
     case "KEY_REVOGADA":
-      return "Essa key foi desativada. Fale com o vendedor.";
+      return "Este acesso foi desativado. Fale com o suporte.";
     case "KEY_EXPIRADA":
-      return "Sua key venceu. Renove para continuar usando.";
+      return "Seu plano venceu. Acesse Planos para ver as opções.";
     case "APARELHOS":
-      return "Essa key já está em uso no máximo de aparelhos permitido.";
+      return "Esta conta atingiu o limite de dispositivos.";
     case "NAO_VINCULADO":
-      return "Entre de novo com a sua key neste aparelho.";
+      return "Entre novamente com Google neste dispositivo.";
     case "SEM_BANCO":
       return "O servidor ainda não tem banco de dados. O dono precisa conectar o Neon na Vercel (veja /api/saude).";
     case "ERRO_SERVIDOR":
-      return "Erro no servidor ao validar a key. O dono pode abrir /api/saude para ver o que falta.";
+      return "Erro no servidor ao validar o acesso. Tente novamente em instantes.";
     default:
-      return "Key inválida. Confira e tente de novo.";
+      return "Não consegui validar sua conta Google. Entre novamente.";
   }
 }
 
@@ -1247,10 +1225,6 @@ export function LeadApp() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
   const [annDismissed, setAnnDismissed] = useState("");
-  const [trialOpen, setTrialOpen] = useState(false);
-  const [trialForm, setTrialForm] = useState({ name: "", whatsapp: "" });
-  const [trialBusy, setTrialBusy] = useState(false);
-  const [trialError, setTrialError] = useState("");
   const dueNoticed = useRef(false);
   const [focusOpen, setFocusOpen] = useState(false);
   const [focusQueue, setFocusQueue] = useState<string[]>([]);
@@ -1259,11 +1233,6 @@ export function LeadApp() {
   const [siteLeadId, setSiteLeadId] = useState<string | null>(null);
   const [sitePane, setSitePane] = useState<"site" | "prompt">("site");
   const [siteExtra, setSiteExtra] = useState<SavedLead | null>(null);
-  const [gTicket, setGTicket] = useState("");
-  const [gEmail, setGEmail] = useState("");
-  const [gKey, setGKey] = useState("");
-  const [gBusy, setGBusy] = useState(false);
-  const [gError, setGError] = useState("");
   const [mySitesOpen, setMySitesOpen] = useState(false);
   const [dailyGoal, setDailyGoal] = useState(20);
   const [tourOpen, setTourOpen] = useState(false);
@@ -1283,12 +1252,7 @@ export function LeadApp() {
   const skipSaveRef = useRef(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [step, setStep] = useState<"login" | "app">("login");
-  const [mode, setMode] = useState<"login" | "register">("login");
-  const [keyInput, setKeyInput] = useState("");
-  const [showKey, setShowKey] = useState(false);
-  const [nameInput, setNameInput] = useState("");
   const [authError, setAuthError] = useState("");
-  const [checking, setChecking] = useState(false);
   const [accessKey, setAccessKey] = useState("");
   const [userName, setUserName] = useState("");
   const [profileNameDraft, setProfileNameDraft] = useState("");
@@ -1355,15 +1319,8 @@ export function LeadApp() {
     const device = getDeviceId();
     setDeviceId(device);
     const hash = window.location.hash;
-    if (hash.startsWith("#glogin=") || hash.startsWith("#glink=")) {
+    if (hash.startsWith("#glogin=")) {
       window.history.replaceState(null, "", window.location.pathname + window.location.search);
-      if (hash.startsWith("#glink=")) {
-        const ticket = hash.slice("#glink=".length);
-        setGTicket(ticket);
-        setGEmail(readTicket(ticket).email);
-        setReady(true);
-        return;
-      }
       const token = hash.slice("#glogin=".length);
       checkAccessKey({ data: { key: token, deviceId: device, bind: true } })
         .then((res) => {
@@ -1380,8 +1337,19 @@ export function LeadApp() {
         .finally(() => setReady(true));
       return;
     }
+    if (hash.startsWith("#glink=")) {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      setAuthError("O login foi atualizado. Entre novamente com sua conta Google.");
+      setReady(true);
+      return;
+    }
     const stored = loadAccessKey();
     if (!stored) {
+      setReady(true);
+      return;
+    }
+    if (!stored.startsWith("LHS.")) {
+      clearAccessKey();
       setReady(true);
       return;
     }
@@ -1412,6 +1380,10 @@ export function LeadApp() {
   const isTest = info?.kind === "test";
 
   useEffect(() => {
+    if (info?.planId === "free" && quantity > 5) setQuantity(5);
+  }, [info?.planId, quantity]);
+
+  useEffect(() => {
     // Mantém login e painel com a mesma identidade visual.
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme, step]);
@@ -1424,7 +1396,7 @@ export function LeadApp() {
 
   useEffect(() => {
     if (expiresMs && now >= expiresMs) {
-      logout(isTest ? "Seu teste acabou. Compre uma key para continuar." : "Sua key venceu. Renove para continuar.");
+      logout(isTest ? "Seu período de teste acabou. Acesse Planos para ver as opções." : "Seu plano venceu. Acesse Planos para renovar.");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [now, expiresMs]);
@@ -2018,35 +1990,6 @@ export function LeadApp() {
     [city, ticket],
   );
 
-  async function submitGoogleLink() {
-    setGBusy(true);
-    setGError("");
-    try {
-      const res = await linkGoogle({ data: { ticket: gTicket, key: gKey, deviceId } });
-      if (!res.ok) {
-        setGError(res.error);
-        return;
-      }
-      const who = readTicket(gTicket);
-      if (who.name && !loadUserName()) {
-        saveUserName(who.name);
-        setUserName(who.name);
-        setProfileNameDraft(who.name);
-      }
-      saveAccessKey(res.token);
-      setAccessKey(res.token);
-      setInfo(res.info);
-      setNow(Date.now());
-      setGTicket("");
-      setGKey("");
-      setStep("app");
-    } catch {
-      setGError("Não consegui falar com o servidor. Tente de novo.");
-    } finally {
-      setGBusy(false);
-    }
-  }
-
   function startFocus() {
     const todayStr = todayIso();
     const active = pipelineRef.current.filter((row) => row.status !== "fechado" && row.status !== "perdido");
@@ -2278,28 +2221,6 @@ export function LeadApp() {
     }
   }
 
-  async function submitTrial() {
-    setTrialBusy(true);
-    setTrialError("");
-    try {
-      const res = await requestTrial({
-        data: { name: trialForm.name, whatsapp: trialForm.whatsapp, deviceId },
-      });
-      if (!res.ok) {
-        setTrialError(res.error);
-        return;
-      }
-      saveUserName(trialForm.name);
-      setUserName(trialForm.name.trim());
-      setProfileNameDraft(trialForm.name.trim());
-      await submitKey(res.key);
-    } catch {
-      setTrialError("Não consegui falar com o servidor. Tente de novo.");
-    } finally {
-      setTrialBusy(false);
-    }
-  }
-
   async function draftAiLeadMessage(lead: SavedLead) {
     if (aiLeadBusyId) return;
     setAiLeadBusyId(lead.id);
@@ -2427,43 +2348,6 @@ export function LeadApp() {
     setInstallEvent(null);
   }
 
-  async function submitKey(override?: string) {
-    const key = (override ?? keyInput).trim();
-    const registering = !override && mode === "register";
-    if (registering && nameInput.trim().length < 2) {
-      setAuthError("Digite seu nome para registrar.");
-      return;
-    }
-    if (key.replace(/[^A-Za-z0-9]/g, "").length !== 18) {
-      setAuthError("A key tem 18 caracteres, no formato LH-XXXX-XXXX-XXXX-XXXX.");
-      return;
-    }
-    setChecking(true);
-    setAuthError("");
-    try {
-      const res = await checkAccessKey({ data: { key, deviceId, bind: true } });
-      if (!res.ok) {
-        setAuthError(accessMessage(res.code));
-        return;
-      }
-      saveAccessKey(key);
-      setAccessKey(key);
-      setInfo(res.info);
-      setNow(Date.now());
-      if (registering) {
-        saveUserName(nameInput);
-        setUserName(nameInput.trim());
-        setProfileNameDraft(nameInput.trim());
-      }
-      setKeyInput("");
-      setStep("app");
-    } catch {
-      setAuthError("Não consegui falar com o servidor. Confira a internet e tente de novo (ou abra /api/saude).");
-    } finally {
-      setChecking(false);
-    }
-  }
-
   function logout(message = "") {
     clearAccessKey();
     clearLocalData();
@@ -2479,7 +2363,6 @@ export function LeadApp() {
     setSync("idle");
     versionRef.current = 0;
     dirtyRef.current = false;
-    setKeyInput("");
     setAuthError(message);
     setStep("login");
   }
@@ -2624,202 +2507,36 @@ export function LeadApp() {
               <BrandMark className="size-16" />
             </div>
             <div className="mb-6 text-center">
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">
-                {mode === "login" ? "Bem-vinda de volta" : "Primeiro acesso"}
-              </p>
-              <h1 className="mt-2 font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
-                {mode === "login" ? "Bem-vindo de volta!" : "Ative seu acesso"}
-              </h1>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Acesso seguro</p>
+              <h1 className="mt-2 font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl">Entre no LeadHunter</h1>
               <p className="mt-2 max-w-md text-sm leading-6 text-muted">
-                {mode === "login"
-                  ? "Faça login na sua conta para continuar."
-                  : "Informe seu nome e a chave recebida para ativar sua conta."}
+                Use sua conta Google. Uma conta nova começa automaticamente no plano grátis.
               </p>
             </div>
-
-          <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl bg-primary-soft p-1">
-            {(
-              [
-                ["login", "Entrar", LogIn],
-                ["register", "Primeiro acesso", UserPlus],
-              ] as const
-            ).map(([id, label, Icon]) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => {
-                  setMode(id);
-                  setAuthError("");
-                  setShowKey(false);
-                }}
-                className={`flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition ${
-                  mode === id ? "bg-surface text-primary shadow-sm" : "text-muted hover:text-fg"
-                }`}
-              >
-                <Icon className="size-4" /> {label}
-              </button>
-            ))}
-          </div>
-
-          <p className="mb-5 text-sm leading-6 text-muted">
-            {mode === "login"
-              ? "Use a chave de acesso que você recebeu na compra."
-              : "Informe seu nome e a chave para começar a usar o painel."}
-          </p>
-
-          <form
-            className="space-y-3"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void submitKey();
-            }}
-          >
-            {mode === "register" && (
-              <label className="block text-sm">
-                <span className="mb-1.5 block font-semibold">Seu nome</span>
-                <input
-                  value={nameInput}
-                  onChange={(event) => setNameInput(event.target.value)}
-                  placeholder="Como quer ser chamado"
-                  className={field}
-                  autoComplete="name"
-                />
-              </label>
-            )}
-            <label className="block text-sm">
-              <span className="mb-1.5 block font-semibold">Chave de acesso</span>
-              <div className="relative">
-                <KeyRound className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted" />
-                <input
-                  type={showKey ? "text" : "password"}
-                  value={keyInput}
-                  onChange={(event) => setKeyInput(formatKey(event.target.value))}
-                  placeholder="LH-XXXX-XXXX-XXXX-XXXX"
-                  className={`${field} pl-11 pr-20 font-mono tracking-wider`}
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowKey((value) => !value)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs font-bold text-muted transition hover:bg-primary-soft hover:text-primary"
-                  aria-label={showKey ? "Ocultar chave" : "Mostrar chave"}
-                >
-                  {showKey ? "Ocultar" : "Mostrar"}
-                </button>
-              </div>
-              <p className="mt-1.5 text-xs text-muted">Sua chave só é usada para validar este acesso.</p>
-            </label>
             {authError && (
-              <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm font-medium text-danger">{authError}</p>
+              <p className="mb-4 rounded-lg bg-danger/10 px-3 py-2 text-sm font-medium text-danger">{authError}</p>
             )}
-            <button type="submit" disabled={checking} className={`h-12 w-full ${btnPrimary}`}>
-              {checking ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
-              {mode === "login" ? "Entrar" : "Registrar e entrar"}
+            <button
+              type="button"
+              onClick={() => {
+                window.location.href = `/api/google/start?d=${encodeURIComponent(deviceId)}`;
+              }}
+              className={`flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border bg-surface text-sm font-semibold text-fg transition hover:border-primary ${btnPrimary}`}
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-8.9Z" />
+                <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24Z" />
+                <path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1Z" />
+                <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.5 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1c.9-2.8 3.6-4.9 6.7-4.9Z" />
+              </svg>
+              Entrar com Google
             </button>
-          </form>
-          <div className="mt-5 border-t border-border pt-5">
-            {gTicket ? (
-              <form
-                className="space-y-3"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  void submitGoogleLink();
-                }}
-              >
-                <p className="text-sm">
-                  Conta Google conectada: <strong>{gEmail || "sua conta"}</strong>.
-                </p>
-                <p className="text-xs text-muted">
-                  Falta só ligar a sua key a essa conta. É uma vez só. Depois, é só entrar com o Google, sem digitar a key.
-                </p>
-                <p className="text-xs font-semibold text-muted">Chave de acesso</p>
-                <input
-                  type="password"
-                  value={gKey}
-                  onChange={(event) => setGKey(formatKey(event.target.value))}
-                  placeholder="LH-XXXX-XXXX-XXXX-XXXX"
-                  className={`${field} font-mono tracking-wider`}
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-                {gError && <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm font-medium text-danger">{gError}</p>}
-                <button type="submit" disabled={gBusy || gKey.replace(/[^A-Za-z0-9]/g, "").length !== 18} className={`h-11 w-full ${btnPrimary}`}>
-                  {gBusy ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />} Ligar minha key
-                </button>
-                <button type="button" onClick={() => setGTicket("")} className="w-full text-xs font-semibold text-muted hover:underline">
-                  Cancelar
-                </button>
-              </form>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  window.location.href = `/api/google/start?d=${encodeURIComponent(deviceId)}`;
-                }}
-                className="mb-4 flex h-11 w-full items-center justify-center gap-3 rounded-xl border border-border bg-surface text-sm font-semibold text-fg transition hover:border-primary"
-              >
-                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                  <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-8.9Z" />
-                  <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24Z" />
-                  <path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1Z" />
-                  <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.5 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1c.9-2.8 3.6-4.9 6.7-4.9Z" />
-                </svg>
-                Entrar com Google
-              </button>
-            )}
-            {!gTicket && (<>
-            {!trialOpen ? (
-              <button
-                type="button"
-                onClick={() => setTrialOpen(true)}
-                className="w-full text-sm font-semibold text-primary hover:underline"
-              >
-                Quero testar grátis por 5 minutos
-              </button>
-            ) : (
-              <form
-                className="space-y-3"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  void submitTrial();
-                }}
-              >
-                <p className="text-sm text-muted">
-                  Informe seu nome e WhatsApp para liberar um teste de 5 minutos, com 3 buscas.
-                </p>
-                <input
-                  value={trialForm.name}
-                  onChange={(event) => setTrialForm({ ...trialForm, name: event.target.value })}
-                  placeholder="Seu nome"
-                  className={field}
-                  autoComplete="name"
-                />
-                <input
-                  value={trialForm.whatsapp}
-                  onChange={(event) => setTrialForm({ ...trialForm, whatsapp: event.target.value })}
-                  placeholder="WhatsApp com DDD"
-                  inputMode="tel"
-                  className={field}
-                  autoComplete="tel"
-                />
-                {trialError && (
-                  <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm font-medium text-danger">{trialError}</p>
-                )}
-                <button type="submit" disabled={trialBusy} className={`h-11 w-full ${btnPrimary}`}>
-                  {trialBusy ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-                  Começar o teste
-                </button>
-              </form>
-            )}
-            </>)}
-          </div>
-          <p className="mt-5 text-center text-xs text-muted">
-            Ainda não tem uma chave?{" "}
-            <a href="/comprar" className="font-semibold text-primary hover:underline">
-              Conheça as opções de acesso
-            </a>
-          </p>
+            <div className="mt-5 rounded-2xl border border-primary/20 bg-primary-soft/50 p-4">
+              <p className="flex items-center gap-2 text-sm font-bold text-fg"><ShieldCheck className="size-4 text-primary" /> Plano grátis incluído</p>
+              <p className="mt-2 text-sm leading-6 text-muted">3 buscas por dia · até 5 leads por busca · 2 gerações de IA por dia · 1 prévia de site.</p>
+              <a href="/comprar" className="mt-3 inline-flex text-sm font-semibold text-primary hover:underline">Ver todos os planos</a>
+            </div>
+            <p className="mt-5 text-center text-xs text-muted">Sem cobrança nesta fase. Planos pagos aparecem como “Em breve”.</p>
           </section>
         </div>
       </main>
@@ -2951,6 +2668,9 @@ export function LeadApp() {
             )}
           </span>
 
+          <a href="/comprar" className={`inline-flex items-center gap-2 ${btnGhost}`}>
+            <Wallet className="size-4" /> Planos
+          </a>
           <button type="button" onClick={() => void logoutAndSave()} className={`inline-flex items-center gap-2 ${btnGhost}`}>
             <LogOut className="size-4" /> Sair
           </button>
@@ -2989,7 +2709,7 @@ export function LeadApp() {
             Seu acesso vence em {Math.max(0, Math.ceil((expiresMs - now) / 86400000))} dia(s).
           </span>
           <a href="/comprar" className="font-semibold underline">
-            Renovar
+            Ver planos
           </a>
         </div>
       )}
@@ -3262,7 +2982,7 @@ export function LeadApp() {
                 onChange={(event) => setQuantity(Number(event.target.value))}
                 className={field}
               >
-                {QUANTITIES.map((item) => (
+                {QUANTITIES.filter((item) => info?.planId !== "free" || item <= 5).map((item) => (
                   <option key={item} value={item}>
                     {item} leads
                   </option>
@@ -3426,7 +3146,7 @@ export function LeadApp() {
               {info && (
                 <div className="mt-3">
                   <div className="mb-1 flex justify-between text-xs font-semibold text-muted">
-                    <span>Buscas de hoje</span>
+                    <span>Plano {info.planId === "free" ? "Grátis" : "Pro"} · buscas de hoje</span>
                     <span>
                       {info.usedToday}/{info.dailyLimit}
                     </span>
@@ -3494,7 +3214,7 @@ export function LeadApp() {
             <div className="rounded-xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
               <p>
                 {error.includes("places.googleapis.com")
-                  ? "A chave está válida, mas a Places API (New) ainda não foi ativada nesse projeto do Google Cloud."
+                  ? "A conexão está ativa, mas a Places API (New) ainda não foi ativada nesse projeto do Google Cloud."
                   : error}
               </p>
             </div>
@@ -4276,14 +3996,14 @@ export function LeadApp() {
               <label className={btnGhost + " cursor-pointer"}>{profileBusy?"Preparando…":"Alterar foto"}<input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(event)=>{void updateProfilePhoto(event.target.files?.[0]);event.target.value="";}}/></label>
             </div>
             <label className="block text-sm">Nome<input value={profileNameDraft} onChange={(event)=>setProfileNameDraft(event.target.value)} maxLength={100} className={field + " mt-1"}/></label><button type="button" onClick={saveProfile} className={btnPrimary}>Salvar perfil</button>
-            <div className="rounded-xl bg-surface-2 p-3 text-sm"><p className="font-semibold">Senha</p><p className="mt-1 text-muted">Este aplicativo usa chave de acesso, não senha. Para renovar, fale com o suporte.</p></div>
+            <div className="rounded-xl bg-surface-2 p-3 text-sm"><p className="font-semibold">Conta Google</p><p className="mt-1 text-muted">Entre com sua conta Google. Consulte a página Planos para ver seu limite e os próximos níveis.</p></div>
             </div>
             <div className={"space-y-4 p-5 " + card}><h3 className="font-semibold">Pesquisa e aparência</h3>
               <label className="block text-sm">Cidade padrão<input value={city} onChange={(event)=>setCity(event.target.value)} placeholder="Cidade, UF" className={field + " mt-1"}/></label>
               <label className="block text-sm">Segmento padrão<select value={niche} onChange={(event)=>setNiche(event.target.value)} className={field + " mt-1"}>{ALL_NICHES.map((item)=><option key={item} value={item}>{item}</option>)}</select></label>
               <label className="block text-sm">Nota mínima<select value={minRating} onChange={(event)=>setMinRating(Number(event.target.value))} className={field + " mt-1"}>{[0,3,3.5,4,4.5].map((value)=><option key={value} value={value}>{value} estrelas</option>)}</select></label>
               <label className="block text-sm">Mínimo de avaliações<input type="number" min={0} value={minReviews} onChange={(event)=>setMinReviews(Math.max(0,Number(event.target.value)||0))} className={field + " mt-1"}/></label>
-              <label className="block text-sm">Quantidade por busca<select value={quantity} onChange={(event)=>setQuantity(Number(event.target.value))} className={field + " mt-1"}>{QUANTITIES.map((value)=><option key={value} value={value}>{value} empresas</option>)}</select></label>
+              <label className="block text-sm">Quantidade por busca<select value={quantity} onChange={(event)=>setQuantity(Number(event.target.value))} className={field + " mt-1"}>{QUANTITIES.filter((value)=>accessInfo?.kind!=="free"||value<=5).map((value)=><option key={value} value={value}>{value} empresas</option>)}</select></label>
               <label className="block text-sm">Bairro preferido<input value={neighborhood} onChange={(event)=>setNeighborhood(event.target.value)} placeholder="Opcional" className={field + " mt-1"}/></label>
               <label className="block text-sm">Presença digital<select value={siteMode} onChange={(event)=>setSiteMode(event.target.value as typeof siteMode)} className={field + " mt-1"}><option value="sem">Somente sem site</option><option value="social">Sem site ou só redes sociais</option><option value="todas">Todas as empresas</option></select></label>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={broad} onChange={(event)=>setBroad(event.target.checked)} className="accent-[var(--color-primary)]"/>Ampliar termos da busca</label>
@@ -4293,7 +4013,7 @@ export function LeadApp() {
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={mobileOnly} onChange={(event)=>setMobileOnly(event.target.checked)} className="accent-[var(--color-primary)]"/>Priorizar celular</label>
             </div>
           </div>
-          <div className={"flex flex-col gap-4 p-5 " + card}><div><h3 className="font-semibold">Privacidade e conta</h3><p className="mt-1 text-sm text-muted">Exporte seus leads antes de sair. O acesso é protegido pela chave vinculada a este aparelho.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={()=>exportCsv(pipeline)} className={btnGhost}><Download className="size-4"/>Exportar dados</button><a href="/privacidade" className={btnGhost}>Política de privacidade</a><a href="/termos" className={btnGhost}>Termos de uso</a><a href="/suporte" className={btnGhost}>Central de ajuda</a><button type="button" onClick={()=>void logoutAndSave()} className={btnGhost + " text-danger"}><LogOut className="size-4"/>Sair da conta</button></div></div>
+          <div className={"flex flex-col gap-4 p-5 " + card}><div><h3 className="font-semibold">Privacidade e conta</h3><p className="mt-1 text-sm text-muted">Exporte seus leads antes de sair. O acesso à sua conta é protegido pelo login Google.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={()=>exportCsv(pipeline)} className={btnGhost}><Download className="size-4"/>Exportar dados</button><a href="/privacidade" className={btnGhost}>Política de privacidade</a><a href="/termos" className={btnGhost}>Termos de uso</a><a href="/suporte" className={btnGhost}>Central de ajuda</a><button type="button" onClick={()=>void logoutAndSave()} className={btnGhost + " text-danger"}><LogOut className="size-4"/>Sair da conta</button></div></div>
         </section>
       )}
     </div>
@@ -4709,9 +4429,9 @@ export function LeadApp() {
                   ["Como busco empresas?", "Na aba Buscar, escolha a cidade e o tipo de negócio e clique em buscar. Só aparecem empresas sem site cadastrado no Google."],
                   ["Quando os dados foram consultados?", "Cada cartão mostra quando o Google Places retornou os dados. Isso não confirma se o site ainda está ativo; confira o site ou o Maps antes de abordar leads antigos."],
                   ["O que é a prioridade?", "É uma nota de 0 a 100 que soma nota do Google, número de avaliações, se está aberta agora e se o telefone é celular. Serve para decidir quem chamar primeiro."],
-                  ["Por que a busca acabou?", "Cada key tem um limite de buscas por dia. A barra \"Buscas de hoje\" mostra quanto falta, e o limite volta no dia seguinte."],
+                  ["Por que a busca acabou?", "O plano Grátis inclui 3 buscas por dia. A barra “Buscas de hoje” mostra o uso e o limite volta amanhã."],
                   ["Meus dados ficam salvos?", "Sim, na nuvem, ligados à sua key. Você também pode baixar um backup na aba Vendas."],
-                  ["Posso usar em mais de um aparelho?", "Sim, até o limite da sua key, em geral 2 aparelhos."],
+                  ["Posso usar em mais de um aparelho?", "Sim, até 3 aparelhos no plano Grátis."],
                 ] as const
               ).map(([question, answer]) => (
                 <div key={question}>

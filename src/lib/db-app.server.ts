@@ -23,6 +23,7 @@ async function ensureSchema(sql: Sql) {
 
 // Tabelas de recursos novos (aviso para clientes e teste grátis). Seguro rodar sempre: só cria se faltar.
 const EXTRAS = [
+  "alter table access_keys add column if not exists plan_id text not null default 'pro'",
   `create table if not exists app_settings (
      key text primary key,
      value text not null default '',

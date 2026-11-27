@@ -74,7 +74,8 @@ export type KeyCheck =
   | {
       ok: true;
       info: {
-        kind: "full" | "test";
+        kind: "full" | "test" | "free";
+        planId: string;
         buyer: string;
         expiresAt: string | null;
         dailyLimit: number;
@@ -235,6 +236,7 @@ export const searchPlaces = createServerFn({ method: "POST" })
     const access = await checkAccess(data.accessKey, data.deviceId, false);
     if (!access.ok) return { ok: false, error: access.code };
     const limit = access.info.dailyLimit;
+    const allowedQuantity = access.info.planId === "free" ? Math.min(data.quantity, 5) : data.quantity;
     const used = await consumeSearch(access.keyId, limit);
     if (used === null) return { ok: false, error: "LIMITE_DIARIO" };
     const area = data.neighborhood ? `${data.neighborhood}, ${data.city}` : data.city;
@@ -248,7 +250,7 @@ export const searchPlaces = createServerFn({ method: "POST" })
 
     const take = (places: Place[], base: number) => {
       places.forEach((place, index) => {
-        if (leads.length >= data.quantity) return;
+        if (leads.length >= allowedQuantity) return;
         const kind = siteKindOf(place.websiteUri);
         if (kind === "site" ? data.siteMode !== "todas" : kind === "social" && data.siteMode === "sem") {
           withSite += 1;
@@ -267,7 +269,7 @@ export const searchPlaces = createServerFn({ method: "POST" })
     };
 
     try {
-      for (let page = 0; page < 3 && leads.length < data.quantity; page += 1) {
+      for (let page = 0; page < 3 && leads.length < allowedQuantity; page += 1) {
         if (page > 0) await new Promise((resolve) => setTimeout(resolve, 1800));
         const pageResult = await fetchPage(query, placesKey, pageToken, countryCode);
         if (!pageResult.ok) {
@@ -278,7 +280,7 @@ export const searchPlaces = createServerFn({ method: "POST" })
         take(pageResult.places, page * 20);
 
         // Busca ampla: pergunta de outros jeitos ao Google para achar empresas que a primeira busca não trouxe.
-        if (page === 0 && data.broad && leads.length < data.quantity) {
+        if (page === 0 && data.broad && access.info.planId !== "free" && leads.length < allowedQuantity) {
           const variants = data.niche
             ? [`${data.niche} ${area}`, `${data.niche} perto de ${area}`, `melhores ${data.niche} ${area}`]
             : [`comércio ${area}`, `serviços ${area}`];
@@ -308,7 +310,7 @@ export const searchPlaces = createServerFn({ method: "POST" })
       lead.photoUrl = `/api/place-photo?name=${encodeURIComponent(photoName)}&expires=${photoExpires}&signature=${signature}`;
       delete lead.photoName;
     }
-    return { ok: true, leads, scanned, withSite, asked: data.quantity, usage: { used, limit } };
+    return { ok: true, leads, scanned, withSite, asked: allowedQuantity, usage: { used, limit } };
   });
 
 export const checkAccessKey = createServerFn({ method: "POST" })

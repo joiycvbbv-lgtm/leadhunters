@@ -143,7 +143,10 @@ export const publishSite = createServerFn({ method: "POST" })
       const access = await checkAccess(data.key, data.deviceId, false);
       if (!access.ok) return { ok: false, error: access.code };
       if (access.info.kind === "test") {
-        return { ok: false, error: "A key de teste não publica sites. Escolha um plano para publicar." };
+        return { ok: false, error: "O teste não publica sites. Acesse Planos para ver as opções." };
+      }
+      if (access.info.planId === "free" && data.kind === "final") {
+        return { ok: false, error: "O plano grátis permite criar uma prévia. A publicação estará disponível em um plano futuro." };
       }
       const site = sanitizeSite(data.site);
       if (site.name.length < 2) return { ok: false, error: "Preencha o nome da empresa." };
@@ -183,8 +186,9 @@ export const publishSite = createServerFn({ method: "POST" })
       }
 
       const count = await sql.query<{ n: number }>("select count(*) as n from sites where key_id = $1", [access.keyId]);
-      if ((count[0]?.n ?? 0) >= MAX_SITES) {
-        return { ok: false, error: `Você chegou ao limite de ${MAX_SITES} sites. Apague algum em "Meus sites".` };
+      const siteLimit = access.info.planId === "free" ? 1 : MAX_SITES;
+      if ((count[0]?.n ?? 0) >= siteLimit) {
+        return { ok: false, error: `Você chegou ao limite de ${siteLimit} site(s) deste plano. Acesse Planos para conhecer as próximas opções.` };
       }
       const { randomInt } = await import("node:crypto");
       const alphabet = "abcdefghjkmnpqrstuvwxyz23456789";
@@ -336,6 +340,9 @@ export const setSiteMode = createServerFn({ method: "POST" })
     const { getDb } = await import("./db-app.server");
     const access = await checkAccess(data.key, data.deviceId, false);
     if (!access.ok) return { ok: false, error: access.code };
+    if (access.info.planId === "free" && data.kind === "final") {
+      return { ok: false, error: "O plano Grátis permite uma prévia, sem publicação final." };
+    }
     const sql = await getDb();
     await sql.query(
       `update sites set kind = $3, indexable = $4, updated_at = now(),

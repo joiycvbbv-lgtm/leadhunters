@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ShopApp } from "@/components/shop-app";
+import { PlanApp } from "@/components/plan-app";
 
 export const Route = createFileRoute("/comprar")({
-  component: ShopApp,
+  component: PlanApp,
   head: () => ({ meta: [{ title: "Comprar acesso — LeadHunter" }] }),
 });

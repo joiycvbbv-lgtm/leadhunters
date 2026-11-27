@@ -27,7 +27,7 @@ async function handle({ request }: { request: Request }) {
     if (url.searchParams.get("error")) return page("Você cancelou o login com Google.");
 
     const code = url.searchParams.get("code") || "";
-    const { readBlob, signBlob, issueSessionToken } = await import("@/lib/keys.server");
+    const { readBlob, issueSessionToken, generateKey, hashKey } = await import("@/lib/keys.server");
     const state = readBlob<{ n: string; d: string }>(url.searchParams.get("state") || "", "gstate");
     const cookie = (request.headers.get("cookie") || "").match(/(?:^|;\s*)lh_gn=([a-f0-9]+)/)?.[1];
     if (!code || !state || !cookie || cookie !== state.n) return page("A sessão do login expirou. Volte ao painel e tente de novo.");
@@ -64,11 +64,59 @@ async function handle({ request }: { request: Request }) {
 
     const { getDb } = await import("@/lib/db-app.server");
     const sql = await getDb();
-    const rows = await sql.query<{ key_id: number }>("select key_id from google_links where sub = $1", [info.sub]);
-    if (rows[0]) return redirect(`/#glogin=${issueSessionToken(rows[0].key_id)}`);
+    const linked = await sql.query<{ key_id: number }>("select key_id from google_links where sub = $1", [info.sub]);
+    if (linked[0]) return redirect(`/#glogin=${issueSessionToken(linked[0].key_id)}`);
 
-    const ticket = signBlob({ sub: info.sub, email: info.email, name: info.name || "" }, "glink", 15 * 60_000);
-    return redirect(`/#glink=${ticket}`);
+    // Keep a previously purchased plan when this verified Google email matches it.
+    const legacy = await sql.query<{ id: number }>(
+      `select k.id
+         from access_keys k
+        where k.status = 'ativa' and k.kind = 'full'
+          and exists (
+            select 1 from orders o
+             where o.key_id = k.id and o.paid_at is not null
+               and lower(trim(o.buyer_email)) = lower(trim($1))
+          )
+        order by k.created_at desc limit 1`,
+      [info.email],
+    );
+    let keyId: number | null = null;
+    if (legacy[0]) {
+      await sql.query(
+        "insert into google_links (sub, email, name, key_id) values ($1,$2,$3,$4) on conflict do nothing",
+        [info.sub, info.email.slice(0, 200), (info.name || "").slice(0, 120), legacy[0].id],
+      );
+      const claimed = await sql.query<{ key_id: number }>("select key_id from google_links where sub = $1", [info.sub]);
+      keyId = claimed[0]?.key_id ?? null;
+    }
+
+    if (!keyId) {
+      // Internal entitlement ID only: the customer signs in with Google and never handles a key.
+      const internalKey = generateKey("full");
+      const created = await sql.query<{ id: number }>(
+        `insert into access_keys
+          (key_hash, kind, status, buyer, note, daily_limit, max_devices, plan_id)
+         values ($1, 'free', 'ativa', $2, 'Plano grátis via Google', 3, 3, 'free')
+         returning id`,
+        [hashKey(internalKey), (info.name || info.email).slice(0, 200)],
+      );
+      if (!created[0]) throw new Error("Não consegui criar a conta grátis.");
+      await sql.query(
+        "insert into google_links (sub, email, name, key_id) values ($1,$2,$3,$4) on conflict do nothing",
+        [info.sub, info.email.slice(0, 200), (info.name || "").slice(0, 120), created[0].id],
+      );
+      const account = await sql.query<{ key_id: number }>("select key_id from google_links where sub = $1", [info.sub]);
+      if (!account[0]) {
+        await sql.query("delete from access_keys where id = $1", [created[0].id]);
+        throw new Error("Não consegui associar a conta Google.");
+      }
+      if (account[0].key_id !== created[0].id) {
+        await sql.query("delete from access_keys where id = $1", [created[0].id]);
+      }
+      keyId = account[0].key_id;
+    }
+
+    return redirect(`/#glogin=${issueSessionToken(keyId)}`);
   } catch (error) {
     console.error("[google/callback]", error);
     return page("Não consegui concluir o login com Google. Tente de novo.", 500);
